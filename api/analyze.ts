@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
-import pdf from 'pdf-parse';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdf = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>;
 
 const SYSTEM_PROMPT = `You are a construction contract analyst specializing in glazing and glass installation contracts. Analyze the provided contract text and return a JSON object with the following structure:
 
