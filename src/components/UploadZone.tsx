@@ -18,7 +18,8 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
     accept: {
       'application/pdf': ['.pdf']
     },
-    multiple: false
+    multiple: false,
+    maxSize: 3 * 1024 * 1024
   });
   return (
     <div
@@ -42,7 +43,7 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
 
       <div className="flex items-center space-x-4 text-xs text-slate-400">
         <span className="flex items-center">
-          <FileText className="w-3 h-3 mr-1" /> PDF up to 50MB
+          <FileText className="w-3 h-3 mr-1" /> PDF up to 3MB
         </span>
         <span>•</span>
         <span>Secure Encryption</span>

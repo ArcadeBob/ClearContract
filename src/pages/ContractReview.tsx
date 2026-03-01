@@ -4,6 +4,7 @@ import { FindingCard } from '../components/FindingCard';
 import { CategoryFilter } from '../components/CategoryFilter';
 import { DateTimeline } from '../components/DateTimeline';
 import { SeverityBadge } from '../components/SeverityBadge';
+import { AnalysisProgress } from '../components/AnalysisProgress';
 import { ChevronLeft, Download, Share2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 interface ContractReviewProps {
@@ -68,6 +69,11 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-slate-50 p-8">
+        {contract.status === 'Analyzing' ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <AnalysisProgress isLoading />
+          </div>
+        ) : (
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Findings */}
           <div className="lg:col-span-2 space-y-6">
@@ -152,6 +158,7 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>);
 

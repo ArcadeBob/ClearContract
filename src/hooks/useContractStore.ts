@@ -15,6 +15,12 @@ export function useContractStore() {
     setContracts((prev) => [contract, ...prev]);
   };
 
+  const updateContract = (id: string, updates: Partial<Contract>) => {
+    setContracts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    );
+  };
+
   const navigateTo = (view: ViewState, contractId?: string) => {
     setActiveView(view);
     if (contractId) {
@@ -29,6 +35,7 @@ export function useContractStore() {
     isUploading,
     setIsUploading,
     addContract,
+    updateContract,
     navigateTo,
     setActiveContractId
   };

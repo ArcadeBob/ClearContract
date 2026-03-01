@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -7,62 +7,64 @@ import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
 import { useContractStore } from './hooks/useContractStore';
 import { Contract } from './types/contract';
+import { analyzeContract } from './api/analyzeContract';
 export function App() {
   const {
     contracts,
     activeContract,
     activeView,
     addContract,
+    updateContract,
     navigateTo,
     setActiveContractId
   } = useContractStore();
   const handleUploadComplete = (file: File) => {
-    // Create a new mock contract from the uploaded file
-    const newContract: Contract = {
-      id: `c-${Date.now()}`,
+    const id = `c-${Date.now()}`;
+
+    // Create placeholder contract in Analyzing state
+    const placeholder: Contract = {
+      id,
       name: file.name.replace('.pdf', ''),
-      client: 'New Client Inc.',
+      client: 'Analyzing...',
       type: 'Prime Contract',
       uploadDate: new Date().toISOString().split('T')[0],
-      status: 'Reviewed',
-      riskScore: 65,
-      dates: [
-      {
-        label: 'Start Date',
-        date: '2024-01-01',
-        type: 'Start'
-      },
-      {
-        label: 'Completion',
-        date: '2024-12-31',
-        type: 'Deadline'
-      }],
-
-      findings: [
-      {
-        id: `f-${Date.now()}-1`,
-        severity: 'High',
-        category: 'Legal Issues',
-        title: 'Missing Termination Clause',
-        description:
-        'Contract does not specify termination for convenience terms.',
-        recommendation: 'Add standard termination clause.',
-        clauseReference: 'Section 12'
-      },
-      {
-        id: `f-${Date.now()}-2`,
-        severity: 'Medium',
-        category: 'Insurance Requirements',
-        title: 'High Deductible',
-        description:
-        'Insurance deductible requirement is higher than standard policy.',
-        recommendation: 'Verify with broker.',
-        clauseReference: 'Exhibit B'
-      }]
-
+      status: 'Analyzing',
+      riskScore: 0,
+      findings: [],
+      dates: [],
     };
-    addContract(newContract);
-    navigateTo('review', newContract.id);
+    addContract(placeholder);
+    navigateTo('review', id);
+
+    // Run analysis in background
+    analyzeContract(file)
+      .then((result) => {
+        updateContract(id, {
+          status: 'Reviewed',
+          client: result.client,
+          type: result.contractType,
+          riskScore: result.riskScore,
+          findings: result.findings,
+          dates: result.dates,
+        });
+      })
+      .catch((err) => {
+        updateContract(id, {
+          status: 'Reviewed',
+          client: 'Unknown',
+          riskScore: 0,
+          findings: [
+            {
+              id: `f-${Date.now()}-err`,
+              severity: 'Critical',
+              category: 'Risk Assessment',
+              title: 'Analysis Failed',
+              description: err instanceof Error ? err.message : 'An unexpected error occurred during analysis.',
+              recommendation: 'Please try uploading the contract again.',
+            },
+          ],
+        });
+      });
   };
   const renderContent = () => {
     switch (activeView) {
