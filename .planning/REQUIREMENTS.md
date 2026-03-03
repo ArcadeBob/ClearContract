@@ -81,34 +81,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| LEGAL-01 | — | Pending |
-| LEGAL-02 | — | Pending |
-| LEGAL-03 | — | Pending |
-| LEGAL-04 | — | Pending |
-| LEGAL-05 | — | Pending |
-| LEGAL-06 | — | Pending |
-| LEGAL-07 | — | Pending |
-| LEGAL-08 | — | Pending |
-| LEGAL-09 | — | Pending |
-| LEGAL-10 | — | Pending |
-| LEGAL-11 | — | Pending |
-| LEGAL-12 | — | Pending |
-| SCOPE-01 | — | Pending |
-| SCOPE-02 | — | Pending |
-| SCOPE-03 | — | Pending |
-| SCOPE-04 | — | Pending |
-| COMP-01 | — | Pending |
-| OUT-01 | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| LEGAL-01 | Phase 2 | Pending |
+| LEGAL-02 | Phase 2 | Pending |
+| LEGAL-03 | Phase 2 | Pending |
+| LEGAL-04 | Phase 2 | Pending |
+| LEGAL-05 | Phase 2 | Pending |
+| LEGAL-06 | Phase 3 | Pending |
+| LEGAL-07 | Phase 3 | Pending |
+| LEGAL-08 | Phase 3 | Pending |
+| LEGAL-09 | Phase 3 | Pending |
+| LEGAL-10 | Phase 3 | Pending |
+| LEGAL-11 | Phase 3 | Pending |
+| LEGAL-12 | Phase 3 | Pending |
+| SCOPE-01 | Phase 4 | Pending |
+| SCOPE-02 | Phase 4 | Pending |
+| SCOPE-03 | Phase 4 | Pending |
+| COMP-01 | Phase 4 | Pending |
+| SCOPE-04 | Phase 5 | Pending |
+| OUT-01 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-02*
-*Last updated: 2026-03-02 after initial definition*
+*Last updated: 2026-03-02 after roadmap creation*
