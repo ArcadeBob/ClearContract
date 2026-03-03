@@ -29,12 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Analysis produces findings across multiple categories from separate focused API calls (not a single truncated response)
   3. PDFs that previously caused errors (scanned, image-heavy, large) are handled gracefully with clear error messages
   4. Every API response is valid structured JSON -- no parsing failures, no truncated responses
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01: Zod schemas, extended types, dependency updates
+- [ ] 01-02: Server pipeline rewrite (Files API, multi-pass, structured outputs)
+- [ ] 01-03: Client-side integration (response mapping, 10MB upload limit)
 
 ### Phase 2: Core Legal Risk Analysis
 **Goal**: User receives detailed legal risk findings with exact verbatim clause text and plain-English explanations for the highest-priority clause types
