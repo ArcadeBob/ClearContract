@@ -19,6 +19,8 @@ export interface Finding {
   description: string;
   recommendation?: string;
   clauseReference?: string;
+  clauseText?: string;
+  explanation?: string;
 }
 
 export interface ContractDate {
@@ -37,6 +39,7 @@ export interface Contract {
   findings: Finding[];
   dates: ContractDate[];
   riskScore: number; // 0-100
+  passResults?: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
 }
 
 export type ViewState =
