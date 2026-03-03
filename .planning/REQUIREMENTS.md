@@ -12,7 +12,7 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 - [ ] **INFRA-01**: Analysis bug is fixed — user can upload a PDF and receive analysis results without errors
 - [ ] **INFRA-02**: Multi-pass analysis engine sends multiple focused Claude API calls per contract instead of one 4096-token call
 - [ ] **INFRA-03**: Native PDF support replaces pdf-parse — Claude reads PDFs directly via document content blocks, with unpdf fallback for large contracts
-- [ ] **INFRA-04**: Structured output via Zod schemas guarantees valid JSON responses with no parsing failures
+- [x] **INFRA-04**: Structured output via Zod schemas guarantees valid JSON responses with no parsing failures
 
 ### Legal Risk Analysis
 
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 1 | Pending |
 | INFRA-02 | Phase 1 | Pending |
 | INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Complete |
 | LEGAL-01 | Phase 2 | Pending |
 | LEGAL-02 | Phase 2 | Pending |
 | LEGAL-03 | Phase 2 | Pending |
