@@ -6,9 +6,10 @@ export interface AnalysisResult {
   riskScore: number;
   findings: Finding[];
   dates: ContractDate[];
+  passResults: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ function readFileAsBase64(file: File): Promise<string> {
 
 export async function analyzeContract(file: File): Promise<AnalysisResult> {
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 3MB.`);
+    throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
   }
 
   if (file.type !== 'application/pdf') {
