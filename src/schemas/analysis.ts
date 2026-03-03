@@ -62,6 +62,15 @@ export const PassResultSchema = z.object({
   dates: z.array(ContractDateSchema),
 });
 
+// --- Risk overview pass schema (extends PassResult with client/contract metadata) ---
+
+export const RiskOverviewResultSchema = z.object({
+  client: z.string(),
+  contractType: ContractTypeEnum,
+  findings: z.array(FindingSchema),
+  dates: z.array(ContractDateSchema),
+});
+
 // --- Pass status tracking ---
 
 const PassStatusSchema = z.object({
@@ -86,4 +95,5 @@ export const MergedAnalysisResultSchema = z.object({
 export type FindingResult = z.infer<typeof FindingSchema>;
 export type ContractDateResult = z.infer<typeof ContractDateSchema>;
 export type PassResult = z.infer<typeof PassResultSchema>;
+export type RiskOverviewResult = z.infer<typeof RiskOverviewResultSchema>;
 export type MergedAnalysisResult = z.infer<typeof MergedAnalysisResultSchema>;
