@@ -46,6 +46,7 @@ export function App() {
           riskScore: result.riskScore,
           findings: result.findings,
           dates: result.dates,
+          passResults: result.passResults,
         });
       })
       .catch((err) => {
