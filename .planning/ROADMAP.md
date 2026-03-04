@@ -12,7 +12,7 @@ ClearContract transforms from a broken proof-of-concept into a comprehensive gla
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Pipeline Foundation** - Fix production bugs, build multi-pass analysis engine with native PDF and structured output
+- [ ] **Phase 1: Pipeline Foundation** - Fix production bugs, build multi-pass analysis engine with native PDF and structured output
 - [ ] **Phase 2: Core Legal Risk Analysis** - First legal analysis pass producing findings with exact clause quotes for the 4 most critical clause types
 - [ ] **Phase 3: Extended Legal Coverage** - Complete legal clause coverage across insurance, termination, flow-down, delays, liens, disputes, and change orders
 - [ ] **Phase 4: Scope, Compliance, and Verbiage** - Extract full scope of work, dates/deadlines, labor compliance checklist, and flag questionable verbiage
@@ -29,12 +29,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Analysis produces findings across multiple categories from separate focused API calls (not a single truncated response)
   3. PDFs that previously caused errors (scanned, image-heavy, large) are handled gracefully with clear error messages
   4. Every API response is valid structured JSON -- no parsing failures, no truncated responses
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 01-01: Zod schemas, extended types, dependency updates
 - [x] 01-02: Server pipeline rewrite (Files API, multi-pass, structured outputs)
 - [x] 01-03: Client-side integration (response mapping, 10MB upload limit)
+- [ ] 01-04: Gap closure -- fix model for structured outputs, add Vite dev proxy
 
 ### Phase 2: Core Legal Risk Analysis
 **Goal**: User receives detailed legal risk findings with exact verbatim clause text and plain-English explanations for the highest-priority clause types
@@ -102,7 +103,7 @@ Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phas
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Pipeline Foundation | 3/3 | Complete | 2026-03-03 |
+| 1. Pipeline Foundation | 3/4 | Gap closure needed | - |
 | 2. Core Legal Risk Analysis | 0/2 | Not started | - |
 | 3. Extended Legal Coverage | 0/2 | Not started | - |
 | 4. Scope, Compliance, and Verbiage | 0/2 | Not started | - |
