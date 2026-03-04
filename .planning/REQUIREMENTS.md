@@ -16,11 +16,11 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 
 ### Legal Risk Analysis
 
-- [ ] **LEGAL-01**: Every finding includes the exact verbatim clause text from the contract plus a plain-English explanation of why it's problematic
-- [ ] **LEGAL-02**: Indemnification clauses are identified by type (limited, intermediate, broad) with risk explanation and insurance alignment check
-- [ ] **LEGAL-03**: Pay-if-paid and pay-when-paid provisions are detected with enforceability context
-- [ ] **LEGAL-04**: Liquidated damages clauses are flagged with amount/rate, proportionality assessment, and cap status
-- [ ] **LEGAL-05**: Retainage terms are extracted — percentage, release conditions, and whether tied to sub's work or project completion
+- [x] **LEGAL-01**: Every finding includes the exact verbatim clause text from the contract plus a plain-English explanation of why it's problematic
+- [x] **LEGAL-02**: Indemnification clauses are identified by type (limited, intermediate, broad) with risk explanation and insurance alignment check
+- [x] **LEGAL-03**: Pay-if-paid and pay-when-paid provisions are detected with enforceability context
+- [x] **LEGAL-04**: Liquidated damages clauses are flagged with amount/rate, proportionality assessment, and cap status
+- [x] **LEGAL-05**: Retainage terms are extracted — percentage, release conditions, and whether tied to sub's work or project completion
 - [ ] **LEGAL-06**: Insurance requirements are extracted into a structured checklist — coverage types, limits, endorsements, certificate holder details
 - [ ] **LEGAL-07**: Termination clauses are analyzed — types, notice periods, compensation upon termination, cure periods
 - [ ] **LEGAL-08**: Flow-down provisions are identified with warnings about obligations beyond the sub's scope or insurance coverage
@@ -85,11 +85,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Complete |
-| LEGAL-01 | Phase 2 | Pending |
-| LEGAL-02 | Phase 2 | Pending |
-| LEGAL-03 | Phase 2 | Pending |
-| LEGAL-04 | Phase 2 | Pending |
-| LEGAL-05 | Phase 2 | Pending |
+| LEGAL-01 | Phase 2 | Complete |
+| LEGAL-02 | Phase 2 | Complete |
+| LEGAL-03 | Phase 2 | Complete |
+| LEGAL-04 | Phase 2 | Complete |
+| LEGAL-05 | Phase 2 | Complete |
 | LEGAL-06 | Phase 3 | Pending |
 | LEGAL-07 | Phase 3 | Pending |
 | LEGAL-08 | Phase 3 | Pending |
