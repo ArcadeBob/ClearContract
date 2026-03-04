@@ -35,7 +35,7 @@ Plans:
 - [x] 01-01: Zod schemas, extended types, dependency updates
 - [x] 01-02: Server pipeline rewrite (Files API, multi-pass, structured outputs)
 - [x] 01-03: Client-side integration (response mapping, 10MB upload limit)
-- [ ] 01-04: Gap closure -- fix model for structured outputs, add Vite dev proxy
+- [x] 01-04: Gap closure -- fix model for structured outputs, add Vite dev proxy
 
 ### Phase 2: Core Legal Risk Analysis
 **Goal**: User receives detailed legal risk findings with exact verbatim clause text and plain-English explanations for the highest-priority clause types
@@ -103,7 +103,7 @@ Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phas
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Pipeline Foundation | 3/4 | Gap closure needed | - |
+| 1. Pipeline Foundation | 4/4 | Complete | 2026-03-04 |
 | 2. Core Legal Risk Analysis | 0/2 | Not started | - |
 | 3. Extended Legal Coverage | 0/2 | Not started | - |
 | 4. Scope, Compliance, and Verbiage | 0/2 | Not started | - |
