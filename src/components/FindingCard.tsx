@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { Finding } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
+import { ClauseQuote } from './ClauseQuote';
+import { LegalMetaBadge } from './LegalMetaBadge';
 import {
   Scale,
   ClipboardList,
@@ -73,6 +75,32 @@ export function FindingCard({ finding, index }: FindingCardProps) {
           <p className="text-sm text-blue-800">{finding.recommendation}</p>
         </div>
       }
+
+      {finding.clauseText && finding.clauseText !== 'N/A - Protective clause absent' && (
+        <ClauseQuote text={finding.clauseText} reference={finding.clauseReference || ''} />
+      )}
+
+      {finding.explanation && (
+        <div className="bg-amber-50 border border-amber-100 rounded-md p-3 mb-3">
+          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
+            Why This Matters
+          </p>
+          <p className="text-sm text-amber-800 leading-relaxed">{finding.explanation}</p>
+        </div>
+      )}
+
+      {finding.legalMeta && <LegalMetaBadge meta={finding.legalMeta} />}
+
+      {finding.crossReferences && finding.crossReferences.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 mt-2 mb-2">
+          <span className="text-xs font-medium text-slate-500">See also:</span>
+          {finding.crossReferences.map((ref, i) => (
+            <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+              {ref}
+            </span>
+          ))}
+        </div>
+      )}
 
       {finding.clauseReference &&
       <div className="flex items-center text-xs text-slate-400 mt-2">
