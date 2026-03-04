@@ -11,7 +11,7 @@ import { extractText } from 'unpdf';
 // ---------------------------------------------------------------------------
 
 const BETAS = ['files-api-2025-04-14'];
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-5-20241022';
 const MAX_TOKENS_PER_PASS = 8192;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const PAGE_COUNT_THRESHOLD = 100;

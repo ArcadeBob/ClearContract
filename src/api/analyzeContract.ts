@@ -43,8 +43,18 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
   });
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(body.error || `Analysis failed (HTTP ${response.status})`);
+    let errorMessage: string;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const body = await response.json().catch(() => null);
+      errorMessage = body?.error || `Analysis failed (HTTP ${response.status})`;
+    } else {
+      const text = await response.text().catch(() => '');
+      errorMessage = text.includes('<!DOCTYPE')
+        ? `Server returned HTML instead of JSON (HTTP ${response.status}). Is the API server running?`
+        : `Analysis failed (HTTP ${response.status}): ${text.slice(0, 200)}`;
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
