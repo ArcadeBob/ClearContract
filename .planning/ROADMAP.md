@@ -47,11 +47,11 @@ Plans:
   3. Pay-if-paid and pay-when-paid provisions are detected with enforceability context
   4. Liquidated damages clauses show amount/rate, proportionality assessment, and cap status
   5. Retainage terms show percentage, release conditions, and whether tied to sub's work or overall project completion
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01: Legal analysis schemas, types, 4 specialized passes, and enhanced merge/dedup
+- [ ] 02-02: UI updates -- ClauseQuote, LegalMetaBadge, and FindingCard enhancements
 
 ### Phase 3: Extended Legal Coverage
 **Goal**: User gets comprehensive legal clause analysis covering all major risk areas a glazing subcontractor faces in a contract
