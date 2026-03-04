@@ -4,6 +4,13 @@ import { toFile } from '@anthropic-ai/sdk';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PassResultSchema, RiskOverviewResultSchema } from '../src/schemas/analysis';
 import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis';
+import {
+  IndemnificationPassResultSchema,
+  PaymentContingencyPassResultSchema,
+  LiquidatedDamagesPassResultSchema,
+  RetainagePassResultSchema,
+} from '../src/schemas/legalAnalysis';
+import type { LegalMeta } from '../src/types/contract';
 import { extractText } from 'unpdf';
 
 // ---------------------------------------------------------------------------
@@ -53,6 +60,8 @@ interface AnalysisPass {
   systemPrompt: string;
   userPrompt: string;
   isOverview: boolean; // true only for risk-overview pass
+  isLegal?: boolean;
+  schema?: Parameters<typeof zodToOutputFormat>[0]; // Zod schema for this pass
 }
 
 const ANALYSIS_PASSES: AnalysisPass[] = [
@@ -116,6 +125,175 @@ Guidelines:
 - Do NOT assess or provide a risk score — that is computed separately`,
     userPrompt:
       'Analyze the scope of work and financial terms in this contract. Identify scope inclusions/exclusions, ambiguous scope language, retainage terms, payment schedules, change order procedures, and financial risk areas.',
+  },
+
+  // --- Legal analysis passes (specialized, one per clause type) ---
+
+  {
+    name: 'legal-indemnification',
+    isOverview: false,
+    isLegal: true,
+    schema: IndemnificationPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to find and analyze ALL indemnification and hold-harmless clauses in this contract.
+
+## What to Find
+- Express indemnification clauses (indemnify, hold harmless, defend)
+- Additional insured requirements tied to indemnification
+- Clauses where the Sub assumes liability beyond their own negligence
+- Mutual vs one-sided indemnification provisions
+
+## For Each Clause Found
+1. Quote the EXACT, COMPLETE clause text as it appears in the contract. Do not truncate, paraphrase, summarize, or reconstruct. Include the full paragraph/section.
+2. Classify the indemnification type:
+   - Broad form: Sub must indemnify GC for ALL claims, including those caused solely by GC's negligence. Detection signals: "regardless of fault", "whether or not caused by", "sole negligence of indemnitee"
+   - Intermediate form: Sub must indemnify GC for concurrent negligence but not GC's sole negligence. Detection signals: "caused in whole or in part by", "to the fullest extent permitted by law"
+   - Limited form: Sub only indemnifies for Sub's own negligence. Detection signals: "to the extent caused by", "arising from the acts or omissions of"
+3. Check for insurance gaps: Does this clause create liability that would NOT be covered by a standard CGL policy ($1M/$2M) or commercial umbrella policy ($5M) typical for a glazing subcontractor? Standard glazing sub coverage includes CGL, umbrella, auto, and workers comp.
+4. Explain in plain English why this clause matters to a glazing sub. Contrast with what a "standard" or "fair" version of this clause would look like so the user can see what is abnormal.
+5. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## Severity Rules (MANDATORY -- you MUST follow these exactly)
+- Broad form indemnification = Critical
+- Intermediate form indemnification = High
+- Limited form indemnification = Medium
+
+## Missing Protective Clauses
+- If the contract has indemnification flowing only from Sub to GC with NO mutual indemnification, create a finding noting this absence.
+- Use clauseReference "Not Found" and clauseText "N/A - Protective clause absent" when flagging a missing protective clause.
+- Search ALL sections of the contract before concluding a clause is absent.
+- Do NOT flag the absence of harmful indemnification clauses (that is good news, not a finding).
+
+## Output Rules
+- One finding per indemnification clause instance
+- If the contract has 3 separate indemnification provisions, produce 3 findings
+- Always include the section/article number in clauseReference
+- If the contract specifies a governing law state, include state-specific enforceability context (some states have anti-indemnity statutes). If no state is specified, note that enforceability varies by jurisdiction.
+- Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
+- Do NOT assess or provide a risk score -- that is computed separately`,
+    userPrompt:
+      'Analyze all indemnification and hold-harmless clauses in this glazing subcontract.',
+  },
+  {
+    name: 'legal-payment-contingency',
+    isOverview: false,
+    isLegal: true,
+    schema: PaymentContingencyPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to find and analyze ALL pay-if-paid and pay-when-paid provisions in this contract.
+
+## What to Find
+- Pay-if-paid clauses: Payment to Sub is CONDITIONED on owner paying GC. Creates a "condition precedent" to payment. Detection signals: "contingent upon", "condition precedent to payment", "only if and to the extent", "receipt of payment from owner shall be a condition"
+- Pay-when-paid clauses: Establishes TIMING of payment only. Sub eventually gets paid regardless. Detection signals: "within [X] days of receipt", "upon receipt of payment from owner", "when paid by owner"
+- Any clause that links Sub payment timing or obligation to owner payment to GC
+
+## For Each Clause Found
+1. Quote the EXACT, COMPLETE clause text as it appears in the contract. Do not truncate, paraphrase, summarize, or reconstruct. Include the full paragraph/section.
+2. Classify as pay-if-paid or pay-when-paid based on the contract language.
+3. Provide enforceability context: If the contract specifies a governing law state, note whether that state enforces pay-if-paid clauses (approximately 13 states prohibit pay-if-paid, including NC, CA, NY). If no state is specified, note that enforceability varies by jurisdiction and suggest checking.
+4. Explain in plain English the risk from a glazing sub's perspective. Contrast with what a standard/fair payment term looks like (e.g., "Net 30 from invoice" or "within 30 days of approved application for payment").
+5. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## Severity Rules (MANDATORY -- you MUST follow these exactly)
+- Pay-if-paid = Critical
+- Pay-when-paid = High
+
+## Missing Protective Clauses
+- If the contract has NO specified payment timeline at all (no "Net 30", no "within X days", no payment schedule), create a finding noting this absence.
+- Use clauseReference "Not Found" and clauseText "N/A - Protective clause absent" when flagging a missing protective clause.
+- Search ALL sections of the contract before concluding a clause is absent.
+
+## Output Rules
+- One finding per payment contingency clause instance
+- Always include the section/article number in clauseReference
+- Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
+- Do NOT assess or provide a risk score -- that is computed separately`,
+    userPrompt:
+      'Analyze all payment contingency clauses (pay-if-paid, pay-when-paid) in this glazing subcontract.',
+  },
+  {
+    name: 'legal-liquidated-damages',
+    isOverview: false,
+    isLegal: true,
+    schema: LiquidatedDamagesPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to find and analyze ALL liquidated damages (LD) clauses in this contract.
+
+## What to Find
+- Express liquidated damages clauses with daily/weekly/monthly rates
+- LD flow-through provisions from owner/GC contract to Sub
+- Consequential damages waivers or lack thereof (related to LD exposure)
+- Delay damage provisions
+
+## For Each Clause Found
+1. Quote the EXACT, COMPLETE clause text as it appears in the contract. Do not truncate, paraphrase, summarize, or reconstruct. Include the full paragraph/section.
+2. Extract the amount or rate (e.g., "$500/day", "0.5% of contract value per week").
+3. Determine if the LD amount is capped or uncapped. If capped, note the cap (e.g., "capped at 10% of contract value"). If uncapped, flag this explicitly.
+4. Assess proportionality: Is the LD amount reasonable relative to the likely contract value for a glazing subcontract? A $5,000/day LD on a $50,000 subcontract is disproportionate; on a $5M subcontract it may be reasonable.
+5. Check for flow-through from owner LD provisions that may expose the Sub beyond their scope.
+6. Explain in plain English the financial exposure for a glazing sub. Contrast with what standard/fair LD terms look like.
+7. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## Severity Rules (MANDATORY -- you MUST follow these exactly)
+- Any LD clause = High minimum
+- Uncapped LD or disproportionate to contract value = Critical
+
+## Output Rules
+- One finding per liquidated damages clause instance
+- Always include the section/article number in clauseReference
+- If the contract specifies a governing law state, include state-specific enforceability context. If no state is specified, note that enforceability varies by jurisdiction.
+- Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
+- Do NOT assess or provide a risk score -- that is computed separately`,
+    userPrompt:
+      'Analyze all liquidated damages clauses in this glazing subcontract.',
+  },
+  {
+    name: 'legal-retainage',
+    isOverview: false,
+    isLegal: true,
+    schema: RetainagePassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to find and analyze ALL retainage and retention provisions in this contract.
+
+## What to Find
+- Retainage/retention percentage specifications
+- Release conditions (when retainage is released back to Sub)
+- Reduction provisions (e.g., reduction after 50% completion)
+- Whether retainage release is tied to Sub's work completion or overall project completion
+- Retainage on stored materials
+
+## For Each Clause Found
+1. Quote the EXACT, COMPLETE clause text as it appears in the contract. Do not truncate, paraphrase, summarize, or reconstruct. Include the full paragraph/section.
+2. Extract the retainage percentage.
+3. Identify the release conditions -- what triggers the release of withheld retainage back to the Sub.
+4. Determine if retainage release is tied to the Sub's own substantial completion ("sub-work") or to overall project completion ("project-completion"). If unclear or not specified, mark as "unspecified".
+5. Check for retainage reduction after 50% completion (some jurisdictions require this).
+6. Explain in plain English the cash flow impact for a glazing sub. Contrast with standard/fair retainage terms (e.g., "5% retainage released within 30 days of Sub's substantial completion").
+7. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## Severity Rules (MANDATORY -- you MUST follow these exactly)
+- Retainage release tied to overall project completion (not Sub's work) = High
+- Retainage above 10% = High
+- Standard 5-10% retainage tied to Sub's substantial completion = Low
+- Missing release conditions (no specification of when retainage is released) = Critical
+
+## Missing Protective Clauses
+- If the contract withholds retainage but has NO release provision, create a finding noting this absence (severity: Critical).
+- Use clauseReference "Not Found" and clauseText "N/A - Protective clause absent" when flagging a missing protective clause.
+- Search ALL sections of the contract before concluding a clause is absent.
+
+## Output Rules
+- One finding per retainage provision instance
+- Always include the section/article number in clauseReference
+- If the contract specifies a governing law state, include state-specific enforceability context. If no state is specified, note that enforceability varies by jurisdiction.
+- Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
+- Do NOT assess or provide a risk score -- that is computed separately`,
+    userPrompt:
+      'Analyze all retainage and retention provisions in this glazing subcontract.',
   },
 ];
 
@@ -185,9 +363,11 @@ async function runAnalysisPass(
   fileId: string,
   pass: AnalysisPass,
 ): Promise<{ passName: string; result: PassResult | RiskOverviewResult }> {
-  const outputFormat = pass.isOverview
-    ? zodToOutputFormat(RiskOverviewResultSchema)
-    : zodToOutputFormat(PassResultSchema);
+  const outputFormat = pass.schema
+    ? zodToOutputFormat(pass.schema)
+    : pass.isOverview
+      ? zodToOutputFormat(RiskOverviewResultSchema)
+      : zodToOutputFormat(PassResultSchema);
 
   const response = await client.beta.messages.create({
     model: MODEL,
@@ -235,6 +415,78 @@ function computeRiskScore(findings: Array<{ severity: string }>): number {
 }
 
 // ---------------------------------------------------------------------------
+// Convert legal pass findings to unified Finding shape with legalMeta
+// ---------------------------------------------------------------------------
+
+interface UnifiedFinding {
+  severity: string;
+  category: string;
+  title: string;
+  description: string;
+  recommendation: string;
+  clauseReference: string;
+  clauseText?: string;
+  explanation?: string;
+  crossReferences?: string[];
+  legalMeta?: LegalMeta;
+  sourcePass?: string;
+}
+
+function convertLegalFinding(
+  finding: Record<string, unknown>,
+  passName: string,
+): UnifiedFinding {
+  const base: UnifiedFinding = {
+    severity: finding.severity as string,
+    category: finding.category as string,
+    title: finding.title as string,
+    description: finding.description as string,
+    recommendation: finding.recommendation as string,
+    clauseReference: finding.clauseReference as string,
+    clauseText: finding.clauseText as string,
+    explanation: finding.explanation as string,
+    crossReferences: finding.crossReferences as string[],
+    sourcePass: passName,
+  };
+
+  // Pack type-specific metadata into legalMeta
+  switch (passName) {
+    case 'legal-indemnification':
+      base.legalMeta = {
+        clauseType: 'indemnification',
+        riskType: finding.riskType as 'limited' | 'intermediate' | 'broad',
+        hasInsuranceGap: finding.hasInsuranceGap as boolean,
+      };
+      break;
+    case 'legal-payment-contingency':
+      base.legalMeta = {
+        clauseType: 'payment-contingency',
+        paymentType: finding.paymentType as 'pay-if-paid' | 'pay-when-paid',
+        enforceabilityContext: finding.enforceabilityContext as string,
+      };
+      break;
+    case 'legal-liquidated-damages':
+      base.legalMeta = {
+        clauseType: 'liquidated-damages',
+        amountOrRate: finding.amountOrRate as string,
+        capStatus: finding.capStatus as 'capped' | 'uncapped',
+        proportionalityAssessment: finding.proportionalityAssessment as string,
+      };
+      break;
+    case 'legal-retainage':
+      base.legalMeta = {
+        clauseType: 'retainage',
+        percentage: finding.percentage as string,
+        releaseCondition: finding.releaseCondition as string,
+        tiedTo: finding.tiedTo as 'sub-work' | 'project-completion' | 'unspecified',
+      };
+      break;
+  }
+
+  return base;
+}
+
+// ---------------------------------------------------------------------------
 // Merge results from all passes
 // ---------------------------------------------------------------------------
 
@@ -245,12 +497,20 @@ function mergePassResults(
   }>[],
   passes: AnalysisPass[],
 ): MergedAnalysisResult {
-  const allFindings: Array<PassResult['findings'][number]> = [];
+  const allFindings: UnifiedFinding[] = [];
   const allDates: Array<PassResult['dates'][number]> = [];
   const passResults: MergedAnalysisResult['passResults'] = [];
 
   let client = 'Unknown Client';
   let contractType: MergedAnalysisResult['contractType'] = 'Subcontract';
+
+  const severityRank: Record<string, number> = {
+    Critical: 5,
+    High: 4,
+    Medium: 3,
+    Low: 2,
+    Info: 1,
+  };
 
   for (let i = 0; i < results.length; i++) {
     const settled = results[i];
@@ -258,7 +518,6 @@ function mergePassResults(
 
     if (settled.status === 'fulfilled') {
       const { result } = settled.value;
-      allFindings.push(...result.findings);
       allDates.push(...result.dates);
       passResults.push({ passName, status: 'success' });
 
@@ -267,6 +526,17 @@ function mergePassResults(
         const overview = result as RiskOverviewResult;
         client = overview.client || client;
         contractType = overview.contractType || contractType;
+      }
+
+      // Convert findings: legal passes get convertLegalFinding, others get tagged with sourcePass
+      if (passes[i].isLegal) {
+        for (const f of result.findings) {
+          allFindings.push(convertLegalFinding(f as unknown as Record<string, unknown>, passName));
+        }
+      } else {
+        for (const f of result.findings) {
+          allFindings.push({ ...f, sourcePass: passName });
+        }
       }
     } else {
       const errorMessage =
@@ -289,33 +559,85 @@ function mergePassResults(
         recommendation:
           'Try uploading the contract again. If the problem persists, the contract may have formatting issues that prevent analysis.',
         clauseReference: 'N/A',
+        sourcePass: passName,
       });
     }
   }
 
-  // Deduplicate findings by title — keep the one with higher severity
-  const severityRank: Record<string, number> = {
-    Critical: 5,
-    High: 4,
-    Medium: 3,
-    Low: 2,
-    Info: 1,
-  };
-  const findingMap = new Map<
-    string,
-    (typeof allFindings)[number]
-  >();
+  // --- Enhanced deduplication ---
+  // Phase 1: clauseReference + category composite key dedup
+  // Prefer specialized legal passes over general passes; among same type, prefer higher severity
+  const byClauseAndCategory = new Map<string, UnifiedFinding>();
+  const noClauseRefFindings: UnifiedFinding[] = [];
+
   for (const finding of allFindings) {
-    const existing = findingMap.get(finding.title);
+    const clauseRef = finding.clauseReference;
+    // Only use composite key for findings with a real clauseReference
+    if (clauseRef && clauseRef !== 'N/A' && clauseRef !== 'Not Found') {
+      const key = `${clauseRef}::${finding.category}`;
+      const existing = byClauseAndCategory.get(key);
+
+      if (!existing) {
+        byClauseAndCategory.set(key, finding);
+      } else {
+        const findingIsLegal = (finding.sourcePass || '').startsWith('legal-');
+        const existingIsLegal = (existing.sourcePass || '').startsWith('legal-');
+
+        if (findingIsLegal && !existingIsLegal) {
+          // Specialized legal pass beats general pass
+          byClauseAndCategory.set(key, finding);
+        } else if (!findingIsLegal && existingIsLegal) {
+          // Keep the specialized one already stored
+        } else if (
+          (severityRank[finding.severity] || 0) >
+          (severityRank[existing.severity] || 0)
+        ) {
+          // Same pass type: higher severity wins
+          byClauseAndCategory.set(key, finding);
+        }
+      }
+    } else {
+      // Findings without clauseReference go to title-based dedup
+      noClauseRefFindings.push(finding);
+    }
+  }
+
+  // Phase 2: title-based dedup as fallback for findings without clauseReference
+  const byTitle = new Map<string, UnifiedFinding>();
+  // Start with clause-key deduped findings
+  for (const finding of byClauseAndCategory.values()) {
+    const existing = byTitle.get(finding.title);
     if (
       !existing ||
       (severityRank[finding.severity] || 0) >
         (severityRank[existing.severity] || 0)
     ) {
-      findingMap.set(finding.title, finding);
+      byTitle.set(finding.title, finding);
     }
   }
-  const deduplicatedFindings = Array.from(findingMap.values());
+  // Add findings that had no clauseReference
+  for (const finding of noClauseRefFindings) {
+    const existing = byTitle.get(finding.title);
+    if (!existing) {
+      byTitle.set(finding.title, finding);
+    } else {
+      const findingIsLegal = (finding.sourcePass || '').startsWith('legal-');
+      const existingIsLegal = (existing.sourcePass || '').startsWith('legal-');
+
+      if (findingIsLegal && !existingIsLegal) {
+        byTitle.set(finding.title, finding);
+      } else if (!findingIsLegal && existingIsLegal) {
+        // Keep the specialized one already stored
+      } else if (
+        (severityRank[finding.severity] || 0) >
+        (severityRank[existing.severity] || 0)
+      ) {
+        byTitle.set(finding.title, finding);
+      }
+    }
+  }
+
+  const deduplicatedFindings = Array.from(byTitle.values());
 
   // Compute risk score deterministically
   const riskScore = computeRiskScore(deduplicatedFindings);
