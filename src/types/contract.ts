@@ -11,6 +11,12 @@ export type Category =
 'Technical Standards' |
 'Risk Assessment';
 
+export type LegalMeta =
+  | { clauseType: 'indemnification'; riskType: 'limited' | 'intermediate' | 'broad'; hasInsuranceGap: boolean }
+  | { clauseType: 'payment-contingency'; paymentType: 'pay-if-paid' | 'pay-when-paid'; enforceabilityContext: string }
+  | { clauseType: 'liquidated-damages'; amountOrRate: string; capStatus: 'capped' | 'uncapped'; proportionalityAssessment: string }
+  | { clauseType: 'retainage'; percentage: string; releaseCondition: string; tiedTo: 'sub-work' | 'project-completion' | 'unspecified' };
+
 export interface Finding {
   id: string;
   severity: Severity;
@@ -21,6 +27,9 @@ export interface Finding {
   clauseReference?: string;
   clauseText?: string;
   explanation?: string;
+  crossReferences?: string[];
+  legalMeta?: LegalMeta;
+  sourcePass?: string;
 }
 
 export interface ContractDate {
