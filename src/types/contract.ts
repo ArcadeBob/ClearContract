@@ -11,11 +11,29 @@ export type Category =
 'Technical Standards' |
 'Risk Assessment';
 
+export interface InsuranceCoverageItem {
+  coverageType: string;
+  requiredLimit: string;
+  isAboveStandard: boolean;
+}
+
+export interface InsuranceEndorsement {
+  endorsementType: string;
+  isNonStandard: boolean;
+}
+
 export type LegalMeta =
   | { clauseType: 'indemnification'; riskType: 'limited' | 'intermediate' | 'broad'; hasInsuranceGap: boolean }
   | { clauseType: 'payment-contingency'; paymentType: 'pay-if-paid' | 'pay-when-paid'; enforceabilityContext: string }
   | { clauseType: 'liquidated-damages'; amountOrRate: string; capStatus: 'capped' | 'uncapped'; proportionalityAssessment: string }
-  | { clauseType: 'retainage'; percentage: string; releaseCondition: string; tiedTo: 'sub-work' | 'project-completion' | 'unspecified' };
+  | { clauseType: 'retainage'; percentage: string; releaseCondition: string; tiedTo: 'sub-work' | 'project-completion' | 'unspecified' }
+  | { clauseType: 'insurance'; coverageItems: InsuranceCoverageItem[]; endorsements: InsuranceEndorsement[]; certificateHolder: string }
+  | { clauseType: 'termination'; terminationType: string; noticePeriod: string; compensation: string; curePeriod: string }
+  | { clauseType: 'flow-down'; flowDownScope: string; problematicObligations: string[]; primeContractAvailable: boolean }
+  | { clauseType: 'no-damage-delay'; waiverScope: string; exceptions: string[]; enforceabilityContext: string }
+  | { clauseType: 'lien-rights'; waiverType: string; lienFilingDeadline: string; enforceabilityContext: string }
+  | { clauseType: 'dispute-resolution'; mechanism: string; venue: string; feeShifting: string; mediationRequired: boolean }
+  | { clauseType: 'change-order'; changeType: string; noticeRequired: string; pricingMechanism: string; proceedPending: boolean };
 
 export interface Finding {
   id: string;
