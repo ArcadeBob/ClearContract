@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Finding } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { ClauseQuote } from './ClauseQuote';
@@ -31,10 +31,12 @@ const categoryIcons: Record<string, BoxIcon> = {
   'Technical Standards': Ruler,
   'Risk Assessment': AlertTriangle
 };
-export function FindingCard({ finding, index }: FindingCardProps) {
+export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
+  function FindingCard({ finding, index }, ref) {
   const Icon = categoryIcons[finding.category] || AlertTriangle;
   return (
     <motion.div
+      ref={ref}
       initial={{
         opacity: 0,
         y: 10
@@ -110,4 +112,4 @@ export function FindingCard({ finding, index }: FindingCardProps) {
       }
     </motion.div>);
 
-}
+});
