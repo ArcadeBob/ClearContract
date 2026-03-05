@@ -21,13 +21,13 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 - [x] **LEGAL-03**: Pay-if-paid and pay-when-paid provisions are detected with enforceability context
 - [x] **LEGAL-04**: Liquidated damages clauses are flagged with amount/rate, proportionality assessment, and cap status
 - [x] **LEGAL-05**: Retainage terms are extracted — percentage, release conditions, and whether tied to sub's work or project completion
-- [ ] **LEGAL-06**: Insurance requirements are extracted into a structured checklist — coverage types, limits, endorsements, certificate holder details
-- [ ] **LEGAL-07**: Termination clauses are analyzed — types, notice periods, compensation upon termination, cure periods
-- [ ] **LEGAL-08**: Flow-down provisions are identified with warnings about obligations beyond the sub's scope or insurance coverage
-- [ ] **LEGAL-09**: No-damage-for-delay clauses are detected and flagged with severity
-- [ ] **LEGAL-10**: Lien rights risks are identified — no-lien clauses, unconditional waiver language, broad release provisions
-- [ ] **LEGAL-11**: Dispute resolution terms are analyzed — venue, arbitration requirements, mediation steps, attorney fee shifting
-- [ ] **LEGAL-12**: Change order process is analyzed — unilateral change rights, notice requirements, pricing mechanisms, proceed-pending clauses
+- [x] **LEGAL-06**: Insurance requirements are extracted into a structured checklist — coverage types, limits, endorsements, certificate holder details
+- [x] **LEGAL-07**: Termination clauses are analyzed — types, notice periods, compensation upon termination, cure periods
+- [x] **LEGAL-08**: Flow-down provisions are identified with warnings about obligations beyond the sub's scope or insurance coverage
+- [x] **LEGAL-09**: No-damage-for-delay clauses are detected and flagged with severity
+- [x] **LEGAL-10**: Lien rights risks are identified — no-lien clauses, unconditional waiver language, broad release provisions
+- [x] **LEGAL-11**: Dispute resolution terms are analyzed — venue, arbitration requirements, mediation steps, attorney fee shifting
+- [x] **LEGAL-12**: Change order process is analyzed — unilateral change rights, notice requirements, pricing mechanisms, proceed-pending clauses
 
 ### Scope & Verbiage
 
@@ -90,13 +90,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEGAL-03 | Phase 2 | Complete |
 | LEGAL-04 | Phase 2 | Complete |
 | LEGAL-05 | Phase 2 | Complete |
-| LEGAL-06 | Phase 3 | Pending |
-| LEGAL-07 | Phase 3 | Pending |
-| LEGAL-08 | Phase 3 | Pending |
-| LEGAL-09 | Phase 3 | Pending |
-| LEGAL-10 | Phase 3 | Pending |
-| LEGAL-11 | Phase 3 | Pending |
-| LEGAL-12 | Phase 3 | Pending |
+| LEGAL-06 | Phase 3 | Complete |
+| LEGAL-07 | Phase 3 | Complete |
+| LEGAL-08 | Phase 3 | Complete |
+| LEGAL-09 | Phase 3 | Complete |
+| LEGAL-10 | Phase 3 | Complete |
+| LEGAL-11 | Phase 3 | Complete |
+| LEGAL-12 | Phase 3 | Complete |
 | SCOPE-01 | Phase 4 | Pending |
 | SCOPE-02 | Phase 4 | Pending |
 | SCOPE-03 | Phase 4 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-05T04:14:09.869Z"
-last_activity: 2026-03-05 -- Completed 02-02-PLAN.md (Legal Findings UI)
+status: executing
+stopped_at: Completed 03-01-PLAN.md (Extended Legal Analysis Passes)
+last_updated: "2026-03-05T05:03:01.081Z"
+last_activity: 2026-03-05 -- Completed 03-01-PLAN.md (Extended Legal Analysis Passes)
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 8
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 2 complete. Ready for Phase 3 or 4.
+**Current focus:** Phase 3 in progress. Plan 1 of 2 complete (Extended Legal Analysis Passes).
 
 ## Current Position
 
-Phase: 2 of 5 (Core Legal Risk Analysis) -- COMPLETE
-Plan: 2 of 2 in current phase (02-02 complete)
-Status: Phase 2 complete, all plans done
-Last activity: 2026-03-05 -- Completed 02-02-PLAN.md (Legal Findings UI)
+Phase: 3 of 5 (Extended Legal Coverage)
+Plan: 1 of 2 in current phase (03-01 complete)
+Status: Phase 3 in progress
+Last activity: 2026-03-05 -- Completed 03-01-PLAN.md (Extended Legal Analysis Passes)
 
-Progress: [##########] 100%
+Progress: [########--] 88%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [##########] 100%
 
 *Updated after each plan completion*
 | Phase 02 P02 | 3min | 3 tasks | 4 files |
+| Phase 03 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - 02-01: Composite key dedup uses clauseReference+category as primary key with title-based fallback
 - [Phase 02-02]: FindingCard wrapped with React.forwardRef to resolve AnimatePresence PopChild ref warning
 - [Phase 02-02]: Migrated src/index.tsx from deprecated ReactDOM.render to React 18 createRoot API
+- [Phase 03]: Insurance pass uses two-part output: summary checklist finding with full coverageItems/endorsements arrays plus individual findings for each gap
+- [Phase 03]: All 7 new passes follow Phase 2 pattern: self-contained Zod schemas with local enums, all metadata fields REQUIRED
+- [Phase 03]: No new dependencies added -- reuses existing zodToOutputFormat, Promise.allSettled, and dedup infrastructure
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:14:09.867Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-extended-legal-coverage/03-CONTEXT.md
+Last session: 2026-03-05T05:03:01.079Z
+Stopped at: Completed 03-01-PLAN.md (Extended Legal Analysis Passes)
+Resume file: None
