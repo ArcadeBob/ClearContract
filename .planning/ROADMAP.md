@@ -13,7 +13,7 @@ ClearContract transforms from a broken proof-of-concept into a comprehensive gla
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Pipeline Foundation** - Fix production bugs, build multi-pass analysis engine with native PDF and structured output
-- [ ] **Phase 2: Core Legal Risk Analysis** - First legal analysis pass producing findings with exact clause quotes for the 4 most critical clause types
+- [x] **Phase 2: Core Legal Risk Analysis** - First legal analysis pass producing findings with exact clause quotes for the 4 most critical clause types (completed 2026-03-05)
 - [ ] **Phase 3: Extended Legal Coverage** - Complete legal clause coverage across insurance, termination, flow-down, delays, liens, disputes, and change orders
 - [ ] **Phase 4: Scope, Compliance, and Verbiage** - Extract full scope of work, dates/deadlines, labor compliance checklist, and flag questionable verbiage
 - [ ] **Phase 5: Negotiation Output and Organization** - Add negotiation positions to Critical/High findings and organize all results into a systematic, actionable format
@@ -104,7 +104,7 @@ Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phas
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Pipeline Foundation | 4/4 | Complete | 2026-03-04 |
-| 2. Core Legal Risk Analysis | 0/2 | Not started | - |
+| 2. Core Legal Risk Analysis | 2/2 | Complete   | 2026-03-05 |
 | 3. Extended Legal Coverage | 0/2 | Not started | - |
 | 4. Scope, Compliance, and Verbiage | 0/2 | Not started | - |
 | 5. Negotiation Output and Organization | 0/1 | Not started | - |
