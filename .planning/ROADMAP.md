@@ -62,11 +62,11 @@ Plans:
   2. Termination clauses show types, notice periods, compensation upon termination, and cure periods
   3. Flow-down provisions are flagged when they impose obligations beyond the sub's scope or insurance coverage
   4. No-damage-for-delay clauses, lien rights risks, dispute resolution terms, and change order processes are each detected and analyzed with relevant details
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01: 7 new legal schemas, LegalMeta type extensions, analysis passes, and convertLegalFinding cases
+- [ ] 03-02: LegalMetaBadge UI rendering for 7 new clause types + end-to-end verification
 
 ### Phase 4: Scope, Compliance, and Verbiage
 **Goal**: User gets full scope extraction, all dates and deadlines, a labor compliance checklist, and flagged questionable verbiage -- completing the non-legal analysis categories
