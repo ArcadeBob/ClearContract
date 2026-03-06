@@ -77,11 +77,11 @@ Plans:
   2. All dates and deadlines are extracted including notice periods, cure periods, payment terms, and project milestones
   3. Questionable verbiage is flagged -- ambiguous clauses, one-sided terms favoring GC, missing standard protections, and undefined terms with legal significance
   4. Labor compliance requirements appear as an actionable checklist with items, associated dates, responsible parties, and contacts
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Scope/compliance/verbiage schemas, type extensions, 4 specialized passes, convertScopeFinding, merge logic update
+- [ ] 04-02-PLAN.md — ScopeMetaBadge component, FindingCard integration for structured metadata display
 
 ### Phase 5: Negotiation Output and Organization
 **Goal**: User can work through the entire contract analysis systematically, with Critical/High findings including suggested negotiation positions
