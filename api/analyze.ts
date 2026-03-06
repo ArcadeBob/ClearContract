@@ -95,7 +95,18 @@ Guidelines:
 - Include specific clause references (section numbers, article numbers) where possible
 - For each finding, provide actionable recommendations
 - If you can quote the relevant clause text, include it in the clauseText field
-- Do NOT assess or provide a risk score — that is computed separately`,
+- Do NOT assess or provide a risk score — that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+IMPORTANT: negotiationPosition is distinct from recommendation. Recommendation = what to do about it (general guidance). negotiationPosition = what to say to the GC (specific language or position to negotiate).`,
     userPrompt:
       'Analyze this glazing/glass installation contract. Identify the client name, contract type, and the most significant risks. Focus on indemnification, payment terms, insurance, scope clarity, and compliance requirements.',
   },
@@ -137,7 +148,16 @@ Your task is to extract ALL dates, deadlines, notice periods, cure periods, paym
 Populate the dates array with every concrete date found. Use type "Deadline" for due dates, "Milestone" for project phases, "Start" for commencement, "Expiry" for warranty/closeout ends.
 
 ## Scope Exclusions
-Do NOT analyze financial terms (retainage percentages, LD rates, payment contingency) -- those are covered by specialized legal passes.`,
+Do NOT analyze financial terms (retainage percentages, LD rates, payment contingency) -- those are covered by specialized legal passes.
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt: 'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
   },
   {
@@ -173,7 +193,16 @@ Your task is to analyze the FULL scope of work, identifying what is included, wh
 - Clear inclusions/exclusions for informational tracking = Low/Info
 
 ## Scope Exclusions
-Do NOT analyze financial terms (retainage, LD, payment terms, pricing) -- those are covered by specialized legal passes. Focus ONLY on scope of work.`,
+Do NOT analyze financial terms (retainage, LD, payment terms, pricing) -- those are covered by specialized legal passes. Focus ONLY on scope of work.
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt: 'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
   },
 
@@ -221,7 +250,16 @@ Your task is to find and analyze ALL indemnification and hold-harmless clauses i
 - Always include the section/article number in clauseReference
 - If the contract specifies a governing law state, include state-specific enforceability context (some states have anti-indemnity statutes). If no state is specified, note that enforceability varies by jurisdiction.
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all indemnification and hold-harmless clauses in this glazing subcontract.',
   },
@@ -259,7 +297,16 @@ Your task is to find and analyze ALL pay-if-paid and pay-when-paid provisions in
 - One finding per payment contingency clause instance
 - Always include the section/article number in clauseReference
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all payment contingency clauses (pay-if-paid, pay-when-paid) in this glazing subcontract.',
   },
@@ -296,7 +343,16 @@ Your task is to find and analyze ALL liquidated damages (LD) clauses in this con
 - Always include the section/article number in clauseReference
 - If the contract specifies a governing law state, include state-specific enforceability context. If no state is specified, note that enforceability varies by jurisdiction.
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all liquidated damages clauses in this glazing subcontract.',
   },
@@ -341,7 +397,16 @@ Your task is to find and analyze ALL retainage and retention provisions in this 
 - Always include the section/article number in clauseReference
 - If the contract specifies a governing law state, include state-specific enforceability context. If no state is specified, note that enforceability varies by jurisdiction.
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all retainage and retention provisions in this glazing subcontract.',
   },
@@ -390,7 +455,16 @@ Your task is to find and analyze ALL insurance requirements in this contract.
 - Always include the section/article number in clauseReference
 - Quote EXACT, COMPLETE clause text -- do not truncate, paraphrase, or summarize
 - Explain from a glazing/glass installation subcontractor perspective
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all insurance requirements in this glazing subcontract. Produce a summary checklist and individual findings for gaps or unusual requirements.',
   },
@@ -435,7 +509,16 @@ Your task is to find and analyze ALL termination clauses in this contract (for-c
 - Always include the section/article number in clauseReference
 - Verbatim quoting of clause text
 - Explain from a glazing sub perspective with state-specific context when available
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all termination clauses in this glazing subcontract.',
   },
@@ -481,7 +564,16 @@ Your task is to find and analyze ALL flow-down provisions in this contract.
 - Always include the section/article number in clauseReference
 - Verbatim quoting of clause text
 - Explain from a glazing sub perspective -- highlight the "hidden obligations"
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all flow-down provisions in this glazing subcontract.',
   },
@@ -522,7 +614,16 @@ Your task is to find and analyze ALL no-damage-for-delay clauses in this contrac
 - Always include the section/article number in clauseReference
 - Verbatim quoting of clause text
 - Explain the financial impact from a glazing sub perspective -- extended project duration means extended overhead, labor, equipment costs
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all no-damage-for-delay clauses in this glazing subcontract.',
   },
@@ -565,7 +666,16 @@ Your task is to find and analyze ALL provisions affecting the sub's mechanic's l
 - Always include the section/article number in clauseReference
 - Verbatim quoting of clause text
 - Explain the practical impact -- a sub reading this should immediately know if their payment leverage is at risk
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all provisions affecting lien rights in this glazing subcontract.',
   },
@@ -615,7 +725,16 @@ Your task is to find and analyze ALL dispute resolution provisions in this contr
 - Always include the section/article number in clauseReference
 - Verbatim quoting of clause text
 - Explain impact from glazing sub perspective -- travel costs, upfront arbitration fees, appeal limitations, cost of litigation in distant venues
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all dispute resolution provisions in this glazing subcontract.',
   },
@@ -662,7 +781,16 @@ Your task is to find and analyze ALL change order and change directive provision
 - Verbatim quoting of clause text
 - Flag unreasonable notice timelines (<3 days)
 - Explain proceed-pending risk from glazing sub perspective -- performing work at risk before approval means the sub may never get paid for changed work
-- Do NOT assess or provide a risk score -- that is computed separately`,
+- Do NOT assess or provide a risk score -- that is computed separately
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
       'Analyze all change order and change directive provisions in this glazing subcontract.',
   },
@@ -704,7 +832,16 @@ Your task is to flag QUESTIONABLE VERBIAGE -- language that is ambiguous, one-si
 - Do NOT flag standard boilerplate (merger clauses, severability, counterparts)
 - Do NOT flag language already analyzed by legal passes (indemnification, payment contingency, LD, etc.)
 - Aim for 3-8 findings maximum. If you have more than 10, you are flagging too much.
-- Do NOT assess or provide a risk score`,
+- Do NOT assess or provide a risk score
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt: 'Identify questionable verbiage in this glazing subcontract: ambiguous language, one-sided terms, missing standard protections, undefined terms, and overreach clauses.',
   },
   {
@@ -752,7 +889,16 @@ For each compliance PROBLEM (not each requirement), create a separate finding:
 - Missing but recommended compliance items = Medium
 - Standard requirements present and reasonable = Info (in checklist only)
 
-## Do NOT assess or provide a risk score`,
+## Do NOT assess or provide a risk score
+
+## Negotiation Positions (MANDATORY for Critical and High severity findings)
+For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
+- State what the Sub should request from the GC
+- Include the specific language change or position (e.g., "Request replacing '[problematic phrase]' with '[suggested alternative]'")
+- Frame from the glazing subcontractor's perspective
+- Be specific enough that the user can bring this directly to a negotiation discussion
+- This is NOT legal advice -- it is a starting position for discussion
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt: 'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
   },
 ];
@@ -899,6 +1045,7 @@ interface UnifiedFinding {
   legalMeta?: LegalMeta;
   scopeMeta?: ScopeMeta;
   sourcePass?: string;
+  negotiationPosition?: string;
 }
 
 function convertLegalFinding(
@@ -916,6 +1063,7 @@ function convertLegalFinding(
     explanation: finding.explanation as string,
     crossReferences: finding.crossReferences as string[],
     sourcePass: passName,
+    negotiationPosition: finding.negotiationPosition as string,
   };
 
   // Pack type-specific metadata into legalMeta
@@ -1033,6 +1181,7 @@ function convertScopeFinding(
     explanation: finding.explanation as string,
     crossReferences: finding.crossReferences as string[],
     sourcePass: passName,
+    negotiationPosition: finding.negotiationPosition as string,
   };
 
   switch (passName) {
@@ -1134,7 +1283,7 @@ function mergePassResults(
         }
       } else {
         for (const f of result.findings) {
-          allFindings.push({ ...f, sourcePass: passName });
+          allFindings.push({ ...f, sourcePass: passName, negotiationPosition: (f as Record<string, unknown>).negotiationPosition as string | undefined });
         }
       }
     } else {
