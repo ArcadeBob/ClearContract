@@ -35,6 +35,20 @@ export type LegalMeta =
   | { clauseType: 'dispute-resolution'; mechanism: string; venue: string; feeShifting: string; mediationRequired: boolean }
   | { clauseType: 'change-order'; changeType: string; noticeRequired: string; pricingMechanism: string; proceedPending: boolean };
 
+export interface ComplianceChecklistItem {
+  item: string;
+  deadline: string;
+  responsibleParty: string;
+  contactInfo: string;
+  status: 'required' | 'conditional' | 'recommended';
+}
+
+export type ScopeMeta =
+  | { passType: 'scope-of-work'; scopeItemType: string; specificationReference: string; affectedTrade: string }
+  | { passType: 'dates-deadlines'; periodType: string; duration: string; triggerEvent: string }
+  | { passType: 'verbiage'; issueType: string; affectedParty: string; suggestedClarification: string }
+  | { passType: 'labor-compliance'; requirementType: string; responsibleParty: string; contactInfo: string; deadline: string; checklistItems: ComplianceChecklistItem[] };
+
 export interface Finding {
   id: string;
   severity: Severity;
@@ -47,6 +61,7 @@ export interface Finding {
   explanation?: string;
   crossReferences?: string[];
   legalMeta?: LegalMeta;
+  scopeMeta?: ScopeMeta;
   sourcePass?: string;
 }
 
