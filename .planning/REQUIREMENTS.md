@@ -42,7 +42,7 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 
 ### Output
 
-- [ ] **OUT-01**: Analysis results are organized by category so the user can work through the contract systematically
+- [x] **OUT-01**: Analysis results are organized by category so the user can work through the contract systematically
 
 ## v2 Requirements
 
@@ -102,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-03 | Phase 4 | Complete |
 | COMP-01 | Phase 4 | Complete |
 | SCOPE-04 | Phase 5 | Complete |
-| OUT-01 | Phase 5 | Pending |
+| OUT-01 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 22 total

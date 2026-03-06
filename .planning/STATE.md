@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-stopped_at: Completed 05-01-PLAN.md (Negotiation Position Pipeline Integration)
-last_updated: "2026-03-06T05:51:31.735Z"
-last_activity: 2026-03-06 -- Completed 05-01 (Negotiation Position Pipeline Integration)
+status: complete
+stopped_at: Completed 05-02-PLAN.md (Category-Grouped Layout and Negotiation Position UI)
+last_updated: "2026-03-06T05:55:30Z"
+last_activity: 2026-03-06 -- Completed 05-02 (Category-Grouped Layout and Negotiation Position UI)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 5 in progress. Plan 05-01 complete (negotiationPosition pipeline integration). Plan 05-02 (UI rendering and organization) remaining.
+**Current focus:** All 5 phases complete. v1.0 milestone finished.
 
 ## Current Position
 
 Phase: 5 of 5 (Negotiation Output and Organization)
-Plan: 1 of 2 in current phase (1 complete, 1 remaining)
-Status: In Progress
-Last activity: 2026-03-06 -- Completed 05-01 (Negotiation Position Pipeline Integration)
+Plan: 2 of 2 in current phase (2 complete, 0 remaining)
+Status: Complete
+Last activity: 2026-03-06 -- Completed 05-02 (Category-Grouped Layout and Negotiation Position UI)
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [█████████░] 92%
 | Phase 04 P01 | 10min | 2 tasks | 3 files |
 | Phase 04 P02 | 2min | 2 tasks | 2 files |
 | Phase 05 P01 | 5min | 2 tasks | 5 files |
+| Phase 05 P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,10 @@ Recent decisions affecting current work:
 - [Phase 05-01]: negotiationPosition is REQUIRED (z.string) in schemas, optional on client type -- follows Phase 2 convention for structured output quality
 - [Phase 05-01]: Prompt instructs empty string for Medium/Low/Info findings rather than making field optional in schema
 - [Phase 05-01]: risk-overview prompt includes extra distinction note: negotiationPosition vs recommendation
+- [Phase 05-02]: CategorySection renders severity counts as SeverityBadge + adjacent span (SeverityBadge does not accept count prop)
+- [Phase 05-02]: View-mode defaults to by-category; flat severity view preserved as toggle alternative per RESEARCH.md Pitfall 5
+- [Phase 05-02]: CATEGORY_ORDER constant provides deterministic ordering instead of Set-based category extraction
+- [Phase 05-02]: Fixed pre-existing BoxIcon type error in FindingCard (changed to LucideIcon type import)
 
 ### Pending Todos
 
@@ -106,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T05:51:00Z
-Stopped at: Completed 05-01-PLAN.md (Negotiation Position Pipeline Integration)
+Last session: 2026-03-06T05:55:30Z
+Stopped at: Completed 05-02-PLAN.md (Category-Grouped Layout and Negotiation Position UI)
 Resume file: None
