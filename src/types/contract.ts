@@ -63,6 +63,7 @@ export interface Finding {
   legalMeta?: LegalMeta;
   scopeMeta?: ScopeMeta;
   sourcePass?: string;
+  negotiationPosition?: string;
 }
 
 export interface ContractDate {

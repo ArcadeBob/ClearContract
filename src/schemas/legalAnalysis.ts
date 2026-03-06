@@ -42,6 +42,7 @@ export const IndemnificationFindingSchema = z.object({
   crossReferences: z.array(z.string()),
   riskType: z.enum(['limited', 'intermediate', 'broad']),
   hasInsuranceGap: z.boolean(),
+  negotiationPosition: z.string(),
 });
 
 export const IndemnificationPassResultSchema = z.object({
@@ -65,6 +66,7 @@ export const PaymentContingencyFindingSchema = z.object({
   crossReferences: z.array(z.string()),
   paymentType: z.enum(['pay-if-paid', 'pay-when-paid']),
   enforceabilityContext: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const PaymentContingencyPassResultSchema = z.object({
@@ -89,6 +91,7 @@ export const LiquidatedDamagesFindingSchema = z.object({
   amountOrRate: z.string(),
   capStatus: z.enum(['capped', 'uncapped']),
   proportionalityAssessment: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const LiquidatedDamagesPassResultSchema = z.object({
@@ -113,6 +116,7 @@ export const RetainageFindingSchema = z.object({
   percentage: z.string(),
   releaseCondition: z.string(),
   tiedTo: z.enum(['sub-work', 'project-completion', 'unspecified']),
+  negotiationPosition: z.string(),
 });
 
 export const RetainagePassResultSchema = z.object({
@@ -148,6 +152,7 @@ export const InsuranceFindingSchema = z.object({
   coverageItems: z.array(InsuranceCoverageItemSchema),
   endorsements: z.array(InsuranceEndorsementSchema),
   certificateHolder: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const InsurancePassResultSchema = z.object({
@@ -173,6 +178,7 @@ export const TerminationFindingSchema = z.object({
   noticePeriod: z.string(),
   compensation: z.string(),
   curePeriod: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const TerminationPassResultSchema = z.object({
@@ -197,6 +203,7 @@ export const FlowDownFindingSchema = z.object({
   flowDownScope: z.enum(['blanket', 'specific-sections', 'targeted-with-exceptions']),
   problematicObligations: z.array(z.string()),
   primeContractAvailable: z.boolean(),
+  negotiationPosition: z.string(),
 });
 
 export const FlowDownPassResultSchema = z.object({
@@ -221,6 +228,7 @@ export const NoDamageDelayFindingSchema = z.object({
   waiverScope: z.enum(['absolute', 'broad-with-exceptions', 'reasonable-exceptions']),
   exceptions: z.array(z.string()),
   enforceabilityContext: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const NoDamageDelayPassResultSchema = z.object({
@@ -245,6 +253,7 @@ export const LienRightsFindingSchema = z.object({
   waiverType: z.enum(['no-lien-clause', 'unconditional-before-payment', 'broad-release', 'conditional', 'missing']),
   lienFilingDeadline: z.string(),
   enforceabilityContext: z.string(),
+  negotiationPosition: z.string(),
 });
 
 export const LienRightsPassResultSchema = z.object({
@@ -270,6 +279,7 @@ export const DisputeResolutionFindingSchema = z.object({
   venue: z.string(),
   feeShifting: z.enum(['one-sided', 'mutual', 'none', 'unspecified']),
   mediationRequired: z.boolean(),
+  negotiationPosition: z.string(),
 });
 
 export const DisputeResolutionPassResultSchema = z.object({
@@ -295,6 +305,7 @@ export const ChangeOrderFindingSchema = z.object({
   noticeRequired: z.string(),
   pricingMechanism: z.string(),
   proceedPending: z.boolean(),
+  negotiationPosition: z.string(),
 });
 
 export const ChangeOrderPassResultSchema = z.object({

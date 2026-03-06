@@ -47,6 +47,7 @@ export const FindingSchema = z.object({
   clauseReference: z.string(),
   clauseText: z.string().optional(),
   explanation: z.string().optional(),
+  negotiationPosition: z.string(),
 });
 
 export const ContractDateSchema = z.object({
