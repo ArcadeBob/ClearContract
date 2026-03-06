@@ -17,8 +17,15 @@ import {
   DisputeResolutionPassResultSchema,
   ChangeOrderPassResultSchema,
 } from '../src/schemas/legalAnalysis';
-import type { LegalMeta } from '../src/types/contract';
+import {
+  ScopeOfWorkPassResultSchema,
+  DatesDeadlinesPassResultSchema,
+  VerbiagePassResultSchema,
+  LaborCompliancePassResultSchema,
+} from '../src/schemas/scopeComplianceAnalysis';
+import type { LegalMeta, ScopeMeta } from '../src/types/contract';
 import { extractText } from 'unpdf';
+import { Agent } from 'undici';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -68,6 +75,7 @@ interface AnalysisPass {
   userPrompt: string;
   isOverview: boolean; // true only for risk-overview pass
   isLegal?: boolean;
+  isScope?: boolean;
   schema?: Parameters<typeof zodToOutputFormat>[0]; // Zod schema for this pass
 }
 
@@ -94,44 +102,79 @@ Guidelines:
   {
     name: 'dates-deadlines',
     isOverview: false,
-    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation contracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor.
+    isScope: true,
+    schema: DatesDeadlinesPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
 
-Your task is to extract all dates, deadlines, milestones, notice periods, cure periods, payment terms, and time-sensitive obligations from the contract.
+Your task is to extract ALL dates, deadlines, notice periods, cure periods, payment terms, and project milestones from this contract. Focus on CONTRACT-LEVEL dates, not clause-level dates that legal analysis passes already extract.
 
-Guidelines:
-- Extract project start and completion dates
-- Identify all milestone dates and deadlines
-- Note notice periods and cure periods with their durations
-- Find payment due dates and payment schedule terms
-- Identify insurance certificate submission deadlines
-- Flag any unreasonable or ambiguous time-bound obligations as findings
-- Include specific clause references (section numbers, article numbers) where possible
-- For each finding, provide actionable recommendations
-- If you can quote the relevant clause text, include it in the clauseText field
-- Do NOT assess or provide a risk score — that is computed separately`,
-    userPrompt:
-      'Extract all dates, deadlines, and time-sensitive terms from this contract. Include project start/completion dates, notice periods, cure periods, payment due dates, milestone dates, insurance certificate deadlines, and any other time-bound obligations.',
+## What to Extract
+- Project start and substantial completion dates
+- Milestone dates and scheduling requirements
+- Submittal and shop drawing deadlines
+- Notice periods for claims, disputes, and change requests
+- Cure periods for default and breach
+- Payment application due dates and payment cycle terms
+- Warranty period start/duration
+- Project closeout and punch list deadlines
+- Insurance certificate submission deadlines
+- Retainage release timing (timeline only, not financial analysis)
+
+## For Each Date/Deadline Found
+1. Quote the EXACT clause text establishing the date/deadline
+2. Classify the period type
+3. Note the duration and what triggers the period
+4. Flag unreasonable or ambiguous time requirements as Medium+ severity findings
+5. Flag missing standard deadlines (no payment timeline, no submittal schedule) as findings
+
+## Severity Rules
+- Missing payment timeline = High
+- Unreasonably short notice/cure periods (< 3 days) = High
+- Ambiguous deadline language ("promptly", "reasonable time") = Medium
+- Standard deadlines present = Low or Info
+
+## Date Extraction
+Populate the dates array with every concrete date found. Use type "Deadline" for due dates, "Milestone" for project phases, "Start" for commencement, "Expiry" for warranty/closeout ends.
+
+## Scope Exclusions
+Do NOT analyze financial terms (retainage percentages, LD rates, payment contingency) -- those are covered by specialized legal passes.`,
+    userPrompt: 'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
   },
   {
-    name: 'scope-financial',
+    name: 'scope-of-work',
     isOverview: false,
-    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation contracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor.
+    isScope: true,
+    schema: ScopeOfWorkPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
 
-Your task is to analyze the scope of work definitions, financial terms, and potential scope gaps.
+Your task is to analyze the FULL scope of work, identifying what is included, what is excluded, what specifications are referenced, and where scope gaps or ambiguities exist.
 
-Guidelines:
-- Identify scope inclusions and exclusions
-- Flag ambiguous scope language that could lead to disputes
-- Analyze retainage terms and conditions
-- Review payment schedules and conditions for payment
-- Examine change order procedures and pricing mechanisms
-- Identify financial risk areas (liquidated damages, back-charges, pay-if-paid clauses)
-- Include specific clause references (section numbers, article numbers) where possible
-- For each finding, provide actionable recommendations
-- If you can quote the relevant clause text, include it in the clauseText field
-- Do NOT assess or provide a risk score — that is computed separately`,
-    userPrompt:
-      'Analyze the scope of work and financial terms in this contract. Identify scope inclusions/exclusions, ambiguous scope language, retainage terms, payment schedules, change order procedures, and financial risk areas.',
+## What to Analyze
+- Explicit scope inclusions (materials, labor, equipment the Sub must provide)
+- Explicit scope exclusions (what is NOT the Sub's responsibility)
+- Referenced specifications (ASTM standards, AAMA standards, architectural specs, division specs)
+- Scope rules (who provides what: scaffolding, hoisting, protection, cleanup, temporary enclosures)
+- Scope gaps (work that is neither explicitly included nor excluded)
+- Ambiguous scope language that could lead to disputes
+- Scope that exceeds typical glazing subcontractor work
+
+## For Each Scope Item Found
+1. Quote the EXACT clause text defining the scope item
+2. Classify the scope item type (inclusion, exclusion, specification-reference, scope-rule, ambiguity, gap)
+3. Note the specification reference if applicable (e.g., "ASTM E2190", "Section 08 44 13")
+4. Identify the affected trade (glazing, general conditions, other)
+5. Explain why this matters to a glazing sub -- especially if scope appears broader than typical glazing work
+
+## Severity Rules
+- Scope gaps where Sub could be held responsible for unpriced work = Critical
+- Ambiguous scope that could be interpreted to expand Sub's obligations = High
+- Missing exclusions for work typically NOT included in glazing scope = High
+- Referenced specifications that are unusual or above standard = Medium
+- Clear inclusions/exclusions for informational tracking = Low/Info
+
+## Scope Exclusions
+Do NOT analyze financial terms (retainage, LD, payment terms, pricing) -- those are covered by specialized legal passes. Focus ONLY on scope of work.`,
+    userPrompt: 'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
   },
 
   // --- Legal analysis passes (specialized, one per clause type) ---
@@ -623,6 +666,95 @@ Your task is to find and analyze ALL change order and change directive provision
     userPrompt:
       'Analyze all change order and change directive provisions in this glazing subcontract.',
   },
+
+  // --- Scope / Compliance / Verbiage analysis passes ---
+
+  {
+    name: 'verbiage-analysis',
+    isOverview: false,
+    isScope: true,
+    schema: VerbiagePassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to flag QUESTIONABLE VERBIAGE -- language that is ambiguous, one-sided, missing standard protections, or uses undefined terms with legal significance.
+
+## What to Flag
+- Ambiguous language: "as directed", "to the satisfaction of", "best efforts", "reasonable" without definition, "substantially complete" without criteria
+- One-sided terms favoring GC: unilateral rights without reciprocal Sub rights, sole discretion clauses, waiver of rights clauses
+- Missing standard protections: no force majeure clause, no limitation of liability, no warranty disclaimer, no safety responsibility limits, no dispute resolution process
+- Undefined terms with legal significance: technical terms used without definition that could be interpreted broadly against the Sub
+- Overreach clauses: terms that attempt to impose obligations far beyond what is standard for a glazing subcontract
+
+## For Each Verbiage Issue Found
+1. Quote the EXACT clause text containing the problematic language
+2. Classify the issue type
+3. Identify which party is affected (subcontractor, GC, both)
+4. Provide a suggested clarification or replacement language concept (not full legal drafting, just the direction)
+5. Explain why this specific language is problematic for a glazing sub
+
+## Severity Rules (STRICT -- follow exactly to avoid noise)
+- One-sided terms that shift significant risk to Sub = Critical or High
+- Undefined terms with legal significance that could expand Sub liability = High
+- Missing standard protections (no force majeure, no limitation of liability) = Medium
+- Ambiguous language that could be interpreted against Sub in a dispute = Medium
+- Standard boilerplate ambiguity that is normal in construction contracts = DO NOT FLAG
+
+## CRITICAL: Noise Prevention
+- Do NOT flag every instance of "reasonable" or "as directed" -- only flag when the ambiguity creates material risk
+- Do NOT flag standard boilerplate (merger clauses, severability, counterparts)
+- Do NOT flag language already analyzed by legal passes (indemnification, payment contingency, LD, etc.)
+- Aim for 3-8 findings maximum. If you have more than 10, you are flagging too much.
+- Do NOT assess or provide a risk score`,
+    userPrompt: 'Identify questionable verbiage in this glazing subcontract: ambiguous language, one-sided terms, missing standard protections, undefined terms, and overreach clauses.',
+  },
+  {
+    name: 'labor-compliance',
+    isOverview: false,
+    isScope: true,
+    schema: LaborCompliancePassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to extract ALL labor compliance requirements into an actionable checklist, plus flag any gaps or problematic requirements.
+
+## What to Extract
+- Prevailing wage / Davis-Bacon requirements
+- Certified payroll reporting requirements
+- Apprenticeship ratio requirements
+- Safety training requirements (OSHA 10/30, site-specific)
+- Drug testing and background check requirements
+- Licensing requirements (state contractor license, specialty licenses)
+- Bonding requirements (performance bond, payment bond)
+- Reporting requirements (daily reports, safety reports, workforce reports)
+- Equal opportunity / diversity requirements
+- Any other labor-related compliance obligations
+
+## Output Format (TWO-PART -- follow this exactly)
+
+**Part 1: Summary Checklist Finding**
+Create ONE finding with:
+- severity: "Info"
+- title: "Labor Compliance Requirements Checklist"
+- description: A brief summary of total compliance items found
+- The checklistItems array populated with ALL compliance items found, each with: item description, deadline, responsible party, contact info (if specified in contract, otherwise "Not specified"), and status (required/conditional/recommended)
+- requirementType: "other" (this is the summary)
+- responsibleParty, contactInfo, deadline: summary-level values
+
+**Part 2: Individual Gap/Risk Findings**
+For each compliance PROBLEM (not each requirement), create a separate finding:
+- Missing compliance items that are standard for the project type but absent from the contract
+- Unreasonable compliance requirements (e.g., bonding requirements disproportionate to contract value)
+- Compliance deadlines that conflict with project schedule
+- Requirements that reference external documents not provided
+
+## Severity Rules
+- Missing legally required compliance (prevailing wage on public project) = Critical
+- Unreasonable or disproportionate requirements = High
+- Missing but recommended compliance items = Medium
+- Standard requirements present and reasonable = Info (in checklist only)
+
+## Do NOT assess or provide a risk score`,
+    userPrompt: 'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -697,11 +829,13 @@ async function runAnalysisPass(
       ? zodToOutputFormat(RiskOverviewResultSchema)
       : zodToOutputFormat(PassResultSchema);
 
+  // Use streaming to avoid HeadersTimeoutError — headers are sent immediately
+  // via SSE, keeping the connection alive while Claude processes the document.
   const response = await client.beta.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS_PER_PASS,
     betas: BETAS,
-    stream: false,
+    stream: true,
     system: pass.systemPrompt,
     messages: [
       {
@@ -722,10 +856,16 @@ async function runAnalysisPass(
     output_config: { format: outputFormat },
   });
 
-  const responseText = response.content
-    .filter((b): b is Anthropic.Beta.Messages.BetaTextBlock => b.type === 'text')
-    .map((b) => b.text)
-    .join('');
+  // Collect streamed text chunks into complete response
+  let responseText = '';
+  for await (const event of response) {
+    if (
+      event.type === 'content_block_delta' &&
+      event.delta.type === 'text_delta'
+    ) {
+      responseText += event.delta.text;
+    }
+  }
 
   const parsed = JSON.parse(responseText);
   return { passName: pass.name, result: parsed };
@@ -757,6 +897,7 @@ interface UnifiedFinding {
   explanation?: string;
   crossReferences?: string[];
   legalMeta?: LegalMeta;
+  scopeMeta?: ScopeMeta;
   sourcePass?: string;
 }
 
@@ -874,6 +1015,73 @@ function convertLegalFinding(
 }
 
 // ---------------------------------------------------------------------------
+// Convert scope pass findings to unified Finding shape with scopeMeta
+// ---------------------------------------------------------------------------
+
+function convertScopeFinding(
+  finding: Record<string, unknown>,
+  passName: string,
+): UnifiedFinding {
+  const base: UnifiedFinding = {
+    severity: finding.severity as string,
+    category: finding.category as string,
+    title: finding.title as string,
+    description: finding.description as string,
+    recommendation: finding.recommendation as string,
+    clauseReference: finding.clauseReference as string,
+    clauseText: finding.clauseText as string,
+    explanation: finding.explanation as string,
+    crossReferences: finding.crossReferences as string[],
+    sourcePass: passName,
+  };
+
+  switch (passName) {
+    case 'scope-of-work':
+      base.scopeMeta = {
+        passType: 'scope-of-work',
+        scopeItemType: finding.scopeItemType as string,
+        specificationReference: finding.specificationReference as string,
+        affectedTrade: finding.affectedTrade as string,
+      };
+      break;
+    case 'dates-deadlines':
+      base.scopeMeta = {
+        passType: 'dates-deadlines',
+        periodType: finding.periodType as string,
+        duration: finding.duration as string,
+        triggerEvent: finding.triggerEvent as string,
+      };
+      break;
+    case 'verbiage-analysis':
+      base.scopeMeta = {
+        passType: 'verbiage',
+        issueType: finding.issueType as string,
+        affectedParty: finding.affectedParty as string,
+        suggestedClarification: finding.suggestedClarification as string,
+      };
+      break;
+    case 'labor-compliance':
+      base.scopeMeta = {
+        passType: 'labor-compliance',
+        requirementType: finding.requirementType as string,
+        responsibleParty: finding.responsibleParty as string,
+        contactInfo: finding.contactInfo as string,
+        deadline: finding.deadline as string,
+        checklistItems: (finding.checklistItems as Array<Record<string, unknown>> || []).map(item => ({
+          item: item.item as string,
+          deadline: item.deadline as string,
+          responsibleParty: item.responsibleParty as string,
+          contactInfo: item.contactInfo as string,
+          status: item.status as 'required' | 'conditional' | 'recommended',
+        })),
+      };
+      break;
+  }
+
+  return base;
+}
+
+// ---------------------------------------------------------------------------
 // Merge results from all passes
 // ---------------------------------------------------------------------------
 
@@ -915,10 +1123,14 @@ function mergePassResults(
         contractType = overview.contractType || contractType;
       }
 
-      // Convert findings: legal passes get convertLegalFinding, others get tagged with sourcePass
+      // Convert findings: legal passes get convertLegalFinding, scope passes get convertScopeFinding, others get tagged with sourcePass
       if (passes[i].isLegal) {
         for (const f of result.findings) {
           allFindings.push(convertLegalFinding(f as unknown as Record<string, unknown>, passName));
+        }
+      } else if (passes[i].isScope) {
+        for (const f of result.findings) {
+          allFindings.push(convertScopeFinding(f as unknown as Record<string, unknown>, passName));
         }
       } else {
         for (const f of result.findings) {
@@ -952,8 +1164,12 @@ function mergePassResults(
   }
 
   // --- Enhanced deduplication ---
+  // Helper: detect specialized passes (legal or scope) vs general passes
+  const isSpecializedPass = (sp: string) =>
+    sp.startsWith('legal-') || ['scope-of-work', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance'].includes(sp);
+
   // Phase 1: clauseReference + category composite key dedup
-  // Prefer specialized legal passes over general passes; among same type, prefer higher severity
+  // Prefer specialized passes over general passes; among same type, prefer higher severity
   const byClauseAndCategory = new Map<string, UnifiedFinding>();
   const noClauseRefFindings: UnifiedFinding[] = [];
 
@@ -967,13 +1183,13 @@ function mergePassResults(
       if (!existing) {
         byClauseAndCategory.set(key, finding);
       } else {
-        const findingIsLegal = (finding.sourcePass || '').startsWith('legal-');
-        const existingIsLegal = (existing.sourcePass || '').startsWith('legal-');
+        const findingIsSpecialized = isSpecializedPass(finding.sourcePass || '');
+        const existingIsSpecialized = isSpecializedPass(existing.sourcePass || '');
 
-        if (findingIsLegal && !existingIsLegal) {
-          // Specialized legal pass beats general pass
+        if (findingIsSpecialized && !existingIsSpecialized) {
+          // Specialized pass beats general pass
           byClauseAndCategory.set(key, finding);
-        } else if (!findingIsLegal && existingIsLegal) {
+        } else if (!findingIsSpecialized && existingIsSpecialized) {
           // Keep the specialized one already stored
         } else if (
           (severityRank[finding.severity] || 0) >
@@ -1008,12 +1224,12 @@ function mergePassResults(
     if (!existing) {
       byTitle.set(finding.title, finding);
     } else {
-      const findingIsLegal = (finding.sourcePass || '').startsWith('legal-');
-      const existingIsLegal = (existing.sourcePass || '').startsWith('legal-');
+      const findingIsSpecialized = isSpecializedPass(finding.sourcePass || '');
+      const existingIsSpecialized = isSpecializedPass(existing.sourcePass || '');
 
-      if (findingIsLegal && !existingIsLegal) {
+      if (findingIsSpecialized && !existingIsSpecialized) {
         byTitle.set(finding.title, finding);
-      } else if (!findingIsLegal && existingIsLegal) {
+      } else if (!findingIsSpecialized && existingIsSpecialized) {
         // Keep the specialized one already stored
       } else if (
         (severityRank[finding.severity] || 0) >
@@ -1087,7 +1303,18 @@ export default async function handler(
       });
     }
 
-    client = new Anthropic({ apiKey });
+    client = new Anthropic({
+      apiKey,
+      timeout: 110 * 1000,   // 110s — just under Vercel maxDuration (120s)
+      maxRetries: 0,          // Don't retry inside serverless function — wastes budget
+      fetchOptions: {
+        dispatcher: new Agent({
+          headersTimeout: 5 * 60 * 1000,   // 5 min — prevent undici HeadersTimeoutError
+          bodyTimeout: 5 * 60 * 1000,      // 5 min — prevent body timeout
+          connectTimeout: 30 * 1000,        // 30s to establish connection
+        }),
+      } as Record<string, unknown>,
+    });
 
     // Upload PDF to Files API (or fallback to text extraction)
     const prepared = await preparePdfForAnalysis(
@@ -1097,11 +1324,16 @@ export default async function handler(
     );
     fileId = prepared.fileId;
 
-    // Execute all analysis passes in parallel
-    const passPromises = ANALYSIS_PASSES.map((pass) =>
-      runAnalysisPass(client!, fileId!, pass),
-    );
-    const settledResults = await Promise.allSettled(passPromises);
+    // Execute analysis passes in batches to avoid rate limits / memory pressure
+    const BATCH_SIZE = 7;
+    const settledResults: PromiseSettledResult<{ passName: string; result: PassResult | RiskOverviewResult }>[] = [];
+    for (let i = 0; i < ANALYSIS_PASSES.length; i += BATCH_SIZE) {
+      const batch = ANALYSIS_PASSES.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map((pass) => runAnalysisPass(client!, fileId!, pass)),
+      );
+      settledResults.push(...batchResults);
+    }
 
     // Merge results from all passes
     const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
