@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Contract, Category, Severity } from '../types/contract';
 import { FindingCard } from '../components/FindingCard';
 import { CategoryFilter } from '../components/CategoryFilter';

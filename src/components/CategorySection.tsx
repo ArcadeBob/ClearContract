@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Category, Finding, Severity } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { FindingCard } from './FindingCard';
