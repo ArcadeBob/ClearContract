@@ -3,6 +3,7 @@ import { Finding } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { ClauseQuote } from './ClauseQuote';
 import { LegalMetaBadge } from './LegalMetaBadge';
+import { ScopeMetaBadge } from './ScopeMetaBadge';
 import {
   Scale,
   ClipboardList,
@@ -92,6 +93,7 @@ export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
       )}
 
       {finding.legalMeta && <LegalMetaBadge meta={finding.legalMeta} />}
+      {finding.scopeMeta && <ScopeMetaBadge meta={finding.scopeMeta} />}
 
       {finding.crossReferences && finding.crossReferences.length > 0 && (
         <div className="flex flex-wrap items-center gap-1 mt-2 mb-2">
