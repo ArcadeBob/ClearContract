@@ -90,10 +90,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Every Critical and High severity finding includes the problematic language, why it is problematic, and a suggested replacement language or negotiation position
   2. Analysis results are organized by category so the user can work through findings systematically (legal risks, scope, compliance, verbiage) rather than in a flat list
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Add negotiationPosition field to Finding type, all 16 Zod schemas, all pass prompts, convert functions, and UnifiedFinding
+- [ ] 05-02-PLAN.md — CategorySection component, FindingCard negotiation position rendering, ContractReview category-grouped layout
 
 ## Progress
 
@@ -107,4 +108,4 @@ Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phas
 | 2. Core Legal Risk Analysis | 2/2 | Complete   | 2026-03-05 |
 | 3. Extended Legal Coverage | 0/2 | Not started | - |
 | 4. Scope, Compliance, and Verbiage | 0/2 | Not started | - |
-| 5. Negotiation Output and Organization | 0/1 | Not started | - |
+| 5. Negotiation Output and Organization | 0/2 | Not started | - |
