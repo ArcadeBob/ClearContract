@@ -14,14 +14,14 @@ import {
   DollarSign,
   Ruler,
   AlertTriangle,
-  BoxIcon } from
-'lucide-react';
+  type LucideIcon,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 interface FindingCardProps {
   finding: Finding;
   index: number;
 }
-const categoryIcons: Record<string, BoxIcon> = {
+const categoryIcons: Record<string, LucideIcon> = {
   'Legal Issues': Scale,
   'Scope of Work': ClipboardList,
   'Contract Compliance': ShieldCheck,
@@ -89,6 +89,17 @@ export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
             Why This Matters
           </p>
           <p className="text-sm text-amber-800 leading-relaxed">{finding.explanation}</p>
+        </div>
+      )}
+
+      {finding.negotiationPosition && finding.negotiationPosition !== '' && (
+        <div className="bg-emerald-50 border border-emerald-100 rounded-md p-3 mb-3">
+          <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">
+            Negotiation Position
+          </p>
+          <p className="text-sm text-emerald-800 leading-relaxed">
+            {finding.negotiationPosition}
+          </p>
         </div>
       )}
 
