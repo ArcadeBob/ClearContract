@@ -102,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-03 | Phase 4 | Complete |
 | COMP-01 | Phase 4 | Complete |
 | SCOPE-04 | Phase 5 | Complete |
-| OUT-01 | Phase 5 | Complete |
+| OUT-01 | Phase 5, Phase 6 (gap closure) | Complete |
 
 **Coverage:**
 - v1 requirements: 22 total

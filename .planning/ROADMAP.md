@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Extended Legal Coverage** - Complete legal clause coverage across insurance, termination, flow-down, delays, liens, disputes, and change orders
 - [ ] **Phase 4: Scope, Compliance, and Verbiage** - Extract full scope of work, dates/deadlines, labor compliance checklist, and flag questionable verbiage
 - [ ] **Phase 5: Negotiation Output and Organization** - Add negotiation positions to Critical/High findings and organize all results into a systematic, actionable format
+- [ ] **Phase 6: CategoryFilter Display Fix** - Fix CategoryFilter to filter displayed categories (not just scroll) in by-category mode [GAP CLOSURE]
 
 ## Phase Details
 
@@ -96,11 +97,25 @@ Plans:
 - [ ] 05-01-PLAN.md — Add negotiationPosition field to Finding type, all 16 Zod schemas, all pass prompts, convert functions, and UnifiedFinding
 - [ ] 05-02-PLAN.md — CategorySection component, FindingCard negotiation position rendering, ContractReview category-grouped layout
 
+### Phase 6: CategoryFilter Display Fix
+**Goal**: CategoryFilter pill selection in by-category mode filters the displayed categories (hides non-selected) instead of only scrolling
+**Depends on**: Phase 5
+**Requirements**: OUT-01 (gap closure — strengthens existing satisfied requirement)
+**Gap Closure:** Closes integration gap OUT-01 and flow gap "Category-filtered view in by-category mode" from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. Selecting a category pill in by-category mode shows only that category's section, hiding all others
+  2. Selecting "All" restores all category sections
+  3. Scroll-to-section behavior is preserved when filtering
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01: Add selectedCategory filter to groupedFindings derivation + verify scroll+filter
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
-Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phase 4 could theoretically be built in parallel.
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phase 4 could theoretically be built in parallel. Phase 6 depends on Phase 5 (gap closure).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -109,3 +124,4 @@ Note: Phase 4 depends only on Phase 1 (not on Phase 2/3), so Phases 2-3 and Phas
 | 3. Extended Legal Coverage | 0/2 | Not started | - |
 | 4. Scope, Compliance, and Verbiage | 0/2 | Not started | - |
 | 5. Negotiation Output and Organization | 0/2 | Not started | - |
+| 6. CategoryFilter Display Fix | 0/1 | Not started | - |
