@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 04-02-PLAN.md (ScopeMetaBadge UI Rendering)
-last_updated: "2026-03-06T05:13:44.407Z"
-last_activity: 2026-03-06 -- Completed 04-02 (ScopeMetaBadge UI Rendering)
+status: in-progress
+stopped_at: Completed 05-01-PLAN.md (Negotiation Position Pipeline Integration)
+last_updated: "2026-03-06T05:51:31.735Z"
+last_activity: 2026-03-06 -- Completed 05-01 (Negotiation Position Pipeline Integration)
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 12
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 4 complete. All scope/compliance/verbiage schemas, pipeline integration, and UI rendering delivered. Phase 5 (Negotiation Output) is next.
+**Current focus:** Phase 5 in progress. Plan 05-01 complete (negotiationPosition pipeline integration). Plan 05-02 (UI rendering and organization) remaining.
 
 ## Current Position
 
-Phase: 4 of 5 (Scope, Compliance & Verbiage) -- COMPLETE
-Plan: 2 of 2 in current phase (2 complete, 0 remaining)
-Status: Phase 4 Complete
-Last activity: 2026-03-06 -- Completed 04-02 (ScopeMetaBadge UI Rendering)
+Phase: 5 of 5 (Negotiation Output and Organization)
+Plan: 1 of 2 in current phase (1 complete, 1 remaining)
+Status: In Progress
+Last activity: 2026-03-06 -- Completed 05-01 (Negotiation Position Pipeline Integration)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 03 P02 | 3min | 2 tasks | 1 file |
 | Phase 04 P01 | 10min | 2 tasks | 3 files |
 | Phase 04 P02 | 2min | 2 tasks | 2 files |
+| Phase 05 P01 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [Phase 04-02]: ScopeMetaBadge follows LegalMetaBadge pattern: pill-based rendering with passType discrimination
 - [Phase 04-02]: Compliance checklist uses dot indicators (red=required, amber=conditional, green=recommended)
 - [Phase 04-02]: Verbiage suggestedClarification and dates triggerEvent render outside flex wrapper for text flow
+- [Phase 05-01]: negotiationPosition is REQUIRED (z.string) in schemas, optional on client type -- follows Phase 2 convention for structured output quality
+- [Phase 05-01]: Prompt instructs empty string for Medium/Low/Info findings rather than making field optional in schema
+- [Phase 05-01]: risk-overview prompt includes extra distinction note: negotiationPosition vs recommendation
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T05:10:05.019Z
-Stopped at: Completed 04-02-PLAN.md (ScopeMetaBadge UI Rendering)
+Last session: 2026-03-06T05:51:00Z
+Stopped at: Completed 05-01-PLAN.md (Negotiation Position Pipeline Integration)
 Resume file: None

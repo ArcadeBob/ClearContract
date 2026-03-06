@@ -34,7 +34,7 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 - [x] **SCOPE-01**: Full scope of work is extracted with inclusions, exclusions, specification references, and scope rules
 - [x] **SCOPE-02**: All dates and deadlines are extracted including notice periods, cure periods, payment terms, and project milestones
 - [x] **SCOPE-03**: Questionable verbiage is flagged — ambiguous clauses, one-sided terms favoring GC, missing standard protections, undefined terms with legal significance
-- [ ] **SCOPE-04**: Each Critical/High finding includes a negotiation position — the problematic language, why it's problematic, and suggested replacement language or position
+- [x] **SCOPE-04**: Each Critical/High finding includes a negotiation position — the problematic language, why it's problematic, and suggested replacement language or position
 
 ### Compliance
 
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-02 | Phase 4 | Complete |
 | SCOPE-03 | Phase 4 | Complete |
 | COMP-01 | Phase 4 | Complete |
-| SCOPE-04 | Phase 5 | Pending |
+| SCOPE-04 | Phase 5 | Complete |
 | OUT-01 | Phase 5 | Pending |
 
 **Coverage:**
