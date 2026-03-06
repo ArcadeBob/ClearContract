@@ -31,14 +31,14 @@ Requirements for the enhanced analysis release. Each maps to roadmap phases.
 
 ### Scope & Verbiage
 
-- [ ] **SCOPE-01**: Full scope of work is extracted with inclusions, exclusions, specification references, and scope rules
-- [ ] **SCOPE-02**: All dates and deadlines are extracted including notice periods, cure periods, payment terms, and project milestones
-- [ ] **SCOPE-03**: Questionable verbiage is flagged — ambiguous clauses, one-sided terms favoring GC, missing standard protections, undefined terms with legal significance
+- [x] **SCOPE-01**: Full scope of work is extracted with inclusions, exclusions, specification references, and scope rules
+- [x] **SCOPE-02**: All dates and deadlines are extracted including notice periods, cure periods, payment terms, and project milestones
+- [x] **SCOPE-03**: Questionable verbiage is flagged — ambiguous clauses, one-sided terms favoring GC, missing standard protections, undefined terms with legal significance
 - [ ] **SCOPE-04**: Each Critical/High finding includes a negotiation position — the problematic language, why it's problematic, and suggested replacement language or position
 
 ### Compliance
 
-- [ ] **COMP-01**: Labor compliance requirements are extracted into an actionable checklist with items, associated dates, responsible parties, and contacts where specified
+- [x] **COMP-01**: Labor compliance requirements are extracted into an actionable checklist with items, associated dates, responsible parties, and contacts where specified
 
 ### Output
 
@@ -97,10 +97,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LEGAL-10 | Phase 3 | Complete |
 | LEGAL-11 | Phase 3 | Complete |
 | LEGAL-12 | Phase 3 | Complete |
-| SCOPE-01 | Phase 4 | Pending |
-| SCOPE-02 | Phase 4 | Pending |
-| SCOPE-03 | Phase 4 | Pending |
-| COMP-01 | Phase 4 | Pending |
+| SCOPE-01 | Phase 4 | Complete |
+| SCOPE-02 | Phase 4 | Complete |
+| SCOPE-03 | Phase 4 | Complete |
+| COMP-01 | Phase 4 | Complete |
 | SCOPE-04 | Phase 5 | Pending |
 | OUT-01 | Phase 5 | Pending |
 

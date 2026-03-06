@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 3 execution complete, proceeding to verification
-last_updated: "2026-03-06T03:26:47.791Z"
-last_activity: 2026-03-05 -- Completed 03-02 (LegalMetaBadge Rendering)
+status: executing
+stopped_at: Completed 04-01-PLAN.md (Scope/Compliance/Verbiage Schemas)
+last_updated: "2026-03-06T05:04:11Z"
+last_activity: 2026-03-06 -- Completed 04-01 (Scope/Compliance/Verbiage Schemas)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 10
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 3 complete. All plans executed. Proceeding to verification.
+**Current focus:** Phase 4 in progress. Plan 01 complete (schemas + pipeline), Plan 02 pending (UI rendering).
 
 ## Current Position
 
-Phase: 3 of 5 (Extended Legal Coverage)
-Plan: 2 of 2 in current phase (all complete)
-Status: Phase 3 execution complete, pending verification
-Last activity: 2026-03-05 -- Completed 03-02 (LegalMetaBadge Rendering)
+Phase: 4 of 5 (Scope, Compliance & Verbiage)
+Plan: 1 of 2 in current phase (1 complete, 1 remaining)
+Status: Executing Phase 4
+Last activity: 2026-03-06 -- Completed 04-01 (Scope/Compliance/Verbiage Schemas)
 
-Progress: [##########] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [##########] 100%
 | Phase 02 P02 | 3min | 3 tasks | 4 files |
 | Phase 03 P01 | 3min | 2 tasks | 3 files |
 | Phase 03 P02 | 3min | 2 tasks | 1 file |
+| Phase 04 P01 | 10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Insurance pass uses two-part output: summary checklist finding with full coverageItems/endorsements arrays plus individual findings for each gap
 - [Phase 03]: All 7 new passes follow Phase 2 pattern: self-contained Zod schemas with local enums, all metadata fields REQUIRED
 - [Phase 03]: No new dependencies added -- reuses existing zodToOutputFormat, Promise.allSettled, and dedup infrastructure
+- [Phase 04-01]: Scope pass schemas follow same pattern as legal: self-contained local enums, all metadata REQUIRED
+- [Phase 04-01]: isSpecializedPass helper unifies legal + scope dedup, replacing isLegal-only checks
+- [Phase 04-01]: Old dates-deadlines and scope-financial passes fully replaced (not supplemented) to avoid duplicate findings
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T06:00:00.000Z
-Stopped at: Phase 3 execution complete, proceeding to verification
+Last session: 2026-03-06T05:04:11Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
