@@ -66,6 +66,9 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
         .sort((a, b) => severityRank[a.severity] - severityRank[b.severity]),
     }))
     .filter(group => group.findings.length > 0)
+    .filter(group =>
+      selectedCategory === 'All' || group.category === selectedCategory
+    )
     .sort((a, b) => {
       const aMax = Math.min(...a.findings.map(f => severityRank[f.severity]));
       const bMax = Math.min(...b.findings.map(f => severityRank[f.severity]));
