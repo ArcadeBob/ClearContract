@@ -2,65 +2,84 @@
 
 ## What This Is
 
-A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, extracts the full text, and produces an organized breakdown — legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, and labor compliance checklists. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
+A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs 16 specialized analysis passes via Claude API, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, and negotiation positions for high-risk findings. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
 
 ## Core Value
 
-When you upload a contract, you walk away with a complete, organized breakdown of everything that matters — risks, scope, dates, compliance — with exact contract language quoted so you can act on it immediately.
+When you upload a contract, you walk away with a complete, organized breakdown of everything that matters -- risks, scope, dates, compliance -- with exact contract language quoted so you can act on it immediately.
 
 ## Requirements
 
 ### Validated
 
-- ✓ PDF upload with drag-and-drop (3MB max) — existing
-- ✓ View-based SPA with dashboard, upload, review, contracts, settings pages — existing
-- ✓ AI-powered analysis via Claude API (Vercel serverless) — existing (but broken)
-- ✓ Risk score (0-100) — existing
-- ✓ Finding categorization (9 categories) with severity levels — existing
-- ✓ Date/milestone extraction — existing
-- ✓ Contract review page with findings display and filtering — existing
+- ✓ PDF upload with drag-and-drop (10MB max) -- v1.0
+- ✓ View-based SPA with dashboard, upload, review, contracts, settings pages -- v1.0
+- ✓ AI-powered analysis via Claude API (Vercel serverless) -- v1.0
+- ✓ Risk score (0-100) with deterministic severity-weighted computation -- v1.0
+- ✓ Finding categorization (9 categories) with severity levels -- v1.0
+- ✓ Date/milestone extraction -- v1.0
+- ✓ Contract review page with findings display and filtering -- v1.0
+- ✓ Multi-pass analysis engine (16 specialized passes) with structured JSON outputs -- v1.0
+- ✓ Native PDF support via Anthropic Files API with unpdf fallback -- v1.0
+- ✓ Exact verbatim clause quotes + plain-English explanations on every finding -- v1.0
+- ✓ Legal clause analysis: indemnification, pay-if-paid, liquidated damages, retainage, insurance, termination, flow-down, delays, liens, disputes, change orders -- v1.0
+- ✓ Scope extraction with inclusions, exclusions, spec references, scope rules -- v1.0
+- ✓ Questionable verbiage flagging (ambiguous, one-sided, missing protections) -- v1.0
+- ✓ Labor compliance checklist with dates, parties, contacts -- v1.0
+- ✓ Negotiation positions on Critical/High findings -- v1.0
+- ✓ Category-grouped output with view-mode toggle -- v1.0
 
 ### Active
 
-- [ ] Fix analysis bug — analysis currently fails with generic error
-- [ ] Comprehensive legal issues extraction — exact clause quotes + explanation of why each is problematic (indemnification, pay-if-paid, liquidated damages, retainage, insurance, etc.)
-- [ ] Questionable verbiage detection — ambiguous clauses, one-sided terms favoring GC, missing standard protections
-- [ ] Scope of project extraction — pull full scope, scope rules, identify gaps, enable comparison to bid
-- [ ] Labor compliance requirements checklist — all compliance items with associated dates and contacts
-- [ ] Organized full breakdown output — all analysis categories presented in a clear, actionable format
+(None -- plan next milestone)
 
 ### Out of Scope
 
-- Multi-user/team features — sole user, not needed now
-- User authentication — single-user context
-- Data persistence across sessions — acceptable for now
-- Mobile app — web-only
-- Real-time collaboration — sole user
+- Multi-user/team features -- sole user, not needed now
+- User authentication -- single-user context
+- Data persistence across sessions -- acceptable for now
+- Mobile app -- web-only
+- Real-time collaboration -- sole user
+- Automated redlining / markup -- legal liability risk
+- Multi-document comparison -- single contract focus
+- Playbook / template customization -- AI prompt IS the playbook
+- Real-time chat with contract -- comprehensive upfront analysis suffices
+- Contract storage / database -- no persistence needed
+- Procore / PM integration -- export report, user attaches to PM
+- Multi-language support -- US glazing contracts are in English
 
 ## Context
 
-- Clean Glass Installation Inc. is a glazing subcontractor
-- Primary contract type: subcontracts from general contractors
-- Contracts range from 5 to 100+ pages
-- Current system truncates text to 100k chars and uses a single Claude call with 4096 max tokens — insufficient for comprehensive analysis of long contracts
-- Analysis currently fails with a generic error that needs diagnosis and fixing
-- The user needs exact contract language quoted alongside explanations — not just summaries
-- Output should support negotiation prep (push back on GC), scope verification (compare to bid), and compliance tracking (dates/contacts checklist)
+Shipped v1.0 with ~5,000 LOC TypeScript across client and server.
+Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK.
+Deployed on Vercel with serverless function (api/analyze.ts, 1,537 LOC).
+16 analysis passes run in parallel via Files API upload-once/analyze-many pattern.
+All structured outputs via Zod v3 schemas converted to JSON Schema.
+
+Known tech debt: unused React imports, mock contracts don't exercise new fields, human UAT pending, vercel.json maxDuration may need Pro plan.
 
 ## Constraints
 
-- **Deployment**: Vercel serverless with 60-second function timeout
-- **API**: Anthropic Claude API — token limits and costs factor into chunking strategy
-- **File size**: Currently 3MB max PDF upload
-- **Stack**: React 18 + TypeScript + Tailwind + Vite (existing, no reason to change)
+- **Deployment**: Vercel serverless with configurable function timeout (currently 300s, may need Pro plan)
+- **API**: Anthropic Claude API -- token limits and costs factor into pass design
+- **File size**: 10MB max PDF upload (Vercel 4.5MB body limit via base64)
+- **Stack**: React 18 + TypeScript + Tailwind + Vite (established, no reason to change)
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Phased analysis approach | Contracts are long, single API call can't cover everything comprehensively | — Pending |
-| Quotes + explanation format | User needs exact contract language to act on findings, not just summaries | — Pending |
-| Subcontractor perspective | All analysis should flag risks from glazing sub's perspective, not GC's | — Pending |
+| Phased analysis approach (16 passes) | Single API call can't cover long contracts comprehensively | ✓ Good -- enables deep analysis per clause type |
+| Quotes + explanation format | User needs exact contract language to act on findings | ✓ Good -- every finding has clauseText + explanation |
+| Subcontractor perspective | All analysis flags risks from glazing sub's perspective | ✓ Good -- consistent framing throughout |
+| Zod v3 schemas with zod-to-json-schema | SDK zodOutputFormat requires Zod v4, project uses v3 | ✓ Good -- clean bridge, identical output |
+| Files API upload-once/analyze-many | Avoid re-uploading PDF per pass | ✓ Good -- efficient, reliable |
+| Self-contained pass schemas | Each pass has local enums to avoid cross-dependency | ✓ Good -- structured outputs compile independently |
+| Required metadata fields in schemas | Optional fields produce lower quality structured outputs | ✓ Good -- forces Claude to populate all fields |
+| Composite key dedup (clauseReference+category) | Multiple passes may find same clause | ✓ Good -- prefers specialized pass findings |
+| Deterministic risk scoring (severity weights) | Reproducible, transparent scoring | ✓ Good -- consistent scores |
+| Category-grouped default view | Users work through contracts systematically by topic | ✓ Good -- matches review workflow |
+| negotiationPosition required in schema, optional on client | Maximizes structured output quality while allowing empty for Low/Info | ✓ Good -- all Critical/High get positions |
 
 ---
-*Last updated: 2026-03-02 after initialization*
+*Last updated: 2026-03-06 after v1.0 milestone*
