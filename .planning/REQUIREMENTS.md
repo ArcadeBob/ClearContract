@@ -9,11 +9,11 @@ Requirements for Domain Intelligence milestone. Each maps to roadmap phases.
 
 ### Knowledge Architecture
 
-- [ ] **ARCH-01**: System loads domain knowledge as TypeScript modules with per-pass selective mapping
-- [ ] **ARCH-02**: Each analysis pass receives only its relevant knowledge files (not everything)
-- [ ] **ARCH-03**: Token budget enforcement validates knowledge injection fits within 1500-token cap per pass before API call
-- [ ] **ARCH-04**: Knowledge modules display effective date and review-by date
-- [ ] **ARCH-05**: Prompt builder composes base prompt + domain knowledge + company profile into system prompt
+- [x] **ARCH-01**: System loads domain knowledge as TypeScript modules with per-pass selective mapping
+- [x] **ARCH-02**: Each analysis pass receives only its relevant knowledge files (not everything)
+- [x] **ARCH-03**: Token budget enforcement validates knowledge injection fits within 1500-token cap per pass before API call
+- [x] **ARCH-04**: Knowledge modules display effective date and review-by date
+- [x] **ARCH-05**: Prompt builder composes base prompt + domain knowledge + company profile into system prompt
 
 ### Company Profile
 
@@ -70,11 +70,11 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | Phase 7 | Pending |
-| ARCH-02 | Phase 7 | Pending |
-| ARCH-03 | Phase 7 | Pending |
-| ARCH-04 | Phase 7 | Pending |
-| ARCH-05 | Phase 7 | Pending |
+| ARCH-01 | Phase 7 | Complete |
+| ARCH-02 | Phase 7 | Complete |
+| ARCH-03 | Phase 7 | Complete |
+| ARCH-04 | Phase 7 | Complete |
+| ARCH-05 | Phase 7 | Complete |
 | PROF-01 | Phase 7 | Pending |
 | PROF-02 | Phase 7 | Pending |
 | PROF-03 | Phase 7 | Pending |
