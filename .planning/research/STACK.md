@@ -1,334 +1,275 @@
-# Technology Stack
+# Stack Research
 
-**Project:** ClearContract - AI Contract Analysis Pipeline
-**Researched:** 2026-03-02
-**Focus:** What to CHANGE or ADD to enable comprehensive multi-pass contract analysis of 5-100+ page PDFs
+**Domain:** Domain intelligence knowledge architecture for contract analysis AI
+**Researched:** 2026-03-08
+**Confidence:** HIGH
 
-## Current Stack (Keep As-Is)
+## Context
 
-The existing frontend stack is solid and requires no changes:
+ClearContract v1.0 ships with 16 analysis passes running on Claude via Vercel serverless. v1.1 adds structured domain knowledge (company profiles, CA regulations, contract standards, industry specs) that loads selectively per analysis pass. This research covers ONLY the stack additions needed for the knowledge architecture -- the existing React/TypeScript/Vite/Tailwind/Anthropic SDK stack is validated and unchanged.
 
-| Technology | Version | Purpose | Status |
-|------------|---------|---------|--------|
-| React | 18.3.1 | UI framework | Keep |
-| TypeScript | 5.5.4 | Type safety | Keep |
-| Vite | 5.2.0 | Build tool | Keep |
-| Tailwind CSS | 3.4.17 | Styling | Keep |
-| Framer Motion | 11.5.4 | Animations | Keep |
-| Lucide React | 0.522.0 | Icons | Keep |
-| React Dropzone | 14.2.3 | File upload | Keep |
-| @vercel/node | 5.6.9 | Serverless functions | Keep |
+**Key constraint from v1.0:** The project already uses TypeScript modules for schemas, Zod v3 for structured outputs, the Anthropic SDK for API calls, and `localStorage`-equivalent in-memory state. There is no persistence layer and PROJECT.md says none is needed.
 
-## Recommended Changes
+## Recommended Stack Additions
 
-### 1. Claude API Model Upgrade
+### Core Technologies
 
-| Technology | Current | Recommended | Why |
-|------------|---------|-------------|-----|
-| Claude model | `claude-sonnet-4-20250514` | `claude-sonnet-4-6` | Latest Sonnet with 64K max output tokens (vs 4096 currently configured), 200K context window standard, 1M beta. Same price ($3/$15 per MTok). Training data through Jan 2026. **Confidence: HIGH** (verified via official models overview page) |
-| max_tokens | 4096 | 16384 (per pass) | Current limit is far too low for comprehensive analysis with exact clause quotes. 16K per pass across multiple passes yields thorough coverage. |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| TypeScript modules (`.ts` files) | existing | Knowledge file format | Type-safe, zero-dependency, tree-shakeable at build time, importable on both client (Settings UI) and server (analysis passes). No parser needed -- Vite and Node handle it natively. Matches existing patterns for schemas and mock data. |
+| Anthropic Token Counting API | existing SDK | Token budget management per pass | Free endpoint (`client.messages.countTokens()`) already available in `@anthropic-ai/sdk@^0.78.0`. Returns exact token counts for system prompt + knowledge text before sending to Claude. No new dependency needed. |
+| Zod v3 (existing) | ^3.25.76 | Knowledge data validation | Already in project for pass schemas. Reuse for validating company profile data from Settings UI before it reaches the server. |
 
-**Key model specs (verified from official docs):**
+### Knowledge File Format Decision: TypeScript Objects
 
-| Model | API ID | Context Window | Max Output | Input $/MTok | Output $/MTok |
-|-------|--------|---------------|------------|-------------|--------------|
-| Claude Sonnet 4.6 | `claude-sonnet-4-6` | 200K (1M beta) | 64K tokens | $3 | $15 |
-| Claude Haiku 4.5 | `claude-haiku-4-5` | 200K | 64K tokens | $1 | $5 |
+**Use TypeScript `.ts` files exporting typed const objects.** Not JSON, not YAML, not Markdown.
 
-Use Sonnet 4.6 for primary analysis (best quality-to-cost ratio). Use Haiku 4.5 for lightweight tasks like date extraction or classification if cost becomes a concern.
+Rationale:
+- **Type safety at author time**: Knowledge files get TypeScript checking. A YAML typo in a regulation citation is silent; a TS type error is caught at build.
+- **Zero parsing overhead**: `import { caLienLaw } from '../knowledge/regulatory/ca-lien-law'` -- no `fs.readFileSync`, no `JSON.parse`, no gray-matter.
+- **Selective imports**: Each analysis pass imports only the knowledge modules it needs. Vite tree-shakes unused knowledge from the client bundle. On the server, Node loads only what is imported.
+- **No new dependencies**: JSON needs `fs` on server (already available) but loses types. YAML needs `js-yaml` or `gray-matter`. Markdown+frontmatter needs `gray-matter`. TypeScript needs nothing new.
+- **Existing pattern**: The project already uses TypeScript for schemas (`src/schemas/analysis.ts`), mock data (`src/data/mockContracts.ts`), and pass definitions (inline in `api/analyze.ts`). Knowledge files are the same pattern.
 
-### 2. Remove pdf-parse, Use Claude's Native PDF Support
-
-**Confidence: HIGH** (verified from official Anthropic docs)
-
-| Action | Detail |
-|--------|--------|
-| **Remove** | `pdf-parse` (v2.4.5) and `@types/pdf-parse` |
-| **Use instead** | Claude API's native `document` content block with `type: "base64"` |
-
-**Why:** Claude's API now natively accepts PDFs as `document` content blocks. The API extracts both text AND visual content (charts, tables, layouts) from each page -- far superior to pdf-parse which only extracts raw text. This eliminates the entire text extraction step, the 100k char truncation hack, and the image-based PDF rejection logic.
-
-**How it works:**
+Example knowledge file:
 ```typescript
-const message = await client.messages.create({
-  model: "claude-sonnet-4-6",
-  max_tokens: 16384,
-  messages: [{
-    role: "user",
-    content: [
-      {
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: pdfBase64  // already have this from client
-        },
-        cache_control: { type: "ephemeral" }
-      },
-      {
-        type: "text",
-        text: "Analyze this contract..."
-      }
-    ]
-  }]
-});
-```
+// src/knowledge/company/profile.ts
+import type { CompanyProfile } from '../../types/knowledge';
 
-**Limits:** 32MB max request size, 100 pages max per document. Token cost: ~1,500-3,000 tokens per page (text) + image tokens per page. A 100-page contract would use roughly 150K-300K input tokens, fitting within the 200K standard context or requiring the 1M beta.
-
-**Constraint for large contracts (>60 pages):** At ~3,000 tokens/page, a 70-page contract hits ~210K tokens -- exceeding the standard 200K context window. Options:
-1. Use the 1M context beta header (`context-1m-2025-08-07`) -- requires usage tier 4. Pricing: 2x input tokens beyond 200K.
-2. Extract text with `unpdf` first and send as plain text (lower token count, ~1,000 tokens/page), reserving native PDF for shorter contracts.
-3. Chunk the document and process sections separately.
-
-**Recommendation:** Use native PDF for contracts up to ~60 pages (fits in 200K). For longer contracts, extract text with `unpdf` and chunk. This hybrid approach avoids the 1M beta tier requirement while keeping the superior PDF understanding for most contracts.
-
-### 3. Add unpdf as Fallback Text Extractor
-
-**Confidence: HIGH** (verified from GitHub and npm)
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| unpdf | 1.4.0 | PDF text extraction | Contracts >60 pages where native PDF would exceed 200K context; also useful for pre-processing to determine page count and contract structure |
-
-**Why unpdf over pdf-parse:**
-- Built for serverless environments (Vercel compatibility verified)
-- Zero dependencies (ships bundled PDF.js v5.4.394)
-- Modern TypeScript-first ESM API
-- Page-level text extraction via `mergePages: false` -- essential for chunking
-- Actively maintained (pdf-parse is unmaintained)
-
-```typescript
-import { extractText, getDocumentProxy } from "unpdf";
-
-const pdf = await getDocumentProxy(new Uint8Array(pdfBuffer));
-const { text, totalPages } = await extractText(pdf, { mergePages: false });
-// text is string[] -- one per page, enabling intelligent chunking
-```
-
-### 4. Add Zod for Structured Output Schemas
-
-**Confidence: HIGH** (verified from official Anthropic structured outputs docs)
-
-| Library | Version | Purpose |
-|---------|---------|---------|
-| zod | 4.3.6 | Define TypeScript-first schemas for Claude structured outputs |
-
-**Why:** Anthropic's structured outputs feature (now GA -- no beta header needed) guarantees Claude's response conforms exactly to a JSON schema via constrained decoding. The TypeScript SDK provides `zodOutputFormat()` helper that converts Zod schemas to JSON Schema automatically. This eliminates all JSON parsing failures, markdown code fence stripping, and manual validation currently in `api/analyze.ts`.
-
-```typescript
-import { z } from "zod";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-
-const FindingSchema = z.object({
-  severity: z.enum(["Critical", "High", "Medium", "Low", "Info"]),
-  category: z.enum(["Legal Issues", "Scope of Work", /* ... */]),
-  title: z.string(),
-  description: z.string(),
-  recommendation: z.string(),
-  clauseReference: z.string().optional(),
-  exactQuote: z.string().describe("The exact clause text from the contract"),
-});
-
-const AnalysisSchema = z.object({
-  client: z.string(),
-  contractType: z.enum(["Prime Contract", "Subcontract", "Purchase Order", "Change Order"]),
-  riskScore: z.number().min(0).max(100),
-  findings: z.array(FindingSchema),
-  dates: z.array(DateSchema),
-});
-
-const response = await client.messages.parse({
-  model: "claude-sonnet-4-6",
-  max_tokens: 16384,
-  messages: [...],
-  output_config: { format: zodOutputFormat(AnalysisSchema) }
-});
-
-// response.parsed_output is fully typed -- no JSON.parse needed
-const result: z.infer<typeof AnalysisSchema> = response.parsed_output;
-```
-
-**Supported models:** Claude Opus 4.6, Sonnet 4.6, Sonnet 4.5, Opus 4.5, Haiku 4.5.
-
-**Critical limitation:** Structured outputs are INCOMPATIBLE with the Citations API. You cannot use both in the same request. This drives a multi-pass architecture (see Architecture section).
-
-### 5. Use Citations API for Exact Clause Quoting
-
-**Confidence: HIGH** (verified from official Anthropic citations docs)
-
-The Citations API is the single most impactful addition for ClearContract. Instead of prompting Claude to quote clauses (which it often gets wrong or paraphrases), Citations provides machine-verified exact text extraction with page number references.
-
-**How it works:**
-- Send the PDF as a `document` content block with `citations: { enabled: true }`
-- Claude's response includes interleaved text blocks, some containing `citations` arrays
-- Each citation includes `cited_text` (exact quote), `start_page_number`, `end_page_number`
-- The `cited_text` does NOT count toward output tokens (cost savings)
-
-```typescript
-const response = await client.messages.create({
-  model: "claude-sonnet-4-6",
-  max_tokens: 16384,
-  messages: [{
-    role: "user",
-    content: [
-      {
-        type: "document",
-        source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
-        citations: { enabled: true },
-        cache_control: { type: "ephemeral" }
-      },
-      {
-        type: "text",
-        text: "Identify all indemnification clauses, pay-if-paid provisions..."
-      }
-    ]
-  }]
-});
-
-// Response contains text blocks with citation arrays:
-// { type: "text", text: "The contract contains a broad indemnification clause",
-//   citations: [{ type: "page_location", cited_text: "Subcontractor shall indemnify...",
-//                 start_page_number: 12, end_page_number: 13, document_index: 0 }] }
-```
-
-**Key constraint:** Cannot be combined with structured outputs in the same request. This is why a multi-pass architecture is necessary: one pass with citations for clause extraction, followed by a pass with structured output for categorization/scoring.
-
-### 6. Enable Prompt Caching for Multi-Pass Cost Reduction
-
-**Confidence: HIGH** (verified from official Anthropic docs)
-
-No new library needed -- this is an API feature using the existing `@anthropic-ai/sdk`.
-
-**Why it matters:** In a multi-pass architecture, the same contract text is sent multiple times. Prompt caching reduces input token costs by 90% on cache hits (0.1x base price). Cache write costs 1.25x base price, but subsequent reads at 0.1x easily offset this.
-
-**How:** Add `cache_control: { type: "ephemeral" }` to the document block and system prompt. The cache persists for 5 minutes (sufficient for multi-pass analysis of a single contract).
-
-```typescript
-// Both system prompt and document get cached for multi-pass reuse
-const systemMessage = {
-  role: "system" as const,
-  content: ANALYSIS_SYSTEM_PROMPT,
-  cache_control: { type: "ephemeral" as const }
+export const defaultCompanyProfile: CompanyProfile = {
+  name: 'Clean Glass Installation Inc.',
+  insuranceLimits: {
+    generalLiability: { perOccurrence: 1_000_000, aggregate: 2_000_000 },
+    umbrella: 5_000_000,
+    autoLiability: 1_000_000,
+    workersComp: 'statutory',
+  },
+  bondingCapacity: 2_500_000,
+  licenses: ['CSLB C-17 Glazing'],
+  capabilities: ['curtain wall', 'storefronts', 'skylights', 'shower enclosures'],
+  maxProjectSize: 3_000_000,
+  maxRetainageAcceptable: 5,
 };
 ```
 
-For a 50-page contract (~150K input tokens):
-- Pass 1 (cache write): 150K * $3/MTok * 1.25 = $0.5625
-- Pass 2 (cache read): 150K * $3/MTok * 0.1 = $0.045
-- Pass 3 (cache read): $0.045
-- **Total input cost: ~$0.65 vs $1.35 without caching (52% savings)**
+Example knowledge-to-prompt rendering:
+```typescript
+// src/knowledge/company/profile.ts (continued)
+export function companyProfileToPrompt(profile: CompanyProfile): string {
+  return `## Company Context
+Company: ${profile.name}
+Insurance: GL $${profile.insuranceLimits.generalLiability.perOccurrence.toLocaleString()}/$${profile.insuranceLimits.generalLiability.aggregate.toLocaleString()}, Umbrella $${profile.insuranceLimits.umbrella.toLocaleString()}
+Bonding capacity: $${profile.bondingCapacity.toLocaleString()}
+Licenses: ${profile.licenses.join(', ')}
+Capabilities: ${profile.capabilities.join(', ')}
+Max project size: $${profile.maxProjectSize.toLocaleString()}
+Max acceptable retainage: ${profile.maxRetainageAcceptable}%
 
-### 7. Vercel Streaming for Timeout Management
+When evaluating findings, compare contract requirements against these actual company capabilities. Flag gaps where contract requirements exceed company limits. Suppress findings about requirements the company already meets.`;
+}
+```
 
-**Confidence: MEDIUM** (streaming works on Vercel, but timeout behavior needs validation)
+### Token Budget Strategy
 
-No new library needed, but the serverless function architecture must change from request/response to streaming.
+| Strategy | How It Works | Why |
+|----------|-------------|-----|
+| Per-pass knowledge mapping | Each pass definition gains a `knowledgeKeys: string[]` field listing which knowledge modules to inject | Only relevant knowledge enters each pass's system prompt. The insurance pass gets company insurance limits + CA insurance reqs; the scope pass gets AAMA standards + Division 08 specs. |
+| Static text pre-computation | Knowledge modules export a `toPromptText()` function that renders structured data into a prompt-optimized text block | Avoids JSON serialization overhead in prompts. Plain text with headers is more token-efficient than JSON structure in the context window. |
+| Token counting gate | Before sending a pass, call `client.messages.countTokens()` to verify system prompt + knowledge + document fits within the context window | Free API call (verified: separate rate limits from message creation, Tier 1 gets 100 RPM for counting). Prevents silent truncation. If over budget, log a warning and trim lowest-priority knowledge sections. |
+| Budget constant | `MAX_KNOWLEDGE_TOKENS_PER_PASS = 2000` (configurable) | Knowledge supplements the contract analysis; it should not dominate. 2000 tokens is approximately 1500 words -- enough for company profile + relevant regulatory sections for any single pass. |
 
-**The problem:** Current 60s Vercel timeout (Hobby plan). A multi-pass analysis of a large contract could take 2-3 minutes.
+**Token counting API details (verified from official docs):**
+```typescript
+// Already available in @anthropic-ai/sdk@^0.78.0
+const tokenCount = await client.messages.countTokens({
+  model: 'claude-sonnet-4-5-20250929', // same model as analysis
+  system: pass.systemPrompt + '\n\n' + knowledgeText,
+  messages: [{ role: 'user', content: pass.userPrompt }],
+});
+// tokenCount.input_tokens gives the exact count
+```
+- Free to use, subject to RPM limits (100 RPM Tier 1, 2000 RPM Tier 2)
+- Separate rate limits from message creation -- does not count against analysis quota
+- Accepts same structure as messages.create (system, messages, tools)
+- Returns `{ input_tokens: number }`
 
-**Solutions ranked by preference:**
+### Supporting Libraries
 
-1. **Client-orchestrated multi-pass (RECOMMENDED):** Each analysis pass is a separate HTTP request to a separate serverless function. Client coordinates passes sequentially. Each pass stays within 60s. No streaming needed for timeout avoidance.
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `@anthropic-ai/sdk` (existing) | ^0.78.0 | `messages.countTokens()` for token budget | Every pass execution -- verify knowledge injection stays within budget |
+| `zod` (existing) | ^3.25.76 | Validate company profile edits from Settings UI | When user submits updated company data via Settings page |
+| No new runtime dependencies | -- | -- | The knowledge architecture requires zero new npm packages |
 
-2. **Streaming response:** Use streaming to keep the connection alive. The Anthropic SDK supports streaming natively. Vercel supports Node.js streaming. The function max duration still applies, but streaming lets us send progress events to the client.
+### Settings UI for Company Data
 
-3. **Vercel Pro + Fluid Compute:** Upgrade to Vercel Pro ($20/month) for 300s max duration (or 800s with Fluid Compute). Worth considering if the user base grows.
+No form library needed. The company profile form is a single-page settings section with approximately 15 fields (text inputs, number inputs, multi-select for capabilities). React controlled components with `useState` are sufficient -- this is the existing pattern in `Settings.tsx`.
 
-**Recommended approach: Client-orchestrated multi-pass.** Each API endpoint handles one analysis pass:
-- `POST /api/analyze/extract` -- PDF text extraction + basic metadata (quick, <15s)
-- `POST /api/analyze/legal` -- Legal issues with citations (Claude call, ~30-45s)
-- `POST /api/analyze/scope` -- Scope extraction with citations (~30-45s)
-- `POST /api/analyze/compliance` -- Compliance checklist with structured output (~20-30s)
-- `POST /api/analyze/synthesize` -- Final risk scoring + organization (~20-30s)
+Rationale for NOT adding React Hook Form or similar:
+- The Settings page already uses `useState` for playbook toggles and notification preferences
+- Company profile is one form with straightforward fields (no dynamic fields, no multi-step wizard, no complex conditional validation)
+- Adding a form library for one form creates an inconsistency with existing patterns
+- Zod validation on submit (already in project) handles the validation layer cleanly
 
-Each endpoint completes within the 60s limit. The client calls them sequentially, updating the UI with partial results as each completes.
+### Development Tools
 
-## Do NOT Add
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| TypeScript strict mode (existing) | Type-check knowledge files | Knowledge types defined in `src/types/knowledge.ts` get full compile-time checking |
+| Vite (existing) | Build-time tree-shaking | Client bundle only includes knowledge types/shapes used in Settings UI, not full regulatory text (that stays server-side) |
 
-| Technology | Why Not |
-|-----------|---------|
-| Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) | Adds an abstraction layer over `@anthropic-ai/sdk` without meaningful benefit for this project. We need direct access to Citations API, structured outputs with Zod, prompt caching, and document content blocks. The Vercel AI SDK abstracts these behind a unified interface that may not expose all features. The direct Anthropic SDK already has first-class TypeScript support. |
-| LangChain / LlamaIndex | Over-engineered for this use case. We have one LLM provider (Anthropic), one document type (PDF), and a specific analysis pipeline. These frameworks add complexity without value. |
-| Vector database (Pinecone, ChromaDB) | RAG is unnecessary. Contracts are analyzed in full, not searched. Claude's context window (200K-1M tokens) can hold entire contracts. |
-| Next.js | The app already works with Vite + Vercel serverless functions. Migrating to Next.js would be a rewrite with no user-facing benefit. |
-| Supabase / database | Out of scope per PROJECT.md. Data persistence is not needed yet. |
-| pdf-parse | Unmaintained, no page-level extraction, no serverless optimization. Replace with unpdf (for fallback text extraction) and native PDF support. |
-| pdf.js-extract / pdfreader | unpdf already bundles PDF.js in a serverless-optimized build. No reason to use a separate wrapper. |
-| OpenAI API | Anthropic Claude is the established choice, has superior document understanding, and Citations API is a differentiating feature not available from other providers. |
+## Knowledge Architecture: File Layout
 
-## Alternatives Considered
+```
+src/
+  types/
+    knowledge.ts                # CompanyProfile, RegulatoryKnowledge, ContractStandard, TradeSpec, etc.
+  knowledge/
+    index.ts                    # Knowledge registry: maps pass names -> knowledge module keys
+    loader.ts                   # resolveKnowledge(passName, companyProfile?) -> prompt string
+    company/
+      profile.ts                # Default company data + toPromptText()
+      thresholds.ts             # Bid/no-bid thresholds, risk tolerance settings
+    regulatory/
+      ca-lien-law.ts            # CA Civil Code lien provisions (mechanics liens, stop notices)
+      ca-prevailing-wage.ts     # DIR/prevailing wage requirements, certified payroll
+      ca-title-24.ts            # Energy/building code for glazing
+      ca-osha.ts                # Cal/OSHA safety for glazing operations
+    standards/
+      aia-patterns.ts           # AIA A201/A401 clause patterns + red flags
+      consensusdocs-patterns.ts # ConsensusDocs 750 clause patterns
+      ejcdc-patterns.ts         # EJCDC clause patterns
+    trade/
+      aama-standards.ts         # AAMA 501, 502, 503 glazing performance standards
+      division-08.ts            # CSI Division 08 specification patterns
+      glass-types.ts            # Product/material reference data
+    rules/
+      severity-overrides.ts     # Domain-specific severity evaluation criteria
+      false-positive-filters.ts # Rules for suppressing findings against company capabilities
+```
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| PDF processing | Claude native PDF + unpdf fallback | pdf-parse | pdf-parse is unmaintained, text-only, no page-level extraction |
-| PDF processing | Claude native PDF + unpdf fallback | pdfjs-dist | unpdf already bundles PDF.js in a serverless-optimized build |
-| Structured output | Zod + `zodOutputFormat()` | Manual JSON.parse + validation | Structured outputs guarantee schema compliance via constrained decoding -- zero parsing failures |
-| Schema validation | Zod 4.3.6 | io-ts, yup, ajv | Zod has first-class integration with Anthropic TypeScript SDK via `zodOutputFormat()`. No other schema library has this. |
-| Clause quoting | Citations API | Prompt-based quoting | Citations provides machine-verified exact quotes with page numbers; prompt-based approaches hallucinate or paraphrase |
-| LLM orchestration | Client-orchestrated multi-pass | LangChain | LangChain adds heavy dependencies for simple sequential API calls. Direct SDK calls are clearer. |
-| Timeout management | Client-orchestrated multi-pass | Vercel Pro + long-duration functions | Multi-pass works on any plan and provides better UX (progressive results). Vercel Pro is a fallback option. |
-| AI SDK | @anthropic-ai/sdk (direct) | Vercel AI SDK | Direct SDK ensures access to all Anthropic features (citations, structured outputs, caching, document blocks) without abstraction gaps |
+## Integration Points
+
+### How Knowledge Enters Analysis Passes
+
+Current flow (v1.0):
+```
+Pass definition -> static systemPrompt string -> Claude API
+```
+
+v1.1 flow:
+```
+Pass definition -> knowledgeKeys[] -> knowledge loader -> toPromptText() per module ->
+  concatenated to system prompt -> token count check -> Claude API
+```
+
+The change is localized to `api/analyze.ts`:
+1. `AnalysisPass` interface gains `knowledgeKeys?: string[]`
+2. New `resolveKnowledge()` function maps keys to prompt text, accepts optional company profile override
+3. `runAnalysisPass()` calls `resolveKnowledge()`, appends to system prompt, checks token budget via `countTokens()`
+4. System prompt becomes: `pass.systemPrompt + '\n\n---\n\n## Domain Reference\n' + resolvedKnowledgeText`
+
+Example pass-to-knowledge mapping:
+```typescript
+{
+  name: 'legal-indemnification',
+  knowledgeKeys: ['company-insurance', 'ca-lien-law'],
+  // The insurance pass gets company insurance limits so Claude can assess
+  // whether indemnification clauses create coverage gaps
+}
+
+{
+  name: 'scope-of-work',
+  knowledgeKeys: ['company-capabilities', 'aama-standards', 'division-08'],
+  // The scope pass gets trade knowledge to identify unusual specs
+  // and company capabilities to flag scope beyond what the sub does
+}
+
+{
+  name: 'legal-labor-compliance',
+  knowledgeKeys: ['ca-prevailing-wage', 'ca-osha'],
+  // Labor compliance gets CA-specific regulatory knowledge
+}
+```
+
+### How Company Data Reaches Knowledge Files
+
+Settings UI flow:
+1. User edits company profile in new Settings section (added below existing "Review Playbooks")
+2. On save, data is validated with Zod `CompanyProfileSchema`
+3. Data is stored in `localStorage` (key: `clearcontract-company-profile`)
+4. On analysis, client reads from `localStorage` and includes in POST body to `/api/analyze`
+5. Server-side `resolveKnowledge()` uses the profile data to generate prompt text, falling back to defaults if not provided
+
+**Why localStorage:**
+- PROJECT.md explicitly states "no persistence needed" and in-memory-only state is acceptable
+- Company profile is small (under 2KB JSON)
+- `localStorage` is slightly more persistent than `useState` (survives page refresh but not browser clear)
+- Single user, single browser -- no sync concerns
+- Matches the minimal persistence philosophy of the existing architecture
+
+### Why NOT a Database for Knowledge Files
+
+The knowledge is **reference data authored by the developer**, not user-generated content. It consists of CA regulations, AAMA standards, AIA clause patterns -- information that changes when laws or standards change, not per analysis. This data belongs in source code (TypeScript modules committed to git), not in a database.
+
+The only user-editable knowledge is the company profile, which is small enough for localStorage.
+
+### Why NOT a Vector Database or RAG
+
+Total knowledge base will be under 50,000 tokens. Each pass needs only 1,000-3,000 tokens of relevant knowledge. The knowledge is curated and categorized, not searched. A vector database adds latency (embedding + similarity search), infrastructure dependency, and complexity for zero benefit over direct TypeScript imports with a per-pass mapping table.
 
 ## Installation
 
 ```bash
-# Add new dependencies
-npm install zod unpdf
-
-# Remove deprecated dependencies
-npm uninstall pdf-parse
-npm uninstall -D @types/pdf-parse
+# No new packages needed. Zero additions to package.json.
+# The knowledge architecture uses only existing dependencies:
+# - TypeScript (compile-time types and imports)
+# - Zod v3 (company profile validation)
+# - @anthropic-ai/sdk (token counting via messages.countTokens())
 ```
 
-No other dependency changes needed. The `@anthropic-ai/sdk` (v0.78.0) already supports:
-- Structured outputs via `output_config` + `zodOutputFormat()`
-- Citations via `citations: { enabled: true }` on document blocks
-- Native PDF via `document` content blocks
-- Prompt caching via `cache_control`
-- Streaming via `client.messages.stream()`
+## Alternatives Considered
 
-## File Size Limit Change
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| TypeScript modules for knowledge | JSON files with `fs.readFileSync` | If knowledge files need to be edited by non-developers via a CMS (not the case -- single developer-user) |
+| TypeScript modules for knowledge | YAML with gray-matter | If knowledge files contain rich prose with metadata frontmatter (not the case -- data is structured objects) |
+| TypeScript modules for knowledge | Markdown with frontmatter | If knowledge needs to be rendered as human-readable documentation (not the case -- it is prompt injection text) |
+| localStorage for company profile | Vercel KV / Upstash Redis | If data must persist across browsers or devices (explicitly out of scope -- single user, single machine) |
+| localStorage for company profile | SQLite via Turso | If multi-user access or complex queries needed (out of scope) |
+| Anthropic token counting API | js-tiktoken local estimation | If you need offline/client-side token counting without API calls (not needed -- counting happens server-side right before the API call, and the API is free) |
+| No form library | React Hook Form | If Settings grows to 5+ complex forms with dynamic arrays, conditional validation, and multi-step wizards |
+| Per-pass knowledge mapping | RAG with embeddings | If knowledge base grows beyond 200k tokens and becomes too large for manual categorization (unlikely for this domain) |
 
-Increase the client-side file size limit from 3MB to 32MB to match Claude's API limit. A 100-page contract PDF is typically 5-15MB.
+## What NOT to Use
 
-```typescript
-const MAX_FILE_SIZE = 32 * 1024 * 1024; // 32MB (Claude API limit)
-```
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| Vector database (Pinecone, Chroma, Weaviate) | Knowledge is curated reference data under 50k tokens total. Vector search adds latency and infrastructure for zero benefit. | Direct TypeScript imports with per-pass mapping |
+| LangChain / LlamaIndex | RAG orchestration frameworks for what is simple prompt concatenation. The app already calls Claude directly with the Anthropic SDK. | Direct Anthropic SDK calls (existing) |
+| gray-matter / js-yaml | Adds a parsing dependency for what TypeScript handles natively with better type safety. gray-matter is designed for content authoring (blogs, docs), not structured knowledge injection. | TypeScript `.ts` knowledge files |
+| MongoDB / PostgreSQL / SQLite | No persistence requirement. Single user. Company profile is 2KB. Reference data is in source code. | localStorage for company profile, TypeScript modules for reference data |
+| React Hook Form / Formik / TanStack Form | One settings form with ~15 fields does not justify a form library dependency. Existing `useState` pattern is consistent with the rest of the codebase. | React controlled components (existing pattern) |
+| Separate microservice for knowledge | Knowledge is static data read at analysis time. A service adds network latency, deployment complexity, and infrastructure cost for no benefit. | Co-located TypeScript modules imported at build time |
+| Environment variables for company data | Cannot be edited from the UI. Requires redeployment to update. | localStorage + API request body |
+| @anthropic-ai/tokenizer | Deprecated for Claude 3+ models. Only provides rough approximations. | Official `messages.countTokens()` API endpoint (free, exact) |
 
-## Key Integration Constraints
+## Version Compatibility
 
-### Citations + Structured Outputs Incompatibility
-These two features CANNOT be used in the same API request. This is a hard constraint from Anthropic's API. The multi-pass architecture must be designed around this:
-- **Citation passes:** Use for clause extraction where exact quotes with page references are needed
-- **Structured output passes:** Use for categorization, scoring, and organizing results into typed data structures
-
-### 100-Page PDF Limit
-Claude's native PDF support maxes at 100 pages per request. For contracts exceeding this:
-- Use `unpdf` to extract text
-- Send as plain text `document` block instead of base64 PDF
-- Text-based documents have no page limit (only token limits)
-
-### Context Window vs Cost Tradeoff
-Native PDF uses ~3,000 tokens/page (text + image). Plain text uses ~1,000 tokens/page. For a 100-page contract:
-- Native PDF: ~300K tokens = 1M beta required, at 2x pricing = $1.80 input
-- Plain text: ~100K tokens = fits in standard 200K window = $0.30 input
-
-**Recommendation:** Use native PDF for contracts up to ~60 pages (best quality). Use unpdf text extraction for longer contracts (cost/context efficient). Let the system auto-detect based on page count.
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| `@anthropic-ai/sdk@^0.78.0` | `messages.countTokens()` | Token counting available in current SDK. Method: `client.messages.countTokens({ model, system, messages })`. Free, separate rate limits from message creation (100 RPM Tier 1). |
+| `zod@^3.25.76` | `zod-to-json-schema@^3.25.1` | Existing compatibility. Use Zod for `CompanyProfileSchema` validation. No upgrade to Zod v4 needed -- project uses v3 with `zod-to-json-schema` bridge pattern. |
+| TypeScript `^5.5.4` | `as const satisfies` | Use `as const satisfies KnowledgeModule` for type-safe knowledge definitions with literal type inference |
 
 ## Sources
 
-- [Anthropic Models Overview](https://platform.claude.com/docs/en/about-claude/models/overview) -- model specs, pricing, context windows (HIGH confidence)
-- [Anthropic Structured Outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) -- Zod integration, `output_config`, GA status (HIGH confidence)
-- [Anthropic Citations](https://platform.claude.com/docs/en/build-with-claude/citations) -- citations API, document types, incompatibility with structured outputs (HIGH confidence)
-- [Anthropic PDF Support](https://platform.claude.com/docs/en/build-with-claude/pdf-support) -- native PDF, base64, file limits (HIGH confidence)
-- [Anthropic Prompt Caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) -- cache_control, pricing, duration (HIGH confidence)
-- [Anthropic Context Windows](https://platform.claude.com/docs/en/build-with-claude/context-windows) -- 1M beta, context-1m-2025-08-07 header (HIGH confidence)
-- [Anthropic Legal Summarization Guide](https://platform.claude.com/docs/en/about-claude/use-case-guides/legal-summarization) -- meta-summarization pattern, chunking (HIGH confidence)
-- [unpdf on GitHub](https://github.com/unjs/unpdf) -- v1.4.0, serverless build, extractText API (HIGH confidence)
-- [unpdf on npm](https://www.npmjs.com/package/unpdf) -- v1.4.0, zero dependencies (HIGH confidence)
-- [Zod on npm](https://www.npmjs.com/package/zod) -- v4.3.6 (HIGH confidence)
-- [@anthropic-ai/sdk on npm](https://www.npmjs.com/package/@anthropic-ai/sdk) -- v0.78.0 (HIGH confidence)
-- [Vercel Fluid Compute](https://vercel.com/docs/fluid-compute) -- extended durations, streaming (MEDIUM confidence)
-- [Vercel Streaming](https://vercel.com/docs/functions/streaming/streaming-examples) -- Node.js streaming support (MEDIUM confidence)
-- [Vercel Function Timeout KB](https://vercel.com/kb/guide/what-can-i-do-about-vercel-serverless-functions-timing-out) -- 60s hobby, 300s pro, 800s fluid (MEDIUM confidence)
+- [Anthropic Token Counting API docs](https://platform.claude.com/docs/en/build-with-claude/token-counting) -- Verified: `messages.countTokens()` is free, supports system prompts + messages + tools, available in current SDK, Tier 1 = 100 RPM (HIGH confidence)
+- [Anthropic Pricing](https://platform.claude.com/docs/en/about-claude/pricing) -- Token counting is free, separate rate limits from message creation (HIGH confidence)
+- Existing codebase analysis: `api/analyze.ts` (1571 LOC, 16 passes, `AnalysisPass` interface), `Settings.tsx` (useState pattern), `package.json` (current deps) -- Direct file inspection (HIGH confidence)
+- [gray-matter npm](https://www.npmjs.com/package/gray-matter) -- Evaluated and rejected: adds parsing dependency for what TypeScript handles natively (HIGH confidence)
+- [React Hook Form](https://react-hook-form.com/) -- Evaluated and rejected: overkill for single settings form in existing useState codebase (HIGH confidence)
+
+---
+*Stack research for: ClearContract v1.1 Domain Intelligence*
+*Researched: 2026-03-08*

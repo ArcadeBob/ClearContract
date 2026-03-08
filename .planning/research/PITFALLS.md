@@ -1,260 +1,336 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** AI-powered contract/document analysis (LLM pipeline on Vercel serverless)
-**Researched:** 2026-03-02
-**Confidence:** HIGH (verified against official docs, known issues, and current codebase)
+**Domain:** Adding domain intelligence layers to an existing AI contract analysis pipeline
+**Researched:** 2026-03-08
+**Applies to:** v1.1 Domain Intelligence milestone for ClearContract
 
 ## Critical Pitfalls
 
-### Pitfall 1: pdf-parse Breaks on Vercel Deployment (ENOENT test file error)
+### Pitfall 1: Context Window Bloat Killing Analysis Quality
 
 **What goes wrong:**
-The `pdf-parse` package crashes on Vercel with `ENOENT: no such file or directory, open './test/data/05-versions-space.pdf'`. The app works perfectly locally but fails in production. This is a known, widely-reported issue that has existed for years.
+You inject company profile, CA regulatory data, AAMA standards, AIA clause patterns, and evaluation criteria into every analysis pass's system prompt. Each pass already has a substantial system prompt (300-600 tokens) plus the full PDF document (potentially 100k+ tokens). Adding 2,000-5,000 tokens of domain knowledge per pass pushes the context deeper into the degradation zone. Research from Chroma confirms that every LLM tested shows output quality degradation as context length increases -- no exceptions. Stanford research shows 15-47% performance drops as context grows. The model develops recency bias, attending to the domain knowledge block nearest the end and neglecting contract content or analysis instructions.
 
 **Why it happens:**
-`pdf-parse` checks `!module.parent` to determine if it is running in "debug mode." In Vercel's serverless bundling environment, this check evaluates incorrectly, causing it to look for a test PDF file (`test/data/05-versions-space.pdf`) that Vercel's optimized deployment strips out. The package assumes test files exist in production -- a fundamental design flaw.
+The intuition is "more context = better analysis." Developers load everything relevant into the prompt because it seems helpful. But LLMs are not databases -- they are attention-weighted pattern matchers, and attention quality degrades with volume. The existing 16-pass architecture already sends the full PDF 16 times; adding domain knowledge to each pass multiplies the noise.
 
-**How to avoid:**
-Two proven fixes exist. Use one:
-1. **Import bypass:** Import directly from the compiled path: `import pdf from 'pdf-parse/lib/pdf-parse.js'` -- this skips the problematic `index.js` entirely.
-2. **Replace pdf-parse entirely:** Switch to `unpdf`, which has zero native dependencies and is designed for serverless. This is the recommended long-term fix since pdf-parse also has canvas dependency issues.
+**Consequences:**
+- Findings become generic ("this indemnification clause may be broad") instead of specific ("this is a Type I broad-form indemnification, which California Civil Code Section 2782 makes unenforceable for construction contracts")
+- The model starts ignoring parts of the system prompt instructions (especially severity rules and output format constraints) because they are buried under domain knowledge
+- Structured output compliance drops -- the model starts producing malformed or incomplete JSON because instruction-following degrades
 
-**Warning signs:**
-- Analysis works locally but returns generic 500 errors on Vercel deployment.
-- Error logs show `ENOENT` referencing `05-versions-space.pdf`.
-- This is very likely the current "generic error" bug reported in PROJECT.md.
+**Prevention:**
+1. **Per-pass selective loading only.** Each pass gets ONLY the domain knowledge relevant to its analysis. The insurance pass gets company insurance limits. The indemnification pass gets CA anti-indemnity statute info. The scope pass gets AAMA standards. No pass gets everything.
+2. **Token budget per pass: hard cap of 1,500 tokens of injected domain knowledge.** The system prompt (instructions + domain knowledge) should not exceed 2,500 tokens total. Measure this before deployment.
+3. **Put domain knowledge AFTER instructions, BEFORE the user prompt.** Claude processes system prompts linearly -- instructions first establishes the task frame, then domain knowledge provides reference data, then the contract document is the primary input.
+4. **Test with and without domain knowledge on the same contract.** If adding knowledge makes findings worse (more generic, less specific to the actual contract language), the knowledge is noise, not signal.
 
-**Phase to address:**
-Phase 1 (Bug Fix) -- this is almost certainly the root cause of the current broken analysis pipeline. Fix immediately.
+**Detection:**
+- A/B test: analyze the same contract with and without domain knowledge injection. Compare finding specificity and clause quote accuracy.
+- Monitor structured output parse failures -- an increase after adding domain knowledge means the context is too heavy.
+- Check that severity rules are still being followed (the most common casualty of prompt bloat).
 
 ---
 
-### Pitfall 2: 4096 max_tokens Output Cap Truncates Complex Contract Analysis
+### Pitfall 2: False Confidence from Domain Knowledge (The Authoritative Hallucination Problem)
 
 **What goes wrong:**
-The current code sets `max_tokens: 4096` for Claude's response. For a comprehensive analysis of a 50-100+ page glazing contract (with exact clause quotes, multiple findings across 9 categories, dates, and recommendations), 4096 tokens produces roughly 3,000 words of JSON. This is grossly insufficient. The response gets truncated mid-JSON, causing `JSON.parse()` to throw a `SyntaxError`. The catch block returns the unhelpful "Failed to parse AI response. Please try again."
+You inject CA regulatory information (e.g., "California Civil Code Section 2782 limits indemnification in construction contracts") into the system prompt. The model now confidently states legal conclusions as if it has verified them against the current statute, even when the injected knowledge is outdated, incomplete, or inapplicable to the specific contract. Stanford research shows LLM hallucination rates of 69-88% for specific legal queries, and crucially, all models show overconfidence regardless of actual accuracy.
+
+Before domain knowledge, the model would say "this indemnification clause may be problematic." After domain knowledge injection, it says "this clause violates California Civil Code Section 2782(a) and is unenforceable" -- which sounds authoritative but may be wrong because: (a) Section 2782 was amended and the injected text reflects the old version, (b) the contract is governed by Nevada law, not California, (c) the specific exception in 2782(d) applies but was not included in the injected knowledge.
 
 **Why it happens:**
-Developers set conservative `max_tokens` values during initial development with short test documents. When real contracts are analyzed, the model needs far more output space to produce detailed findings with clause quotes. The `stop_reason: "max_tokens"` is never checked, so truncation is indistinguishable from other failures.
+LLMs treat injected context as ground truth. When you put regulatory text in the system prompt, the model does not critically evaluate whether it applies -- it assumes you provided it because it is relevant and correct. The model's training on legal corpora reinforces this: it has seen thousands of legal analyses citing statutes, so it pattern-matches the citation style without the underlying legal reasoning about applicability.
 
-**How to avoid:**
-1. **Increase max_tokens to 8192-16384** for comprehensive analysis. Claude Sonnet 4 supports up to 8192 output tokens by default (16384 with extended thinking). Budget generously.
-2. **Always check `stop_reason`:** If `response.stop_reason === "max_tokens"`, the JSON is incomplete. Either retry with higher limits or implement continuation logic.
-3. **Use structured outputs** (`output_config.format` with `json_schema`) -- now generally available on Claude Sonnet 4.5+. This guarantees valid JSON and prevents malformed output even if truncated.
-4. **For multi-section analysis,** consider splitting into multiple API calls (one per analysis category) to keep each response focused and within token limits.
+**Consequences:**
+- User negotiates a contract position based on an AI assertion about California law that is wrong or inapplicable
+- The tool becomes more dangerous with domain knowledge than without it, because users trust authoritative-sounding output more
+- Legal liability exposure if the user relies on the tool's regulatory assertions
 
-**Warning signs:**
-- "Failed to parse AI response" errors that happen inconsistently (short contracts work, long ones fail).
-- Analysis results that seem shallow or missing categories.
-- `SyntaxError` in server logs from `JSON.parse()`.
+**Prevention:**
+1. **Frame all regulatory knowledge as reference, not authority.** Prompt: "The following is reference information about California regulations. Use it to inform your analysis but DO NOT assert legal conclusions. Always caveat regulatory references with 'based on reference data provided -- verify with legal counsel.'"
+2. **Include applicability checks in the prompt.** "Before citing any regulation, verify: (a) the contract specifies California as governing law, (b) the regulation applies to the specific contract type (private vs public works), (c) no exceptions in the regulation would change the conclusion."
+3. **Never inject partial statutes.** Either include the full relevant section (with exceptions and amendments) or include only a summary with an explicit note: "This is a summary -- the actual statute may contain exceptions not listed here."
+4. **Add a `regulatoryDisclaimer` field to findings that cite regulations.** Make it structurally impossible for the output to cite a regulation without an attached disclaimer.
+5. **Version-stamp all injected knowledge.** "CA Civil Code Section 2782 (as of January 2026)." This signals to both the model and the user that the information has a shelf life.
 
-**Phase to address:**
-Phase 1 (Bug Fix) -- increase max_tokens and add stop_reason checking. Phase 2 (Enhanced Analysis) -- implement structured outputs and multi-call strategy.
+**Detection:**
+- Review findings that cite specific statutes. Check: Does the contract actually specify CA as governing law? Is the cited statute section correct and current? Are exceptions noted?
+- Track user feedback on regulatory findings specifically.
 
 ---
 
-### Pitfall 3: Vercel 4.5MB Request Body Limit vs Base64-Encoded PDFs
+### Pitfall 3: Token Cost Explosion from Uncontrolled Knowledge Loading
 
 **What goes wrong:**
-Vercel serverless functions have a hard **4.5MB request body limit**. The current app allows 3MB PDF uploads, but base64 encoding inflates file size by ~33%, turning a 3MB PDF into a ~4MB JSON payload (with the `pdfBase64` field plus `fileName` and JSON overhead). A 3.4MB+ PDF will hit `413: FUNCTION_PAYLOAD_TOO_LARGE` in production, even though the client-side 3MB check passes.
+The current 16-pass architecture already runs 16 Claude API calls per contract upload. Each call includes the full PDF document. Adding domain knowledge to each pass increases the input token count per call. If you naively load 3,000 tokens of domain knowledge into each of 16 passes, that is 48,000 additional input tokens per analysis. At Claude Sonnet 4.5 pricing ($3/M input tokens), that is $0.144 additional cost per analysis -- a 15-30% cost increase depending on contract length. But the real danger is scope creep: as knowledge bases grow (more regulations, more standards, more company data), the per-analysis cost grows silently.
 
 **Why it happens:**
-The 3MB client-side limit was set without accounting for base64 encoding overhead. The JSON wrapper adds further bytes. Developers test with small PDFs and never hit the wall, but real glazing contracts (100+ pages with embedded images) routinely exceed this.
+Knowledge loading happens in the system prompt, which developers rarely audit for token count. Each domain knowledge addition seems small ("just 200 more tokens for AAMA standards"), but they accumulate across 16 passes. Nobody tracks the total token budget across all passes.
 
-**How to avoid:**
-1. **Short term:** Reduce the client-side limit to 3MB and verify the base64-encoded payload stays under 4.5MB. A safe max is ~3.2MB raw PDF (3.2 * 1.33 = ~4.26MB payload).
-2. **Long term:** Upload PDFs directly to a blob store (Vercel Blob, S3) and pass only the URL to the serverless function. This eliminates the body size constraint entirely.
-3. **Consider compression:** If sticking with base64, strip unnecessary whitespace from the JSON payload.
+**Consequences:**
+- Monthly API costs increase 2-5x without corresponding value increase
+- Vercel function duration increases (more input tokens = longer inference time), risking timeout regressions
+- The cost makes the tool economically impractical for reviewing multiple contracts
 
-**Warning signs:**
-- Uploads of larger contracts fail silently or with a vague network error.
-- HTTP 413 errors in Vercel function logs.
-- Users report "it works with short contracts but not long ones."
+**Prevention:**
+1. **Establish a token budget: 1,500 tokens of domain knowledge per pass maximum, tracked in code.** Add a constant like `MAX_DOMAIN_KNOWLEDGE_TOKENS = 1500` and measure injected knowledge against it.
+2. **Build a knowledge-to-pass mapping matrix.** Document exactly which knowledge each pass receives. Example:
 
-**Phase to address:**
-Phase 1 (Bug Fix) -- tighten client-side limit. Phase 3+ -- implement blob storage upload pattern.
+| Pass | Knowledge Loaded | Est. Tokens |
+|------|-----------------|-------------|
+| legal-indemnification | CA 2782 summary, company insurance limits | ~400 |
+| legal-insurance | Company insurance coverage, standard endorsements | ~600 |
+| scope-of-work | AAMA standards list, Division 08 specs, company capabilities | ~800 |
+| labor-compliance | CA prevailing wage rules, DIR requirements | ~700 |
+| risk-overview | Company bid/no-bid thresholds, bonding limits | ~300 |
+| dates-deadlines | (none -- no domain knowledge needed) | 0 |
+
+3. **Most passes need zero domain knowledge.** The dates-deadlines pass, verbiage-analysis pass, legal-payment-contingency pass, and several others analyze contract language patterns that do not benefit from domain knowledge injection. Do not inject knowledge "just in case."
+4. **Cache token counts.** Log the actual input token count from each API response and alert if any pass exceeds the budget.
+
+**Detection:**
+- Monitor `usage.input_tokens` from each API response. Track the trend over time.
+- Calculate total cost per analysis and compare to pre-domain-knowledge baseline.
+- If any single pass exceeds 1,500 tokens of domain knowledge, it needs splitting or trimming.
 
 ---
 
-### Pitfall 4: LLM Hallucination of Contract Clauses That Do Not Exist
+### Pitfall 4: Knowledge Staleness (Regulations Change, Insurance Renews)
 
 **What goes wrong:**
-The LLM fabricates clause references, invents contract language that does not appear in the source document, or misattributes text from one section to another. In a legal/contract context, a hallucinated indemnification clause or fabricated dollar amount could lead the user to negotiate based on phantom provisions. Research shows legal AI tools hallucinate 17-33% of responses in some benchmarks (Stanford study on Lexis+ AI and Westlaw AI).
+You hardcode CA regulatory information (lien filing deadlines, prevailing wage thresholds, retainage caps) into knowledge files. Then California passes SB 440 (Private Works Change Order Fair Payment Act, effective January 1, 2026) and SB 517 (subcontractor disclosure requirements). AB 2295 caps private works retainage at 5% across all tiers. Your knowledge files still reflect 2025 law. The tool now gives outdated regulatory guidance that the user relies on.
+
+This is not hypothetical -- California enacted seven significant construction law changes effective January 1, 2026, including the new 5% retainage cap (previously 10% was common), new change order dispute procedures, and expanded prevailing wage requirements for affordable housing projects.
 
 **Why it happens:**
-LLMs are trained on vast legal corpora and will pattern-match "typical" contract language when the actual text is ambiguous, truncated, or poorly extracted. When asked to quote exact clauses, the model may reconstruct plausible-sounding text rather than extracting verbatim. This is worse when input text is truncated (the current 100k char limit cuts off content) or when PDF extraction produces garbled text.
+Regulatory knowledge is treated as static data ("write it once, ship it"). Nobody owns the update process. The knowledge files sit in the codebase with no expiration dates, no update reminders, and no mechanism to flag when they might be stale.
 
-**How to avoid:**
-1. **Instruct the prompt to quote verbatim only:** Add explicit instructions like "Only quote text that appears exactly in the provided document. If you cannot find the exact language, state that the clause could not be located verbatim."
-2. **Include source validation in the schema:** Add a `verbatimQuote` field alongside the `description` field so the model separates its analysis from the quoted text. Then implement client-side verification that the `verbatimQuote` actually appears in the extracted text.
-3. **Never truncate without warning:** If the document is truncated at 100k chars, tell the user and the model. The prompt should include: "The following text may be truncated. Do not speculate about content beyond what is provided."
-4. **Use longer context windows:** Claude Sonnet 4's 200k token context window can handle far more than 100k characters. Increase the limit to avoid truncation.
+**Consequences:**
+- Tool advises user that 10% retainage is standard when CA now caps it at 5%
+- Lien filing deadline guidance reflects old statute, not current amendments
+- User trusts tool's regulatory knowledge because "it is a specialized tool" -- more dangerous than a generic AI that does not claim domain expertise
 
-**Warning signs:**
-- Clause references that do not correspond to any section in the original PDF.
-- Findings with suspiciously "perfect" legal language that the user cannot locate in the contract.
-- Multiple findings referencing sections near the end of a truncated document.
+**Prevention:**
+1. **Version-stamp every knowledge file with an effective date and review-by date.**
+```
+// knowledge/ca-regulations.ts
+export const CA_RETAINAGE = {
+  content: "California Civil Code Section 8811: retention cannot exceed 5% at any tier...",
+  effectiveDate: "2026-01-01",
+  reviewBy: "2027-01-15",  // Review after next legislative session
+  source: "SB 7 (2024), codified as Civil Code Section 8811",
+  lastVerified: "2026-03-08"
+};
+```
+2. **Build a staleness check into the Settings UI.** Show knowledge freshness: "CA Regulations: Last verified March 2026. Review recommended by January 2027." Color-code: green (current), yellow (review approaching), red (past review date).
+3. **Scope regulatory knowledge narrowly.** Do not try to encode all of California construction law. Focus on the specific areas the 16 passes analyze: indemnification (CCC 2782), payment contingency (pay-if-paid enforceability), retainage (CCC 8811), lien rights (CCC 8400-8494 mechanics lien deadlines), prevailing wage (when it applies). That is five regulatory areas, not fifty.
+4. **Annual review cadence tied to California legislative cycle.** New laws take effect January 1. Schedule a knowledge review for mid-January each year.
+5. **Insurance and bonding data changes on renewal.** Company profile data (insurance limits, bonding capacity, license expiration) should prompt for update when the expiration date passes.
 
-**Phase to address:**
-Phase 2 (Enhanced Analysis) -- prompt engineering for verbatim quoting. Phase 3 -- client-side quote verification against extracted text.
+**Detection:**
+- Automated check: if `Date.now() > reviewBy`, surface a warning in the Settings UI
+- On every contract analysis, compare governing law state against the knowledge base. If the contract is governed by a state not in the knowledge base, the finding should note "regulatory analysis limited to California -- this contract may be governed by [State] law."
 
 ---
 
-### Pitfall 5: 60-Second Vercel Timeout vs Claude API Response Time for Long Contracts
+## Moderate Pitfalls
+
+### Pitfall 5: Over-Engineering Storage When Flat Files Suffice
 
 **What goes wrong:**
-The current `vercel.json` sets `maxDuration: 60` for the analyze function. For a 100+ page contract, the Claude API call alone can take 30-60+ seconds (especially with high output token counts). Add PDF parsing time, cold start latency (800ms-2.5s), and network overhead, and the function frequently times out with a `504 FUNCTION_INVOCATION_TIMEOUT` error.
+Developer instinct says "we need a database for domain knowledge" and introduces SQLite, Supabase, or a vector store. This adds: a database dependency, a migration system, connection pooling for serverless, a knowledge management CRUD API, and an admin UI. All for what amounts to ~20 static text snippets that change annually.
 
 **Why it happens:**
-Claude's response time scales with both input length and output token count. A comprehensive analysis of a long contract with 20+ findings and clause quotes can take 45-90 seconds of inference time. The 60-second limit was set without benchmarking real-world contract analysis.
+Database thinking is default for "data that the user can update." But the actual data volume is tiny: company profile (one object), 5 regulatory summaries, 10 industry standards references, 15 evaluation criteria modifications. Total: maybe 50KB of structured text.
 
-**How to avoid:**
-1. **Enable Fluid Compute:** With Fluid Compute enabled, even the Hobby plan gets 300s (5 min) max duration. This is the easiest fix.
-2. **Use streaming:** Switch from `client.messages.create()` to `client.messages.stream()`. Streaming keeps the connection alive and prevents proxy timeouts. The client receives incremental data, improving perceived performance.
-3. **Split analysis into multiple smaller calls:** Instead of one massive analysis, make parallel calls for each analysis category (legal issues, scope, dates, etc.). Each call is faster and less likely to timeout.
-4. **Increase maxDuration:** On Pro plan, this can be set up to 800 seconds with Fluid Compute.
+**Prevention:**
+1. **Start with TypeScript files in the codebase.** Knowledge is code: typed, version-controlled, deployed with the app. Example: `src/knowledge/ca-regulations.ts`, `src/knowledge/company-profile.ts`, `src/knowledge/aama-standards.ts`.
+2. **Company profile data that changes (insurance limits, bonding capacity) goes in localStorage.** The user updates it in Settings, it persists in the browser. No server-side storage needed for a single-user app.
+3. **Graduate to a database ONLY if:** (a) multiple users need different knowledge bases, (b) knowledge exceeds 500KB, or (c) knowledge needs to be updated without redeployment. None of these apply for v1.1.
+4. **If you must have server-side user-editable knowledge,** use a single JSON file on Vercel Blob or a KV store. Not a relational database.
 
-**Warning signs:**
-- Analysis succeeds for short contracts but fails for long ones.
-- 504 errors in Vercel logs.
-- Users see "An error occurred during analysis" after waiting exactly 60 seconds.
-
-**Phase to address:**
-Phase 1 (Bug Fix) -- enable Fluid Compute or increase maxDuration. Phase 2 (Enhanced Analysis) -- implement streaming and/or multi-call architecture.
+**Detection:**
+- If the PR introduces a database migration file, question whether it is necessary.
+- If the knowledge management code exceeds the knowledge content itself, the architecture is over-engineered.
 
 ---
 
-### Pitfall 6: Scanned/Image-Based PDFs Produce Zero Extractable Text
+### Pitfall 6: Prompt Engineering Pitfalls with Injected Knowledge
 
 **What goes wrong:**
-The current code checks for `text.length < 100` and returns a 422 error for image-based PDFs. But many real-world contracts are partially scanned -- some pages are text-based, others are image-based (amendments, signed pages, exhibits). The extracted text may pass the 100-char threshold but miss critical sections.
+Domain knowledge is injected into system prompts without clear structural separation from instructions. The model confuses knowledge content with instructions. Example: you inject "Standard glazing subcontractor insurance: CGL $1M/$2M, Umbrella $5M" and the model starts evaluating ALL contracts against these exact numbers, even when the company profile specifies different limits.
+
+Worse: injected knowledge fragments interact unpredictably. CA regulations say "pay-if-paid clauses are unenforceable in California," but the indemnification pass's existing instruction says "note that enforceability varies by jurisdiction." The model gets contradictory signals and produces inconsistent output.
 
 **Why it happens:**
-`pdf-parse` (and `unpdf`) can only extract text from text-layer PDFs. Scanned pages, signed pages, or exhibits that were photocopied produce no text. The 100-char threshold is a blunt instrument -- a 50-page contract where 5 pages are text and 45 are scanned will produce some text but miss almost everything.
+System prompts are already long and dense. Adding domain knowledge without clear XML-tag separation creates an ambiguous blob. Claude 4.x models take instructions literally -- if knowledge text reads like an instruction ("retention cannot exceed 5%"), the model may treat it as a hard rule rather than reference data.
 
-**How to avoid:**
-1. **Report extraction quality:** Calculate the ratio of extracted text length to page count. If a 50-page PDF yields only 2,000 characters, flag it as likely partially scanned.
-2. **Warn the user, do not silently proceed:** "We extracted text from X of Y pages. Some pages appear to be scanned images. Analysis may be incomplete."
-3. **Future: Add OCR capability:** Integrate Tesseract.js or a cloud OCR service for scanned pages. This is complex and should be a later phase.
-4. **Accept the limitation for now:** Most modern contracts are digitally generated (text-layer PDFs). State the limitation clearly in the UI.
+**Prevention:**
+1. **Use XML tags to separate concerns in every system prompt:**
+```
+<instructions>
+[Existing analysis instructions -- unchanged]
+</instructions>
 
-**Warning signs:**
-- Analysis results that seem to miss entire sections of a contract.
-- Very short extracted text relative to the PDF page count.
-- Users uploading contracts that were "printed and scanned back."
+<domain_knowledge>
+[Injected knowledge -- clearly marked as reference data]
+</domain_knowledge>
 
-**Phase to address:**
-Phase 1 -- improve detection and user messaging. Phase 4+ -- OCR integration.
+<evaluation_criteria>
+[Modified severity rules that incorporate domain knowledge]
+</evaluation_criteria>
+```
+2. **Preface domain knowledge with a framing instruction:** "The following domain knowledge is REFERENCE DATA for your analysis. It does not override your analysis instructions. Use it to enrich your findings, not to replace contract-specific analysis."
+3. **Test for instruction contamination.** After adding domain knowledge, verify that severity rules are still followed correctly. The most common failure mode is domain knowledge overriding the severity rules.
+4. **Never mix company-specific data with regulatory data in the same block.** The model needs to distinguish "our company has $5M umbrella coverage" from "California requires statutory workers comp."
+
+**Detection:**
+- Analyze a contract with known characteristics against the domain-enhanced prompts. Verify findings match expected severity levels.
+- Check for "parrot findings" -- findings that simply restate the injected knowledge rather than analyzing the actual contract.
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 7: Settings UI Complexity Creep
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Single API call for all analysis | Simpler code, one request/response | Cannot handle long contracts, truncation, shallow analysis | Never for production with 100+ page contracts |
-| In-memory state only (no persistence) | Fast MVP, no database needed | User loses all analysis on page refresh; cannot build history | MVP only -- add persistence before real usage |
-| Hardcoded model name (`claude-sonnet-4-20250514`) | Works now | Model deprecation breaks the app without warning | Acceptable if checked quarterly; better to use latest alias |
-| base64 in request body | Simple file transfer | Hits 4.5MB limit, wastes bandwidth, doubles memory usage | Acceptable for small PDFs (<2MB); replace for larger files |
-| Raw JSON.parse on LLM output | Works most of the time | Breaks on truncated responses, markdown fences, extra text | Never -- always use structured outputs or robust parsing |
-| No retry logic on API failures | Simpler error handling | Transient errors (rate limits, network) fail permanently | Never -- at minimum retry once on 429/500 |
+**What goes wrong:**
+The Settings page starts simple: company name, insurance limits, bonding capacity. Then someone adds: license numbers, license expiration dates, workforce size, equipment list, bid/no-bid thresholds per contract type, preferred GC list, regulatory jurisdiction selection, AAMA certification levels, Division 08 subcategory capabilities, safety record metrics, EMR rating... The Settings page becomes a 40-field data entry form that the user fills out once and never revisits.
 
-## Integration Gotchas
+**Why it happens:**
+Every domain knowledge area suggests "the user should be able to configure this." The instinct to make everything editable is strong, especially when the alternative is hardcoding. But configurability has a cost: UI complexity, validation logic, state management, and the cognitive burden on the user.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Anthropic SDK | Setting max_tokens too low and not checking stop_reason | Set generous max_tokens (8192+), always check `response.stop_reason`, handle `"max_tokens"` as incomplete |
-| Anthropic SDK | Requesting JSON via system prompt without enforcement | Use `output_config.format` with `json_schema` for guaranteed schema compliance (structured outputs) |
-| Anthropic SDK | Not handling rate limits (429) with exponential backoff | Implement retry with exponential backoff: wait 1s, 2s, 4s. The SDK has built-in retry support -- enable it |
-| pdf-parse on Vercel | Using default import which triggers test-file lookup | Import from `pdf-parse/lib/pdf-parse.js` or switch to `unpdf` |
-| Vercel Functions | Sending large payloads in request body | Upload files to blob storage, pass URL to function |
-| Vercel Functions | Assuming 60s is enough for AI API calls | Enable Fluid Compute (300s default), use streaming for real-time feedback |
+**Prevention:**
+1. **Tier the settings into three levels:**
+   - **Essential (shown by default):** Company name, insurance limits (CGL, umbrella, auto, WC), bonding capacity, CA contractor license number
+   - **Important (collapsible section):** Bid/no-bid thresholds, workforce size, key capabilities, license expiration date
+   - **Advanced (hidden behind "Show Advanced"):** AAMA certifications, specific Division 08 capabilities, preferred markup percentages, EMR rating
+2. **Use smart defaults.** Pre-fill with typical glazing subcontractor values. The user only changes what differs from the default.
+3. **Show the impact.** Next to each field, briefly state how it affects analysis: "Used by Insurance pass to flag coverage gaps" or "Used by Scope pass to identify work outside your capabilities."
+4. **Maximum 15 fields visible on initial Settings load.** If you need more, the feature scope is too broad for v1.1.
 
-## Performance Traps
+**Detection:**
+- Count the fields on the Settings page. If it exceeds 20 visible fields, simplify.
+- Track which settings the user actually changes. If 80% of users only change 5 fields, the rest should be defaults or hidden.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Sending entire PDF as base64 in JSON body | Slow uploads, 413 errors on large files | Use blob storage or multipart upload | PDFs > 3.2MB (after base64 = 4.26MB, near 4.5MB limit) |
-| Single synchronous Claude API call for full analysis | 30-90s blocking request, timeout on long contracts | Stream responses or split into parallel calls per category | Contracts > 30 pages with comprehensive analysis |
-| Truncating contract text to 100k chars | Missing critical clauses in long contracts | Use Claude's full 200k token context (or 1M with beta header) | Contracts > ~25,000 words (roughly 50+ pages) |
-| Creating new Anthropic client on every request | Cold start overhead, connection setup time | Initialize client outside handler (module-level) for connection reuse | Every cold start adds 200-500ms |
-| No caching of analysis results | Re-analyzing the same PDF costs money and time | Store results by PDF hash; check before re-analyzing | Costs scale linearly with usage; $3-15 per analysis |
+---
 
-## Security Mistakes
+### Pitfall 8: Maintaining Knowledge Accuracy for CA-Specific Regulations
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Trusting LLM-generated clause quotes without verification | User acts on fabricated contract language in negotiations | Add verbatim quote verification against source text |
-| No rate limiting on the /api/analyze endpoint | Cost attack -- someone floods the endpoint and racks up Claude API bills | Add per-IP rate limiting, require API key or session token |
-| Logging full contract text in error handlers | PII/confidential contract data in Vercel logs | Log only error types and metadata, never document content |
-| Storing PDF content in client-side state | Sensitive contract data accessible via browser devtools | Clear base64 data from state after upload completes |
-| No input sanitization on PDF text before sending to Claude | Prompt injection via malicious PDF content | Sanitize extracted text; use system prompt to anchor behavior |
+**What goes wrong:**
+You research California construction regulations and encode them into knowledge files. But you encode them wrong: you paraphrase a statute imprecisely, you miss an exception, you conflate two separate code sections, or you apply a 2025 amendment retroactively to your summary of the base statute. The AI then confidently presents your incorrect summary as California law.
 
-## UX Pitfalls
+**Why it happens:**
+Developers are not lawyers. Reading statutes requires legal training to understand scope, exceptions, and interplay with other statutes. The temptation is to "simplify for the AI" -- but simplification of legal text almost always loses critical nuance.
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| "An error occurred during analysis" with no detail | User has no idea what went wrong or how to fix it | Show specific error: "PDF appears to be scanned," "Contract too large," "AI service busy -- retry in 30s" |
-| No progress indication during 30-60s analysis | User thinks the app is frozen, refreshes, loses state | Show streaming progress: "Extracting text... Analyzing legal issues... Reviewing scope..." |
-| Analysis succeeds but silently truncated (incomplete findings) | User misses critical contract risks they relied on the tool to catch | Check stop_reason, warn user if analysis may be incomplete, show confidence indicator |
-| All findings shown at once without hierarchy | User overwhelmed by 20+ findings, misses the critical ones | Group by severity, show Critical/High first, collapse Low/Info by default |
-| No way to verify AI findings against source text | User cannot trust findings without manual PDF review | Link findings to page numbers or quote exact contract text with highlights |
-| Losing all data on page refresh | User loses analysis they spent time reviewing | Add localStorage persistence at minimum; IndexedDB for full contracts |
+**Prevention:**
+1. **Do not paraphrase statutes. Quote them or summarize with explicit caveats.**
+   - BAD: "California prohibits pay-if-paid clauses"
+   - GOOD: "California Civil Code Section 8122 provides that an owner's failure to pay the direct contractor does not excuse the direct contractor's obligation to pay subcontractors. Courts have interpreted this as limiting pay-if-paid enforceability, though specific applications vary. Verify current applicability with legal counsel."
+2. **Limit regulatory knowledge to five core areas where the app already analyzes:**
+   - Indemnification: CCC 2782 (anti-indemnity statute for construction)
+   - Payment: CCC 8122 (payment obligations), new SB 440 change order procedures
+   - Retainage: CCC 8811 (5% cap, effective 2026)
+   - Liens: CCC 8400-8494 (mechanic's lien framework, deadlines)
+   - Prevailing Wage: When it applies (public works, certain affordable housing per AB 3190)
+3. **Source every regulatory claim.** Every piece of regulatory knowledge in the codebase must have: statute citation, effective date, source URL, and last-verified date.
+4. **Add a prominent disclaimer in the UI:** "Regulatory references are for informational purposes only and may not reflect the most current law. This tool does not provide legal advice. Consult a construction attorney for legal guidance."
 
-## "Looks Done But Isn't" Checklist
+**Detection:**
+- Have a construction attorney review the regulatory knowledge files before deployment. Budget for this -- it is a one-time cost that prevents ongoing liability.
+- Cross-reference every statute citation against the official California Legislative Information website (leginfo.legislature.ca.gov).
 
-- [ ] **PDF upload:** Works with simple PDFs but fails with scanned, encrypted, password-protected, or form-filled PDFs -- test with real glazing contracts
-- [ ] **Analysis output:** Returns findings but never verified that clause quotes actually appear in the source document -- add quote verification
-- [ ] **Error handling:** Catches errors but all return the same generic message -- differentiate timeout, truncation, parsing, rate limit, and extraction errors
-- [ ] **Token limits:** Set max_tokens but never checked if response was truncated -- always inspect stop_reason
-- [ ] **File size:** Client validates 3MB but base64 encoding pushes actual payload past Vercel's 4.5MB limit -- test with 3MB PDFs
-- [ ] **Timeout:** Set 60s maxDuration but Claude API + PDF parsing + cold start regularly exceeds this -- test with long contracts end-to-end
-- [ ] **JSON parsing:** Handles markdown code fences but not partial JSON, extra whitespace, or BOM characters -- use structured outputs instead
-- [ ] **Long contracts:** Truncates to 100k chars but never tells the user or model that content was lost -- add truncation warnings
+---
 
-## Recovery Strategies
+## Minor Pitfalls
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| pdf-parse ENOENT on Vercel | LOW | Change import path or switch to unpdf; redeploy |
-| Truncated JSON from max_tokens | LOW | Increase max_tokens, add stop_reason check; redeploy |
-| 4.5MB payload limit hit | MEDIUM | Reduce client-side file limit immediately; plan blob storage migration |
-| Hallucinated clause quotes | MEDIUM | Update prompt to require verbatim-only quoting; add post-analysis verification |
-| 60-second timeout failures | LOW | Enable Fluid Compute in Vercel dashboard or increase maxDuration; redeploy |
-| Scanned PDF silent failure | LOW | Improve text extraction validation and user messaging; no code rewrite needed |
-| Lost analysis data on refresh | MEDIUM | Add localStorage persistence layer to useContractStore; involves state refactor |
-| No retry on transient API errors | LOW | Enable Anthropic SDK built-in retries or add manual retry with backoff |
+### Pitfall 9: Coupling Knowledge Loading to the analyze.ts Monolith
 
-## Pitfall-to-Phase Mapping
+**What goes wrong:**
+Domain knowledge loading logic gets added directly to the 1,537-line `api/analyze.ts` file. Knowledge selection, template rendering, and pass-specific knowledge mapping all live in the same file. The file grows to 2,500+ lines and becomes unmaintainable.
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| pdf-parse ENOENT deployment crash | Phase 1 (Bug Fix) | Deploy to Vercel, upload a PDF, confirm analysis completes |
-| 4096 max_tokens truncation | Phase 1 (Bug Fix) | Analyze a 50+ page contract, verify complete JSON response |
-| 4.5MB payload limit | Phase 1 (Bug Fix) | Upload a 3MB PDF, confirm no 413 error |
-| 60-second timeout | Phase 1 (Bug Fix) | Analyze a 100-page contract, confirm no 504 error |
-| Generic error messages | Phase 1 (Bug Fix) | Trigger each error type, verify user sees specific messages |
-| Hallucinated clause quotes | Phase 2 (Enhanced Analysis) | Compare 10 findings' clauseReference to actual PDF text |
-| Scanned PDF detection | Phase 2 (Enhanced Analysis) | Upload a partially-scanned PDF, verify warning shown |
-| No progress indication | Phase 2 (Enhanced Analysis) | Start analysis, verify streaming progress UI updates |
-| Data loss on refresh | Phase 3 (Persistence) | Analyze contract, refresh page, verify data survives |
-| No rate limiting | Phase 3 (Hardening) | Verify endpoint rejects excessive requests from same IP |
-| Prompt injection via PDF content | Phase 3 (Hardening) | Test with adversarial PDF content, verify analysis unaffected |
-| No analysis caching | Phase 4 (Optimization) | Re-upload same PDF, verify cached result returned |
+**Prevention:**
+1. Create a separate `src/knowledge/` directory with one file per knowledge domain.
+2. Create a `src/knowledge/loader.ts` that maps pass names to their required knowledge and returns the formatted prompt fragment.
+3. The analyze.ts file calls `getKnowledgeForPass(passName)` and injects the result. One line per pass, not inline knowledge blocks.
+
+---
+
+### Pitfall 10: Bid/No-Bid Signals Creating Decision Liability
+
+**What goes wrong:**
+The tool surfaces "bid/no-bid" signals based on contract terms matching company thresholds. The user passes on a profitable contract because the tool flagged "no-bid" based on an insurance requirement that was actually negotiable. Or worse, the user bids on a dangerous contract because no threshold was triggered.
+
+**Prevention:**
+1. Frame bid/no-bid as "signals" or "flags," never as recommendations.
+2. Always show the underlying data: "Insurance requirement ($10M umbrella) exceeds your coverage ($5M). This is a bid decision factor, not a recommendation."
+3. Never auto-calculate a bid/no-bid score. Surface the individual factors and let the user decide.
+
+---
+
+### Pitfall 11: False Positive Reduction Masking Real Risks
+
+**What goes wrong:**
+You add company capability data to filter "false positive" findings. The scope pass flags "curtain wall installation" as outside capabilities, but you add the company's capabilities and the filter removes the finding because curtain wall is listed. Except the contract specifies unitized curtain wall, which the company does not do -- the capability list said "curtain wall" generically.
+
+**Prevention:**
+1. Never silently remove findings. Downgrade severity instead: "Your company lists curtain wall as a capability. Verify this scope matches your specific curtain wall experience."
+2. Capability matching should be fuzzy, not exact. "Curtain wall" in capabilities should not auto-suppress all curtain wall findings.
+3. Log every finding that was modified by domain knowledge so the user can review the filter's decisions.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Knowledge architecture | Over-engineering storage (Pitfall 5) | Start with TypeScript files + localStorage. No database. |
+| Company profile integration | Settings UI complexity (Pitfall 7) | Maximum 15 visible fields. Tier into essential/important/advanced. |
+| CA regulatory knowledge | False confidence (Pitfall 2) + Staleness (Pitfall 4) + Accuracy (Pitfall 8) | Version-stamp everything. Disclaimers on every regulatory finding. Attorney review before launch. |
+| Contract standards recognition | Context bloat (Pitfall 1) | AIA/ConsensusDocs pattern matching needs minimal knowledge -- just clause number patterns, not full standard text. |
+| Industry/trade knowledge | Context bloat (Pitfall 1) + Cost explosion (Pitfall 3) | AAMA standards list is short. Do not embed full specification text. Reference numbers only. |
+| Per-pass selective loading | Prompt engineering (Pitfall 6) | XML tag separation. Test every modified pass against a known contract. |
+| Enhanced severity rules | Instruction contamination (Pitfall 6) | Domain-specific severity rules must be clearly separated from base severity rules. Test for regression. |
+| False positive reduction | Masking real risks (Pitfall 11) | Never remove findings. Downgrade severity with explanation. |
+| Settings UI | Complexity creep (Pitfall 7) | Build the minimal version first. Add fields only when a pass actually uses the data. |
+| Bid/no-bid signals | Decision liability (Pitfall 10) | Frame as informational flags, not recommendations. Show underlying data. |
+
+## Token Budget Reference
+
+Based on current architecture (16 parallel passes, each receiving full PDF):
+
+| Metric | Current (v1.0) | With Domain Knowledge (v1.1 target) | Danger Zone |
+|--------|---------------|--------------------------------------|-------------|
+| System prompt per pass | 300-600 tokens | 500-1,200 tokens | >2,500 tokens |
+| Domain knowledge per pass | 0 tokens | 200-800 tokens (selective) | >1,500 tokens |
+| Total additional input tokens per analysis | 0 | 5,000-12,000 tokens | >25,000 tokens |
+| Estimated cost increase per analysis | $0 | $0.015-$0.036 | >$0.075 |
+| Passes needing domain knowledge | 0/16 | 8-10/16 | 16/16 (means not selective) |
+
+**Rule of thumb:** If every pass gets domain knowledge, the loading is not selective enough. At least 6 passes should receive zero domain knowledge.
+
+## Knowledge Freshness Strategy
+
+| Knowledge Type | Update Trigger | Update Frequency | Owner |
+|---------------|----------------|-------------------|-------|
+| Company profile (insurance, bonding) | Policy renewal date | Annually (or on renewal) | User via Settings UI |
+| CA regulations | January 1 (new laws effective) | Annual review mid-January | Developer, attorney-verified |
+| Contract standards (AIA, ConsensusDocs) | New edition published | Every 3-5 years | Developer |
+| Industry standards (AAMA, ASTM) | Standard revision published | Every 5-10 years | Developer |
+| Evaluation criteria / severity rules | Analysis quality feedback | Continuous as issues found | Developer |
 
 ## Sources
 
-- [Using pdf-parse on Vercel Is Wrong -- Here's What Actually Works (DEV Community)](https://dev.to/chudi_nnorukam/serverless-pdf-processing-why-unpdf-beats-pdf-parse-2jji) -- MEDIUM confidence, community article verified against GitLab issue
-- [ENOENT test data issue -- pdf-parse GitLab #24](https://gitlab.com/autokent/pdf-parse/-/issues/24) -- HIGH confidence, official issue tracker
-- [How to get pdf-parse to work on Vercel deployments (GitHub Discussion #5278)](https://github.com/vercel/community/discussions/5278) -- HIGH confidence, Vercel community with verified solutions
-- [Vercel Functions Limits (Official)](https://vercel.com/docs/functions/limitations) -- HIGH confidence, official documentation: 4.5MB body limit, 300s max duration with Fluid Compute
-- [Structured Outputs -- Claude API Docs (Official)](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) -- HIGH confidence, official Anthropic documentation
-- [Handling Stop Reasons -- Claude API Docs (Official)](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons) -- HIGH confidence, official documentation for max_tokens handling
-- [ContractEval: Benchmarking LLMs for Clause-Level Legal Risk Identification](https://arxiv.org/abs/2508.03080) -- MEDIUM confidence, peer-reviewed research on LLM legal analysis accuracy
-- [Legal RAG Hallucinations (Stanford)](https://dho.stanford.edu/wp-content/uploads/Legal_RAG_Hallucinations.pdf) -- HIGH confidence, Stanford research showing 17-33% hallucination rates in legal AI tools
-- [Context Windows -- Claude API Docs (Official)](https://platform.claude.com/docs/en/build-with-claude/context-windows) -- HIGH confidence, official documentation for 200k/1M token limits
-- [Vercel Timeout KB (Official)](https://vercel.com/kb/guide/what-can-i-do-about-vercel-serverless-functions-timing-out) -- HIGH confidence, official knowledge base
+- [Context Rot: How Increasing Input Tokens Impacts LLM Performance (Chroma Research)](https://research.trychroma.com/context-rot) -- HIGH confidence, systematic testing of 18 models
+- [Understanding LLM Performance Degradation: Context Window Limits](https://demiliani.com/2025/11/02/understanding-llm-performance-degradation-a-deep-dive-into-context-window-limits/) -- MEDIUM confidence, cites Stanford research showing 15-47% performance drops
+- [Large Legal Fictions: Profiling Legal Hallucinations in LLMs (Stanford/Oxford)](https://academic.oup.com/jla/article/16/1/64/7699227) -- HIGH confidence, peer-reviewed research, 69-88% hallucination rate on specific legal queries
+- [Hallucinating Law: Legal Mistakes with LLMs Are Pervasive (Stanford HAI)](https://hai.stanford.edu/news/hallucinating-law-legal-mistakes-large-language-models-are-pervasive) -- HIGH confidence, Stanford research
+- [2026 Construction Law Update (Nomos LLP)](https://calconstructionlawblog.com/2026/01/04/2026-construction-law-update/) -- HIGH confidence, law firm analysis of new CA construction laws
+- [California's New Rules for Private Construction Contracts (Brownstein)](https://www.bhfs.com/insight/californias-new-rules-for-private-construction-contracts-take-effect-jan-1-2026/) -- HIGH confidence, law firm analysis of SB 440 and retainage cap
+- [New California Construction Laws for 2026 (Smith Currie)](https://www.smithcurrie.com/publications/common-sense-contract-law/new-california-construction-laws-for-2026/) -- HIGH confidence, construction law firm
+- [Reduce LLM Token Usage in RAG (apxml.com)](https://apxml.com/courses/optimizing-rag-for-production/chapter-5-cost-optimization-production-rag/minimize-llm-token-usage-rag) -- MEDIUM confidence, practical guidance on token cost management
+- [Prompting Best Practices - System Prompts (Claude API Docs)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/system-prompts) -- HIGH confidence, official Anthropic documentation
+- [Claude Prompt Engineering Best Practices (Anthropic Blog)](https://claude.com/blog/best-practices-for-prompt-engineering) -- HIGH confidence, official Anthropic guidance
 
 ---
-*Pitfalls research for: AI-powered glazing contract analysis (ClearContract)*
-*Researched: 2026-03-02*
+*Pitfalls research for: v1.1 Domain Intelligence milestone (ClearContract)*
+*Researched: 2026-03-08*
