@@ -1,5 +1,4 @@
-import React from 'react';
-import { Contract } from '../types/contract';
+import { Contract, ViewState } from '../types/contract';
 import { StatCard } from '../components/StatCard';
 import { ContractCard } from '../components/ContractCard';
 import {
@@ -10,10 +9,9 @@ import {
   Plus,
   ArrowRight } from
 'lucide-react';
-import { motion } from 'framer-motion';
 interface DashboardProps {
   contracts: Contract[];
-  onNavigate: (view: any, id?: string) => void;
+  onNavigate: (view: ViewState, id?: string) => void;
 }
 export function Dashboard({ contracts, onNavigate }: DashboardProps) {
   const totalContracts = contracts.length;

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { UploadCloud, FileText } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 interface UploadZoneProps {

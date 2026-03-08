@@ -1,4 +1,3 @@
-import React from 'react';
 import { UploadZone } from '../components/UploadZone';
 interface ContractUploadProps {
   onUploadComplete: (file: File) => void;

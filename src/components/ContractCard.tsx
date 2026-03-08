@@ -1,6 +1,5 @@
-import React from 'react';
 import { Contract } from '../types/contract';
-import { FileText, Calendar, AlertTriangle } from 'lucide-react';
+import { FileText, AlertTriangle } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 interface ContractCardProps {
   contract: Contract;

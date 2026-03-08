@@ -1,4 +1,3 @@
-import React from 'react';
 import { ContractDate } from '../types/contract';
 import { Calendar, Flag, AlertCircle, Clock } from 'lucide-react';
 interface DateTimelineProps {

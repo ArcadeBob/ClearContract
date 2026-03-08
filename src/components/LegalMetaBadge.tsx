@@ -1,4 +1,3 @@
-import React from 'react';
 import { LegalMeta } from '../types/contract';
 
 interface LegalMetaBadgeProps {

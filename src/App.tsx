@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -16,7 +15,6 @@ export function App() {
     addContract,
     updateContract,
     navigateTo,
-    setActiveContractId
   } = useContractStore();
   const handleUploadComplete = (file: File) => {
     const id = `c-${Date.now()}`;

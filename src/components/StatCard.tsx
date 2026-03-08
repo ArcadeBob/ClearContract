@@ -1,9 +1,8 @@
-import React from 'react';
-import { BoxIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: BoxIcon;
+  icon: LucideIcon;
   trend?: string;
   trendUp?: boolean;
   color?: 'blue' | 'green' | 'amber' | 'red' | 'slate';

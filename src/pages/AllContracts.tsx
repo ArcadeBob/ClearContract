@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { Contract } from '../types/contract';
+import { useMemo, useState } from 'react';
+import { Contract, ViewState } from '../types/contract';
 import { ContractCard } from '../components/ContractCard';
 import { Search, SlidersHorizontal, Plus, ArrowUpDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 interface AllContractsProps {
   contracts: Contract[];
-  onNavigate: (view: any, id?: string) => void;
+  onNavigate: (view: ViewState, id?: string) => void;
 }
 const CONTRACT_TYPES = [
 'All',

@@ -25,7 +25,7 @@ import {
 } from '../src/schemas/scopeComplianceAnalysis';
 import type { LegalMeta, ScopeMeta } from '../src/types/contract';
 import { extractText } from 'unpdf';
-import { Agent } from 'undici';
+import { fetch as undiciFetch, Agent } from 'undici';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -1434,6 +1434,7 @@ export default async function handler(
 
   let fileId: string | null = null;
   let client: Anthropic | null = null;
+  let dispatcher: Agent | null = null;
 
   try {
     const { pdfBase64, fileName } = req.body;
@@ -1452,37 +1453,48 @@ export default async function handler(
       });
     }
 
+    // Use npm undici's fetch instead of Node's built-in fetch to control timeouts.
+    // Node's built-in fetch uses an internal bundled undici whose headersTimeout
+    // cannot be configured via the npm undici Agent (different module instances).
+    dispatcher = new Agent({
+      headersTimeout: 0,          // disabled — let SDK AbortController handle timeout
+      bodyTimeout: 0,             // disabled — streaming responses can be long
+      connectTimeout: 30_000,     // 30s to establish TCP connection
+      connections: 20,            // pool size — peak concurrency is 16 parallel API calls
+    });
+    const customFetch: typeof globalThis.fetch = (input, init) =>
+      undiciFetch(input as Parameters<typeof undiciFetch>[0], {
+        ...init,
+        dispatcher,
+      } as Parameters<typeof undiciFetch>[1]) as Promise<Response>;
+
     client = new Anthropic({
       apiKey,
-      timeout: 110 * 1000,   // 110s — just under Vercel maxDuration (120s)
+      timeout: 280 * 1000,   // 280s — under Vercel maxDuration (300s), allows room for cleanup
       maxRetries: 0,          // Don't retry inside serverless function — wastes budget
-      fetchOptions: {
-        dispatcher: new Agent({
-          headersTimeout: 5 * 60 * 1000,   // 5 min — prevent undici HeadersTimeoutError
-          bodyTimeout: 5 * 60 * 1000,      // 5 min — prevent body timeout
-          connectTimeout: 30 * 1000,        // 30s to establish connection
-        }),
-      } as Record<string, unknown>,
+      fetch: customFetch,
     });
 
     // Upload PDF to Files API (or fallback to text extraction)
+    console.log(`[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB, uploading...`);
+    const uploadStart = Date.now();
     const prepared = await preparePdfForAnalysis(
       pdfBuffer,
       fileName || 'contract.pdf',
       client,
     );
     fileId = prepared.fileId;
+    console.log(`[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`);
 
-    // Execute analysis passes in batches to avoid rate limits / memory pressure
-    const BATCH_SIZE = 7;
-    const settledResults: PromiseSettledResult<{ passName: string; result: PassResult | RiskOverviewResult }>[] = [];
-    for (let i = 0; i < ANALYSIS_PASSES.length; i += BATCH_SIZE) {
-      const batch = ANALYSIS_PASSES.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.allSettled(
-        batch.map((pass) => runAnalysisPass(client!, fileId!, pass)),
-      );
-      settledResults.push(...batchResults);
-    }
+    // Execute all analysis passes in parallel (production allows 300s via
+    // vercel.json maxDuration; vercel dev defaults to 120s).
+    console.log(`[analyze] Running all ${ANALYSIS_PASSES.length} passes in parallel...`);
+    const passStart = Date.now();
+    const settledResults = await Promise.allSettled(
+      ANALYSIS_PASSES.map((pass) => runAnalysisPass(client!, fileId!, pass)),
+    );
+    const failed = settledResults.filter(r => r.status === 'rejected').length;
+    console.log(`[analyze] All passes done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed)`);
 
     // Merge results from all passes
     const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
@@ -1515,7 +1527,15 @@ export default async function handler(
         .json({ error: 'Server configuration error: invalid API key' });
     }
 
-    console.error('Analysis error:', err.message || error);
+    const message = err.message || String(error);
+    console.error('Analysis error:', message);
+
+    if (message.includes('HeadersTimeoutError') || message.includes('timeout') || message.includes('ETIMEDOUT')) {
+      return res
+        .status(504)
+        .json({ error: 'API timeout — the contract may be too large or the API is slow. Please try again.' });
+    }
+
     return res
       .status(500)
       .json({ error: 'An error occurred during analysis. Please try again.' });
@@ -1532,6 +1552,10 @@ export default async function handler(
             : cleanupError,
         );
       }
+    }
+    // Close the undici Agent to drain its connection pool (prevents socket leaks on warm starts)
+    if (dispatcher) {
+      dispatcher.close();
     }
   }
 }

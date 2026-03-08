@@ -1,4 +1,3 @@
-import React from 'react';
 import { Severity } from '../types/contract';
 interface SeverityBadgeProps {
   severity: Severity;
