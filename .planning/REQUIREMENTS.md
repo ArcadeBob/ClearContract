@@ -17,12 +17,12 @@ Requirements for Domain Intelligence milestone. Each maps to roadmap phases.
 
 ### Company Profile
 
-- [ ] **PROF-01**: User can enter insurance coverage limits (GL, auto, WC, umbrella) in Settings
-- [ ] **PROF-02**: User can enter bonding capacity (single and aggregate limits) in Settings
-- [ ] **PROF-03**: User can enter license info (C-17 number, DIR registration) in Settings
-- [ ] **PROF-04**: User can enter company capabilities (employee count, service area, typical project size range) in Settings
-- [ ] **PROF-05**: Company profile persists in localStorage across sessions
-- [ ] **PROF-06**: Settings pre-populated with Clean Glass Installation defaults
+- [x] **PROF-01**: User can enter insurance coverage limits (GL, auto, WC, umbrella) in Settings
+- [x] **PROF-02**: User can enter bonding capacity (single and aggregate limits) in Settings
+- [x] **PROF-03**: User can enter license info (C-17 number, DIR registration) in Settings
+- [x] **PROF-04**: User can enter company capabilities (employee count, service area, typical project size range) in Settings
+- [x] **PROF-05**: Company profile persists in localStorage across sessions
+- [x] **PROF-06**: Settings pre-populated with Clean Glass Installation defaults
 
 ### Company-Specific Intelligence
 
@@ -75,12 +75,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | ARCH-03 | Phase 7 | Complete |
 | ARCH-04 | Phase 7 | Complete |
 | ARCH-05 | Phase 7 | Complete |
-| PROF-01 | Phase 7 | Pending |
-| PROF-02 | Phase 7 | Pending |
-| PROF-03 | Phase 7 | Pending |
-| PROF-04 | Phase 7 | Pending |
-| PROF-05 | Phase 7 | Pending |
-| PROF-06 | Phase 7 | Pending |
+| PROF-01 | Phase 7 | Complete |
+| PROF-02 | Phase 7 | Complete |
+| PROF-03 | Phase 7 | Complete |
+| PROF-04 | Phase 7 | Complete |
+| PROF-05 | Phase 7 | Complete |
+| PROF-06 | Phase 7 | Complete |
 | INTEL-01 | Phase 8 | Pending |
 | INTEL-02 | Phase 8 | Pending |
 | INTEL-03 | Phase 8 | Pending |
