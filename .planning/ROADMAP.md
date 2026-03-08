@@ -42,12 +42,11 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   3. Knowledge modules exist as TypeScript files with effective date and review-by date metadata
   4. A prompt builder function composes system prompts from base prompt + domain knowledge + company profile, with each pass receiving only its mapped knowledge (not everything)
   5. Token budget enforcement rejects knowledge injection that exceeds the 1500-token cap before any API call is made
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md — Knowledge module infrastructure (types, registry, token budget, prompt builder)
+- [ ] 07-02-PLAN.md — Company profile hook and Settings page rewrite
 
 ### Phase 8: Pipeline Integration and Company-Specific Intelligence
 **Goal**: Analysis pipeline uses domain knowledge and company profile to deliver company-specific findings -- insurance gap detection, bonding capacity checks, severity adjustments, and bid/no-bid signals
@@ -106,7 +105,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 4. Scope, Compliance, and Verbiage | v1.0 | 2/2 | Complete | 2026-03-05 |
 | 5. Negotiation Output and Organization | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. CategoryFilter Display Fix | v1.0 | 1/1 | Complete | 2026-03-06 |
-| 7. Knowledge Architecture and Company Profile | v1.1 | 0/? | Not started | - |
+| 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
 | 8. Pipeline Integration and Company-Specific Intelligence | v1.1 | 0/? | Not started | - |
 | 9. CA Regulatory Knowledge | v1.1 | 0/? | Not started | - |
 | 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |
