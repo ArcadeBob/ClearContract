@@ -1453,9 +1453,11 @@ export default async function handler(
       });
     }
 
-    // Use npm undici's fetch instead of Node's built-in fetch to control timeouts.
+    // Use npm undici's fetch for message API calls to control timeouts.
     // Node's built-in fetch uses an internal bundled undici whose headersTimeout
     // cannot be configured via the npm undici Agent (different module instances).
+    // However, undici's fetch doesn't support FormData file uploads, so we use
+    // a separate client with the default fetch for file uploads.
     dispatcher = new Agent({
       headersTimeout: 0,          // disabled — let SDK AbortController handle timeout
       bodyTimeout: 0,             // disabled — streaming responses can be long
@@ -1468,6 +1470,14 @@ export default async function handler(
         dispatcher,
       } as Parameters<typeof undiciFetch>[1]) as Promise<Response>;
 
+    // Upload client uses default fetch (supports FormData for file uploads)
+    const uploadClient = new Anthropic({
+      apiKey,
+      timeout: 60 * 1000,
+      maxRetries: 0,
+    });
+
+    // Message client uses custom undici fetch (configurable timeouts)
     client = new Anthropic({
       apiKey,
       timeout: 280 * 1000,   // 280s — under Vercel maxDuration (300s), allows room for cleanup
@@ -1481,7 +1491,7 @@ export default async function handler(
     const prepared = await preparePdfForAnalysis(
       pdfBuffer,
       fileName || 'contract.pdf',
-      client,
+      uploadClient,
     );
     fileId = prepared.fileId;
     console.log(`[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`);
