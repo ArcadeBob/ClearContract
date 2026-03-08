@@ -70,35 +70,35 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01 | — | Pending |
-| ARCH-02 | — | Pending |
-| ARCH-03 | — | Pending |
-| ARCH-04 | — | Pending |
-| ARCH-05 | — | Pending |
-| PROF-01 | — | Pending |
-| PROF-02 | — | Pending |
-| PROF-03 | — | Pending |
-| PROF-04 | — | Pending |
-| PROF-05 | — | Pending |
-| PROF-06 | — | Pending |
-| INTEL-01 | — | Pending |
-| INTEL-02 | — | Pending |
-| INTEL-03 | — | Pending |
-| INTEL-04 | — | Pending |
-| CAREG-01 | — | Pending |
-| CAREG-02 | — | Pending |
-| CAREG-03 | — | Pending |
-| CAREG-04 | — | Pending |
-| CAREG-05 | — | Pending |
-| TRADE-01 | — | Pending |
-| TRADE-02 | — | Pending |
-| TRADE-03 | — | Pending |
+| ARCH-01 | Phase 7 | Pending |
+| ARCH-02 | Phase 7 | Pending |
+| ARCH-03 | Phase 7 | Pending |
+| ARCH-04 | Phase 7 | Pending |
+| ARCH-05 | Phase 7 | Pending |
+| PROF-01 | Phase 7 | Pending |
+| PROF-02 | Phase 7 | Pending |
+| PROF-03 | Phase 7 | Pending |
+| PROF-04 | Phase 7 | Pending |
+| PROF-05 | Phase 7 | Pending |
+| PROF-06 | Phase 7 | Pending |
+| INTEL-01 | Phase 8 | Pending |
+| INTEL-02 | Phase 8 | Pending |
+| INTEL-03 | Phase 8 | Pending |
+| INTEL-04 | Phase 8 | Pending |
+| CAREG-01 | Phase 9 | Pending |
+| CAREG-02 | Phase 9 | Pending |
+| CAREG-03 | Phase 9 | Pending |
+| CAREG-04 | Phase 9 | Pending |
+| CAREG-05 | Phase 9 | Pending |
+| TRADE-01 | Phase 10 | Pending |
+| TRADE-02 | Phase 10 | Pending |
+| TRADE-03 | Phase 10 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation*
