@@ -31,7 +31,21 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(None -- plan next milestone)
+## Current Milestone: v1.1 Domain Intelligence
+
+**Goal:** Make the AI a true glazing contract domain expert — company-specific thresholds, CA regulatory knowledge, industry standards, and structured knowledge architecture that loads selectively per analysis pass.
+
+**Target features:**
+- Knowledge architecture with layered reference data (company, regulatory, standards, trade, rules)
+- Company profile integration (insurance, bonding, licenses, capabilities, bid/no-bid thresholds)
+- CA regulatory knowledge (lien law, DIR/prevailing wage, Title 24, Cal/OSHA)
+- Contract standards recognition (AIA, ConsensusDocs, EJCDC clause patterns)
+- Industry/trade knowledge (AAMA standards, Division 08 specs, product specs)
+- Per-pass selective knowledge loading (no context bloat)
+- Enhanced category evaluation criteria with domain-specific severity rules
+- False positive reduction (filter findings against actual company capabilities)
+- Settings UI for updateable company data (insurance, bonding, workforce)
+- Bid/no-bid signal surfacing from contract terms
 
 ### Out of Scope
 
@@ -82,4 +96,4 @@ Known tech debt: unused React imports, mock contracts don't exercise new fields,
 | negotiationPosition required in schema, optional on client | Maximizes structured output quality while allowing empty for Low/Info | ✓ Good -- all Critical/High get positions |
 
 ---
-*Last updated: 2026-03-06 after v1.0 milestone*
+*Last updated: 2026-03-08 after v1.1 milestone start*
