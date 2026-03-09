@@ -60,7 +60,7 @@ export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
             {finding.category}
           </span>
         </div>
-        <SeverityBadge severity={finding.severity} />
+        <SeverityBadge severity={finding.severity} downgradedFrom={finding.downgradedFrom} />
       </div>
 
       <h4 className="text-lg font-semibold text-slate-900 mb-2">

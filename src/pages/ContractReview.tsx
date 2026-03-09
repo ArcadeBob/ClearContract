@@ -6,10 +6,13 @@ import { CategorySection } from '../components/CategorySection';
 import { DateTimeline } from '../components/DateTimeline';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { AnalysisProgress } from '../components/AnalysisProgress';
-import { ChevronLeft, Download, Share2, CheckCircle, LayoutGrid, List } from 'lucide-react';
+import { BidSignalWidget } from '../components/BidSignalWidget';
+import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
+import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { ChevronLeft, Download, Share2, CheckCircle, LayoutGrid, List, Shield, X } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
-type ViewMode = 'by-category' | 'by-severity';
+type ViewMode = 'by-category' | 'by-severity' | 'coverage';
 
 const CATEGORY_ORDER: Category[] = [
   'Legal Issues',
@@ -41,6 +44,11 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
     'All'
   );
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
+  const [showBanner, setShowBanner] = useState(true);
+  const { profile } = useCompanyProfile();
+
+  // Check if any profile fields are empty strings
+  const hasEmptyProfileFields = Object.values(profile).some((v) => v === '');
 
   // Scroll to category section when a category pill is clicked in by-category mode
   useEffect(() => {
@@ -124,16 +132,36 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Findings */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Incomplete profile warning banner */}
+            {hasEmptyProfileFields && showBanner && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
+                <p className="text-sm text-amber-800">
+                  Some company profile fields are empty -- insurance and bonding comparison may be incomplete.
+                </p>
+                <button
+                  onClick={() => setShowBanner(false)}
+                  className="p-1 hover:bg-amber-100 rounded text-amber-600 transition-colors shrink-0 ml-3"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">
                 Analysis Findings
               </h2>
-              <div className="flex space-x-2">
-                <span className="text-sm text-slate-500">Risk Score:</span>
-                <span
-                  className={`text-sm font-bold ${contract.riskScore > 70 ? 'text-red-600' : contract.riskScore > 40 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                  {contract.riskScore}/100
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex space-x-2">
+                  <span className="text-sm text-slate-500">Risk Score:</span>
+                  <span
+                    className={`text-sm font-bold ${contract.riskScore > 70 ? 'text-red-600' : contract.riskScore > 40 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {contract.riskScore}/100
+                  </span>
+                </div>
+                {contract.bidSignal && (
+                  <BidSignalWidget signal={contract.bidSignal} />
+                )}
               </div>
             </div>
 
@@ -162,6 +190,17 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
                   <List className="w-4 h-4" />
                   All by Severity
                 </button>
+                <button
+                  onClick={() => setViewMode('coverage')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'coverage'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Coverage
+                </button>
               </div>
             </div>
 
@@ -174,7 +213,9 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
             )}
 
             {/* Findings display */}
-            {viewMode === 'by-category' ? (
+            {viewMode === 'coverage' ? (
+              <CoverageComparisonTab findings={contract.findings} />
+            ) : viewMode === 'by-category' ? (
               <div className="space-y-6">
                 {groupedFindings.map(({ category, findings }) => (
                   <CategorySection
