@@ -65,7 +65,7 @@ const PASSES_RECEIVING_PROFILE = new Set([
  * wraps in the `{ type: 'json_schema', schema }` envelope.
  */
 function zodToOutputFormat(zodSchema: Parameters<typeof zodToJsonSchema>[0]) {
-  const raw = zodToJsonSchema(zodSchema, { target: 'jsonSchema7' });
+  const raw = zodToJsonSchema(zodSchema, { target: 'jsonSchema7', $refStrategy: 'none' });
   // Remove the $schema meta key — Anthropic does not expect it
   const { $schema: _, ...schema } = raw as Record<string, unknown>;
   return {

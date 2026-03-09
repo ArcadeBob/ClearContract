@@ -42,6 +42,7 @@ export function App() {
           client: result.client,
           type: result.contractType,
           riskScore: result.riskScore,
+          bidSignal: result.bidSignal,
           findings: result.findings,
           dates: result.dates,
           passResults: result.passResults,
