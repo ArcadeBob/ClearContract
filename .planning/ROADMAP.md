@@ -72,11 +72,11 @@ Plans:
   2. Labor Compliance findings detect public works contracts and reference DIR registration, prevailing wage, CPR, and apprenticeship requirements with correct penalty amounts
   3. Pay-if-paid clauses are automatically flagged Critical citing CC 8814, broad-form indemnity clauses are flagged Critical citing CC 2782, and pre-payment lien waivers are flagged Critical citing CC 8122
   4. Relevant passes receive Title 24 climate-zone glazing requirements and Cal/OSHA safety requirements for glazing work (fall protection, glass handling)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [ ] 09-01-PLAN.md — CA regulatory knowledge modules (lien law, prevailing wage, Title 24, Cal/OSHA) and PASS_KNOWLEDGE_MAP wiring
+- [ ] 09-02-PLAN.md — Post-processing severity guard for void-by-law statutes and regulatory module import
 
 ### Phase 10: Industry and Trade Knowledge
 **Goal**: Analysis demonstrates deep glazing industry expertise -- recognizing contract standard forms, validating technical standard references, and flagging scope assignments outside the glazing trade
@@ -107,5 +107,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 6. CategoryFilter Display Fix | v1.0 | 1/1 | Complete | 2026-03-06 |
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
 | 8. Pipeline Integration and Company-Specific Intelligence | 2/2 | Complete   | 2026-03-09 | - |
-| 9. CA Regulatory Knowledge | v1.1 | 0/? | Not started | - |
+| 9. CA Regulatory Knowledge | v1.1 | 0/2 | Not started | - |
 | 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |
