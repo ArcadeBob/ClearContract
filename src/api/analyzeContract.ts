@@ -1,9 +1,11 @@
-import type { Finding, ContractDate } from '../types/contract';
+import type { Finding, ContractDate, BidSignal } from '../types/contract';
+import { loadCompanyProfile } from '../knowledge/profileLoader';
 
 export interface AnalysisResult {
   client: string;
   contractType: 'Prime Contract' | 'Subcontract' | 'Purchase Order' | 'Change Order';
   riskScore: number;
+  bidSignal?: BidSignal;
   findings: Finding[];
   dates: ContractDate[];
   passResults: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
@@ -39,7 +41,7 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pdfBase64, fileName: file.name }),
+    body: JSON.stringify({ pdfBase64, fileName: file.name, companyProfile: loadCompanyProfile() }),
   });
 
   if (!response.ok) {

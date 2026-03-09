@@ -64,6 +64,22 @@ export interface Finding {
   scopeMeta?: ScopeMeta;
   sourcePass?: string;
   negotiationPosition?: string;
+  downgradedFrom?: Severity;
+}
+
+export type BidSignalLevel = 'bid' | 'caution' | 'no-bid';
+
+export interface BidFactor {
+  name: string;
+  score: number;
+  weight: number;
+}
+
+export interface BidSignal {
+  level: BidSignalLevel;
+  label: string;
+  score: number;
+  factors: BidFactor[];
 }
 
 export interface ContractDate {
@@ -82,6 +98,7 @@ export interface Contract {
   findings: Finding[];
   dates: ContractDate[];
   riskScore: number; // 0-100
+  bidSignal?: BidSignal;
   passResults?: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
 }
 
