@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Domain Intelligence
-status: in-progress
+status: completed
 stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-09T01:10:24Z"
+last_updated: "2026-03-09T03:07:02.383Z"
 last_activity: 2026-03-09 -- Completed 08-01 pipeline integration
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 8 of 10 (Pipeline Integration and Company-Specific Intelligence)
-Plan: 1 of 1 (complete)
+Plan: 2 of 2 (complete)
 Status: Phase 8 Complete
-Last activity: 2026-03-09 -- Completed 08-01 pipeline integration
+Last activity: 2026-03-08 -- Completed 08-02 company-specific intelligence UI
 
 Progress: [██████████] 100%
 
@@ -44,7 +44,7 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 7 | 2/2 | 7min | 3.5min |
-| 8 | 1/1 | 6min | 6min |
+| 8 | 2/2 | 14min | 7min |
 | 9 | 0/? | - | - |
 | 10 | 0/? | - | - |
 
@@ -66,6 +66,8 @@ v1.1 decisions:
 - [Phase 08]: PASSES_RECEIVING_PROFILE set pattern for selective profile injection
 - [Phase 08]: downgradedFrom on all 15 finding schemas for severity downgrade tracking
 - [Phase 08]: Deterministic bid signal with 5 weighted factors (Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15)
+- [Phase 08]: Traffic light bid signal widget, coverage comparison table, severity downgrade annotations in UI
+- [Phase 08]: $refStrategy: 'none' for zodToJsonSchema to avoid $ref in Anthropic structured output
 
 ### Pending Todos
 
@@ -80,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T01:10:24Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-pipeline-integration-and-company-specific-intelligence/08-01-SUMMARY.md
+Last session: 2026-03-09T03:10:00Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: .planning/phases/08-pipeline-integration-and-company-specific-intelligence/08-02-SUMMARY.md

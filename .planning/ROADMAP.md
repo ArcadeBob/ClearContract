@@ -26,7 +26,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Milestone Goal:** Make the AI a true glazing contract domain expert -- company-specific thresholds, CA regulatory knowledge, industry standards, and structured knowledge architecture that loads selectively per analysis pass.
 
 - [ ] **Phase 7: Knowledge Architecture and Company Profile** - Knowledge module system, prompt builder, per-pass selective loading, and company profile Settings UI with localStorage persistence
-- [ ] **Phase 8: Pipeline Integration and Company-Specific Intelligence** - Wire knowledge into analysis pipeline, insurance/bonding comparison against company profile, false positive filtering, bid/no-bid signals
+- [x] **Phase 8: Pipeline Integration and Company-Specific Intelligence** - Wire knowledge into analysis pipeline, insurance/bonding comparison against company profile, false positive filtering, bid/no-bid signals (completed 2026-03-09)
 - [ ] **Phase 9: CA Regulatory Knowledge** - Mechanics lien law, prevailing wage/DIR, CA contract law severity overrides, Title 24, Cal/OSHA knowledge modules
 - [ ] **Phase 10: Industry and Trade Knowledge** - Division 08 scope intelligence, AAMA/ASTM standard validation, contract standard form detection and deviation flagging
 
@@ -106,6 +106,6 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 5. Negotiation Output and Organization | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. CategoryFilter Display Fix | v1.0 | 1/1 | Complete | 2026-03-06 |
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
-| 8. Pipeline Integration and Company-Specific Intelligence | v1.1 | 0/2 | Not started | - |
+| 8. Pipeline Integration and Company-Specific Intelligence | 2/2 | Complete   | 2026-03-09 | - |
 | 9. CA Regulatory Knowledge | v1.1 | 0/? | Not started | - |
 | 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |
