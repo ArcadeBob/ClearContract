@@ -52,6 +52,7 @@ export const ScopeOfWorkFindingSchema = z.object({
   specificationReference: z.string(),
   affectedTrade: z.string(),
   negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
 });
 
 export const ScopeOfWorkPassResultSchema = z.object({
@@ -85,6 +86,7 @@ export const DatesDeadlinesFindingSchema = z.object({
   duration: z.string(),
   triggerEvent: z.string(),
   negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
 });
 
 export const DatesDeadlinesPassResultSchema = z.object({
@@ -126,6 +128,7 @@ export const VerbiageFindingSchema = z.object({
   ]),
   suggestedClarification: z.string(),
   negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
 });
 
 export const VerbiagePassResultSchema = z.object({
@@ -172,6 +175,7 @@ export const LaborComplianceFindingSchema = z.object({
   deadline: z.string(),
   checklistItems: z.array(ComplianceChecklistItemSchema),
   negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
 });
 
 export const LaborCompliancePassResultSchema = z.object({

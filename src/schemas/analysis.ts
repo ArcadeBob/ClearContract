@@ -48,6 +48,7 @@ export const FindingSchema = z.object({
   clauseText: z.string().optional(),
   explanation: z.string().optional(),
   negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
 });
 
 export const ContractDateSchema = z.object({

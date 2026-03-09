@@ -24,6 +24,9 @@ import {
   LaborCompliancePassResultSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 import type { LegalMeta, ScopeMeta } from '../src/types/contract';
+import type { CompanyProfile } from '../src/knowledge/types';
+import { composeSystemPrompt } from '../src/knowledge/index';
+import { computeBidSignal } from '../src/utils/bidSignal';
 import { extractText } from 'unpdf';
 import { fetch as undiciFetch, Agent } from 'undici';
 
@@ -45,6 +48,12 @@ const SEVERITY_WEIGHTS: Record<string, number> = {
   Low: 3,
   Info: 0,
 };
+
+// Passes that receive company profile for comparison instructions
+const PASSES_RECEIVING_PROFILE = new Set([
+  'risk-overview', 'legal-insurance', 'legal-retainage',
+  'scope-of-work', 'legal-payment-contingency', 'legal-liquidated-damages',
+]);
 
 // ---------------------------------------------------------------------------
 // JSON Schema conversion (Zod v3 compatible via zod-to-json-schema)
@@ -106,7 +115,15 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
 
-IMPORTANT: negotiationPosition is distinct from recommendation. Recommendation = what to do about it (general guidance). negotiationPosition = what to say to the GC (specific language or position to negotiate).`,
+IMPORTANT: negotiationPosition is distinct from recommendation. Recommendation = what to do about it (general guidance). negotiationPosition = what to say to the GC (specific language or position to negotiate).
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt, you MUST:
+1. If the contract specifies bonding requirements, compare against company's bonding capacity
+2. Generate a finding with SPECIFIC amounts: "Contract requires $750K bond, your capacity is $500K -- $250K over capacity" or "Contract requires $300K bond, your capacity is $500K -- within capacity"
+3. If the company MEETS or EXCEEDS bonding requirements, downgrade severity to Low with explanation: "Downgraded from [original] to Low: company bonding capacity meets requirement"
+4. Set downgradedFrom to the original severity when downgrading
+5. For insurance requirements found in this pass, compare against company profile with specific gap amounts`,
     userPrompt:
       'Analyze this glazing/glass installation contract. Identify the client name, contract type, and the most significant risks. Focus on indemnification, payment terms, insurance, scope clarity, and compliance requirements.',
   },
@@ -202,7 +219,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt:
+- Consider the company's capabilities and typical project size when assessing severity
+- If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
+- Set downgradedFrom to the original severity when downgrading`,
     userPrompt: 'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
   },
 
@@ -306,7 +329,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt:
+- Consider the company's capabilities and typical project size when assessing severity
+- If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
+- Set downgradedFrom to the original severity when downgrading`,
     userPrompt:
       'Analyze all payment contingency clauses (pay-if-paid, pay-when-paid) in this glazing subcontract.',
   },
@@ -352,7 +381,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt:
+- Consider the company's capabilities and typical project size when assessing severity
+- If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
+- Set downgradedFrom to the original severity when downgrading`,
     userPrompt:
       'Analyze all liquidated damages clauses in this glazing subcontract.',
   },
@@ -406,7 +441,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt:
+- Consider the company's capabilities and typical project size when assessing severity
+- If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
+- Set downgradedFrom to the original severity when downgrading`,
     userPrompt:
       'Analyze all retainage and retention provisions in this glazing subcontract.',
   },
@@ -464,7 +505,15 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Company Profile Comparison (when Company Profile section is present above)
+When a Company Profile section appears in this prompt, you MUST:
+1. For EACH insurance coverage requirement in the contract, compare against the company's actual limits
+2. Generate findings with SPECIFIC amounts: "Contract requires $2M GL, your policy covers $1M -- $1M gap"
+3. If the company MEETS or EXCEEDS a requirement, set severity to Low and include in explanation: "Downgraded from [original severity] to Low: company meets this insurance requirement"
+4. Set downgradedFrom to the original severity when downgrading
+5. If company profile field is empty, skip comparison for that coverage type and note "Profile incomplete for this coverage"`,
     userPrompt:
       'Analyze all insurance requirements in this glazing subcontract. Produce a summary checklist and individual findings for gaps or unusual requirements.',
   },
@@ -968,12 +1017,21 @@ async function runAnalysisPass(
   client: Anthropic,
   fileId: string,
   pass: AnalysisPass,
+  companyProfile?: CompanyProfile,
 ): Promise<{ passName: string; result: PassResult | RiskOverviewResult }> {
   const outputFormat = pass.schema
     ? zodToOutputFormat(pass.schema)
     : pass.isOverview
       ? zodToOutputFormat(RiskOverviewResultSchema)
       : zodToOutputFormat(PassResultSchema);
+
+  // Compose system prompt: injects domain knowledge and company profile
+  // (profile only for passes in PASSES_RECEIVING_PROFILE)
+  const systemPrompt = composeSystemPrompt(
+    pass.systemPrompt,
+    pass.name,
+    PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined,
+  );
 
   // Use streaming to avoid HeadersTimeoutError — headers are sent immediately
   // via SSE, keeping the connection alive while Claude processes the document.
@@ -982,7 +1040,7 @@ async function runAnalysisPass(
     max_tokens: MAX_TOKENS_PER_PASS,
     betas: BETAS,
     stream: true,
-    system: pass.systemPrompt,
+    system: systemPrompt,
     messages: [
       {
         role: 'user',
@@ -1046,6 +1104,7 @@ interface UnifiedFinding {
   scopeMeta?: ScopeMeta;
   sourcePass?: string;
   negotiationPosition?: string;
+  downgradedFrom?: string;
 }
 
 function convertLegalFinding(
@@ -1064,6 +1123,7 @@ function convertLegalFinding(
     crossReferences: finding.crossReferences as string[],
     sourcePass: passName,
     negotiationPosition: finding.negotiationPosition as string,
+    downgradedFrom: finding.downgradedFrom as string | undefined,
   };
 
   // Pack type-specific metadata into legalMeta
@@ -1182,6 +1242,7 @@ function convertScopeFinding(
     crossReferences: finding.crossReferences as string[],
     sourcePass: passName,
     negotiationPosition: finding.negotiationPosition as string,
+    downgradedFrom: finding.downgradedFrom as string | undefined,
   };
 
   switch (passName) {
@@ -1437,7 +1498,11 @@ export default async function handler(
   let dispatcher: Agent | null = null;
 
   try {
-    const { pdfBase64, fileName } = req.body;
+    const { pdfBase64, fileName, companyProfile } = req.body as {
+      pdfBase64: string;
+      fileName?: string;
+      companyProfile?: CompanyProfile;
+    };
 
     if (!pdfBase64 || typeof pdfBase64 !== 'string') {
       return res
@@ -1501,7 +1566,7 @@ export default async function handler(
     console.log(`[analyze] Running all ${ANALYSIS_PASSES.length} passes in parallel...`);
     const passStart = Date.now();
     const settledResults = await Promise.allSettled(
-      ANALYSIS_PASSES.map((pass) => runAnalysisPass(client!, fileId!, pass)),
+      ANALYSIS_PASSES.map((pass) => runAnalysisPass(client!, fileId!, pass, companyProfile)),
     );
     const failed = settledResults.filter(r => r.status === 'rejected').length;
     console.log(`[analyze] All passes done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed)`);
@@ -1515,10 +1580,14 @@ export default async function handler(
       ...f,
     }));
 
+    // Compute bid/no-bid signal from findings
+    const bidSignal = computeBidSignal(findingsWithIds as unknown as import('../src/types/contract').Finding[]);
+
     return res.status(200).json({
       client: merged.client,
       contractType: merged.contractType,
       riskScore: merged.riskScore,
+      bidSignal,
       findings: findingsWithIds,
       dates: merged.dates,
       passResults: merged.passResults,
