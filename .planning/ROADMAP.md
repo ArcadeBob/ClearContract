@@ -57,11 +57,11 @@ Plans:
   2. After analysis, bonding requirements show pass/fail against company's bonding capacity with clear over/under amounts
   3. Findings for requirements the company already meets are severity-downgraded with an explanation (e.g., "Downgraded from High to Low: company meets this insurance requirement")
   4. Review page displays a bid/no-bid signal widget with weighted scoring across bonding, insurance, scope, payment, and retainage factors
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Pipeline wiring: profile transport, prompt enhancement, schema extensions, bid signal computation
+- [ ] 08-02-PLAN.md — UI: SeverityBadge downgrade annotation, BidSignalWidget, CoverageComparisonTab, warning banner
 
 ### Phase 9: CA Regulatory Knowledge
 **Goal**: Analysis passes receive California-specific regulatory knowledge that transforms generic legal findings into CA-specific analysis with correct statute references and legally-mandated severity levels
@@ -106,6 +106,6 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 5. Negotiation Output and Organization | v1.0 | 2/2 | Complete | 2026-03-06 |
 | 6. CategoryFilter Display Fix | v1.0 | 1/1 | Complete | 2026-03-06 |
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
-| 8. Pipeline Integration and Company-Specific Intelligence | v1.1 | 0/? | Not started | - |
+| 8. Pipeline Integration and Company-Specific Intelligence | v1.1 | 0/2 | Not started | - |
 | 9. CA Regulatory Knowledge | v1.1 | 0/? | Not started | - |
 | 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |
