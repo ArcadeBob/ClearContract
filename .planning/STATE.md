@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Domain Intelligence
-status: completed
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-09T00:43:22.351Z"
-last_activity: 2026-03-08 -- Completed 07-02 company profile settings
+status: in-progress
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-09T01:10:24Z"
+last_activity: 2026-03-09 -- Completed 08-01 pipeline integration
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 7 -- Knowledge Architecture and Company Profile
+**Current focus:** Phase 8 -- Pipeline Integration and Company-Specific Intelligence
 
 ## Current Position
 
-Phase: 7 of 10 (Knowledge Architecture and Company Profile)
-Plan: 2 of 2 (complete)
-Status: Phase 7 Complete
-Last activity: 2026-03-08 -- Completed 07-02 company profile settings
+Phase: 8 of 10 (Pipeline Integration and Company-Specific Intelligence)
+Plan: 1 of 1 (complete)
+Status: Phase 8 Complete
+Last activity: 2026-03-09 -- Completed 08-01 pipeline integration
 
 Progress: [██████████] 100%
 
@@ -44,7 +44,7 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 7 | 2/2 | 7min | 3.5min |
-| 8 | 0/? | - | - |
+| 8 | 1/1 | 6min | 6min |
 | 9 | 0/? | - | - |
 | 10 | 0/? | - | - |
 
@@ -62,6 +62,10 @@ v1.1 decisions:
 - Central registry pattern with Map-based module store for O(1) lookups
 - Token estimation via chars/4 heuristic -- no new dependencies
 - [Phase 07]: onBlur persistence pattern for localStorage to avoid excessive writes per keystroke
+- [Phase 08]: Standalone profileLoader.ts for non-hook profile access
+- [Phase 08]: PASSES_RECEIVING_PROFILE set pattern for selective profile injection
+- [Phase 08]: downgradedFrom on all 15 finding schemas for severity downgrade tracking
+- [Phase 08]: Deterministic bid signal with 5 weighted factors (Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15)
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T00:43:22.349Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-pipeline-integration-and-company-specific-intelligence/08-CONTEXT.md
+Last session: 2026-03-09T01:10:24Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-pipeline-integration-and-company-specific-intelligence/08-01-SUMMARY.md

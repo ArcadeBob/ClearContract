@@ -26,10 +26,10 @@ Requirements for Domain Intelligence milestone. Each maps to roadmap phases.
 
 ### Company-Specific Intelligence
 
-- [ ] **INTEL-01**: Analysis compares contract insurance requirements against company profile and shows specific gaps
-- [ ] **INTEL-02**: Analysis compares bonding requirements against company capacity with pass/fail flag
-- [ ] **INTEL-03**: Findings are severity-downgraded when company already meets/exceeds the requirement
-- [ ] **INTEL-04**: Review page displays bid/no-bid signal widget with weighted scoring (bonding, insurance, scope, payment, retainage factors)
+- [x] **INTEL-01**: Analysis compares contract insurance requirements against company profile and shows specific gaps
+- [x] **INTEL-02**: Analysis compares bonding requirements against company capacity with pass/fail flag
+- [x] **INTEL-03**: Findings are severity-downgraded when company already meets/exceeds the requirement
+- [x] **INTEL-04**: Review page displays bid/no-bid signal widget with weighted scoring (bonding, insurance, scope, payment, retainage factors)
 
 ### CA Regulatory Knowledge
 
@@ -81,10 +81,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | PROF-04 | Phase 7 | Complete |
 | PROF-05 | Phase 7 | Complete |
 | PROF-06 | Phase 7 | Complete |
-| INTEL-01 | Phase 8 | Pending |
-| INTEL-02 | Phase 8 | Pending |
-| INTEL-03 | Phase 8 | Pending |
-| INTEL-04 | Phase 8 | Pending |
+| INTEL-01 | Phase 8 | Complete |
+| INTEL-02 | Phase 8 | Complete |
+| INTEL-03 | Phase 8 | Complete |
+| INTEL-04 | Phase 8 | Complete |
 | CAREG-01 | Phase 9 | Pending |
 | CAREG-02 | Phase 9 | Pending |
 | CAREG-03 | Phase 9 | Pending |
