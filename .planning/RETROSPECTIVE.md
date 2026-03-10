@@ -46,13 +46,61 @@
 
 ---
 
+## Milestone: v1.1 -- Domain Intelligence
+
+**Shipped:** 2026-03-10
+**Phases:** 4 | **Plans:** 8 | **Tasks:** 17
+**Timeline:** 10 days (2026-02-28 -> 2026-03-10)
+
+### What Was Built
+- Knowledge module architecture with TypeScript types, central registry, token budget enforcement, and per-pass selective loading
+- Company profile Settings page with 4 data-entry cards backed by localStorage persistence
+- Company-specific intelligence pipeline: insurance gap detection, bonding capacity checks, severity downgrade, bid/no-bid signal
+- CA regulatory knowledge modules (mechanics lien, prevailing wage, Title 24, Cal/OSHA) with void-by-law severity guard
+- Industry trade knowledge: Division 08 scope classification, 40+ ASTM/AAMA/FGIA standards validation, contract form detection
+- Full pipeline integration: 11 knowledge modules wired across 3 domains into analysis passes
+
+### What Worked
+- Knowledge-as-code pattern (TypeScript modules, not RAG) kept the system simple with zero new dependencies
+- Content-as-instructions pattern (writing knowledge as Claude analysis instructions) produced natural integration with analysis
+- Central registry with Map-based module store enabled clean per-pass selective loading
+- Phase 9 pattern (conservative token sizing, void-by-law critical flagging) carried forward cleanly into Phase 10
+- Execution velocity dramatically improved: ~4 min/plan average vs ~45 min in v1.0
+
+### What Was Inefficient
+- ROADMAP.md plan checkboxes again fell out of sync (Phases 7, 9 showed unchecked despite completion)
+- Token cap changed mid-milestone (1500 -> 10000 in Phase 10) -- should have been anticipated during architecture
+- Nyquist validation not maintained (2 phases missing, 2 partial) -- validation was deprioritized for velocity
+- SUMMARY files missing requirements-completed frontmatter across all 4 phases
+
+### Patterns Established
+- Knowledge module interface: id, domain, title, effectiveDate, reviewByDate, content, tokenEstimate
+- Domain barrel index pattern: each domain has index.ts that imports and registers all modules
+- Side-effect import pattern in api/analyze.ts for runtime module registration
+- Severity guard post-processing: runs after risk score for display-only severity upgrades
+- Profile transport: localStorage -> POST body -> server -> prompt injection for selected passes
+
+### Key Lessons
+- Knowledge files under 50K tokens total don't need RAG -- TypeScript modules are simpler and type-safe
+- Writing knowledge as analysis instructions (not encyclopedic reference) produces much better Claude integration
+- Token budgets should be set generously from the start -- raising caps mid-milestone creates documented inconsistencies
+- Velocity improvement from v1.0 to v1.1 (45min -> 4min per plan) suggests the patterns are maturing well
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution, Sonnet for analysis passes
+- Sessions: ~6 sessions across 10 calendar days (sparse, not daily)
+- Notable: 8 plans completed in ~34 minutes total AI execution time
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 |
-|--------|------|
-| Phases | 6 |
-| Plans | 13 |
-| Avg plan duration | ~4min |
-| Requirements | 22/22 |
-| Audit status | tech_debt |
-| LOC | ~5,000 |
+| Metric | v1.0 | v1.1 |
+|--------|------|------|
+| Phases | 6 | 4 |
+| Plans | 13 | 8 |
+| Avg plan duration | ~4min | ~4min |
+| Requirements | 22/22 | 23/23 |
+| Audit status | tech_debt | tech_debt |
+| LOC | ~5,000 | ~4,238 |
+| Execution time | ~10hr | ~34min |

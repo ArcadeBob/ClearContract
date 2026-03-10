@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Domain Intelligence
-status: completed
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-10T13:49:34.910Z"
-last_activity: 2026-03-10 -- Completed 10-02 pipeline integration
+status: shipped
+stopped_at: Milestone archived
+last_updated: "2026-03-10"
+last_activity: 2026-03-10 -- v1.1 milestone archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,28 +18,30 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-08)
+See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.1 milestone complete -- all phases done
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 10 of 10 (Industry Trade Knowledge)
-Plan: 2 of 2 (10-02 complete -- phase complete)
-Status: Completed 10-02 pipeline integration
-Last activity: 2026-03-10 -- Completed 10-02 pipeline integration
+Phase: v1.1 complete (all 10 phases shipped across 2 milestones)
+Status: Milestone archived, ready for next milestone
+Last activity: 2026-03-10 -- v1.1 milestone completion
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 13 (v1.0)
-- Average duration: ~45 min (v1.0 baseline)
-- Total execution time: ~10 hours (v1.0)
+**v1.0 (Phases 1-6):**
+- Plans: 13
+- Average duration: ~45 min/plan
+- Total execution time: ~10 hours
 
-**By Phase (v1.1):**
+**v1.1 (Phases 7-10):**
+- Plans: 8
+- Average duration: ~4.25 min/plan
+- Total execution time: ~34 min
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -52,29 +54,7 @@ Progress: [██████████] 100%
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (11 decisions, all marked Good).
-
-v1.1 decisions:
-- Zero new npm dependencies -- knowledge files are TypeScript modules, company profile uses localStorage
-- 1,500 token cap per knowledge file, max 4 files per pass
-- Severity downgrade (never remove) for false positive filtering
-- CompanyProfile type in src/knowledge/types.ts alongside KnowledgeModule (shared knowledge domain)
-- Central registry pattern with Map-based module store for O(1) lookups
-- Token estimation via chars/4 heuristic -- no new dependencies
-- [Phase 07]: onBlur persistence pattern for localStorage to avoid excessive writes per keystroke
-- [Phase 08]: Standalone profileLoader.ts for non-hook profile access
-- [Phase 08]: PASSES_RECEIVING_PROFILE set pattern for selective profile injection
-- [Phase 08]: downgradedFrom on all 15 finding schemas for severity downgrade tracking
-- [Phase 08]: Deterministic bid signal with 5 weighted factors (Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15)
-- [Phase 08]: Traffic light bid signal widget, coverage comparison table, severity downgrade annotations in UI
-- [Phase 08]: $refStrategy: 'none' for zodToJsonSchema to avoid $ref in Anthropic structured output
-- [Phase 09]: Content as Claude analysis instructions, not legal reference -- enables direct prompt injection
-- [Phase 09]: Conservative token sizing (~450-560 vs 1500 cap) for future expansion room
-- [Phase 09]: Severity guard runs after computeRiskScore for display-only upgrade (no risk score inflation)
-- [Phase 10]: Token cap raised from 1500 to 10000 for comprehensive industry knowledge content
-- [Phase 10]: Content as Claude analysis instructions following Phase 9 pattern for trade/standards domains
-- [Phase 10]: CSI Level 2/3 section ranges for Division 08 classification
-- [Phase 10]: scope-of-work at max capacity (4 modules) -- no further modules without raising MAX_MODULES_PER_PASS
+Full decision log in PROJECT.md Key Decisions table (22 decisions, all marked Good).
 
 ### Pending Todos
 
@@ -85,10 +65,10 @@ None.
 - Human UAT (live API + real contract) not yet performed
 - vercel.json maxDuration: 300 may require Vercel Pro plan
 - Real glazing subcontracts needed for quality validation
-- Attorney review of regulatory knowledge files recommended before Phase 9 deployment
+- Attorney review of regulatory knowledge files recommended before deployment
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:46:13.921Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-03-10
+Stopped at: Milestone v1.1 archived
 Resume file: None

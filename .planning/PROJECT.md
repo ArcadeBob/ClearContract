@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs 16 specialized analysis passes via Claude API, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, and negotiation positions for high-risk findings. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
+A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs 16 specialized analysis passes via Claude API with domain-specific knowledge injection, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, negotiation positions, CA regulatory awareness, industry standards validation, and bid/no-bid signals. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
 
 ## Core Value
 
@@ -28,24 +28,20 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Labor compliance checklist with dates, parties, contacts -- v1.0
 - ✓ Negotiation positions on Critical/High findings -- v1.0
 - ✓ Category-grouped output with view-mode toggle -- v1.0
+- ✓ Knowledge module architecture with per-pass selective loading -- v1.1
+- ✓ Company profile Settings (insurance, bonding, licenses, capabilities) with localStorage persistence -- v1.1
+- ✓ Insurance gap detection and bonding capacity comparison against company profile -- v1.1
+- ✓ Severity downgrade for findings company already meets, with metadata tracking -- v1.1
+- ✓ Bid/no-bid traffic light signal with 5 weighted factors -- v1.1
+- ✓ CA regulatory knowledge: mechanics lien law, prevailing wage, Title 24, Cal/OSHA -- v1.1
+- ✓ Void-by-law severity guard for CA statutes (CC 8814, 2782, 8122) -- v1.1
+- ✓ Division 08 scope classification flagging non-glazing work -- v1.1
+- ✓ ASTM/AAMA/FGIA standards validation with obsolescence detection -- v1.1
+- ✓ Contract standard form detection (AIA A401, ConsensusDocs 750, EJCDC) with deviation flagging -- v1.1
 
 ### Active
 
-## Current Milestone: v1.1 Domain Intelligence
-
-**Goal:** Make the AI a true glazing contract domain expert — company-specific thresholds, CA regulatory knowledge, industry standards, and structured knowledge architecture that loads selectively per analysis pass.
-
-**Target features:**
-- Knowledge architecture with layered reference data (company, regulatory, standards, trade, rules)
-- Company profile integration (insurance, bonding, licenses, capabilities, bid/no-bid thresholds)
-- CA regulatory knowledge (lien law, DIR/prevailing wage, Title 24, Cal/OSHA)
-- Contract standards recognition (AIA, ConsensusDocs, EJCDC clause patterns)
-- Industry/trade knowledge (AAMA standards, Division 08 specs, product specs)
-- Per-pass selective knowledge loading (no context bloat)
-- Enhanced category evaluation criteria with domain-specific severity rules
-- False positive reduction (filter findings against actual company capabilities)
-- Settings UI for updateable company data (insurance, bonding, workforce)
-- Bid/no-bid signal surfacing from contract terms
+(None -- planning next milestone)
 
 ### Out of Scope
 
@@ -61,16 +57,22 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - Contract storage / database -- no persistence needed
 - Procore / PM integration -- export report, user attaches to PM
 - Multi-language support -- US glazing contracts are in English
+- RAG / vector database -- knowledge base under 50K tokens; TypeScript modules simpler and type-safe
+- Full standard form document storage -- copyright issues with AIA/ConsensusDocs; clause patterns only
+- Real-time regulatory monitoring -- CA regulations change 1-2x/year; manual updates sufficient
+- AI fine-tuning / model training -- using Claude API; prompt engineering with knowledge injection is correct approach
 
 ## Context
 
-Shipped v1.0 with ~5,000 LOC TypeScript across client and server.
+Shipped v1.1 with ~4,238 LOC TypeScript across client, server, and knowledge modules.
 Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK.
-Deployed on Vercel with serverless function (api/analyze.ts, 1,537 LOC).
+Deployed on Vercel with serverless function (api/analyze.ts).
 16 analysis passes run in parallel via Files API upload-once/analyze-many pattern.
+11 knowledge modules across 3 domains (regulatory, trade, standards) injected per-pass via prompt builder.
+Company profile with localStorage persistence drives insurance/bonding comparison and bid/no-bid signals.
 All structured outputs via Zod v3 schemas converted to JSON Schema.
 
-Known tech debt: unused React imports, mock contracts don't exercise new fields, human UAT pending, vercel.json maxDuration may need Pro plan.
+Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, scope-of-work pass at max capacity (4/4 modules), human UAT pending, vercel.json maxDuration may need Pro plan.
 
 ## Constraints
 
@@ -78,6 +80,7 @@ Known tech debt: unused React imports, mock contracts don't exercise new fields,
 - **API**: Anthropic Claude API -- token limits and costs factor into pass design
 - **File size**: 10MB max PDF upload (Vercel 4.5MB body limit via base64)
 - **Stack**: React 18 + TypeScript + Tailwind + Vite (established, no reason to change)
+- **Knowledge modules**: scope-of-work pass at max capacity (4 modules); adding more requires raising MAX_MODULES_PER_PASS
 
 ## Key Decisions
 
@@ -94,6 +97,15 @@ Known tech debt: unused React imports, mock contracts don't exercise new fields,
 | Deterministic risk scoring (severity weights) | Reproducible, transparent scoring | ✓ Good -- consistent scores |
 | Category-grouped default view | Users work through contracts systematically by topic | ✓ Good -- matches review workflow |
 | negotiationPosition required in schema, optional on client | Maximizes structured output quality while allowing empty for Low/Info | ✓ Good -- all Critical/High get positions |
+| Knowledge as TypeScript modules (not RAG) | Under 50K tokens total; type-safe, no new dependencies | ✓ Good -- simple, reliable |
+| Content as Claude instructions (not reference text) | Direct prompt injection, Claude acts on knowledge immediately | ✓ Good -- natural analysis integration |
+| Central registry with Map-based module store | O(1) lookups, per-pass selective loading | ✓ Good -- efficient, no context bloat |
+| Token cap 10000 per module | Comprehensive industry content needs space | ✓ Good -- modules range 450-1200 tokens |
+| onBlur persistence for company profile | Avoids excessive localStorage writes per keystroke | ✓ Good -- smooth UX |
+| Severity downgrade (never remove) for false positives | Preserves finding visibility while adjusting severity | ✓ Good -- transparent to user |
+| Deterministic bid signal (5 weighted factors) | Reproducible scoring: Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15 | ✓ Good -- consistent signals |
+| Severity guard runs after risk score computation | Display-only upgrade, no risk score inflation | ✓ Good -- accurate scoring preserved |
+| $refStrategy: 'none' for zodToJsonSchema | Anthropic API doesn't support $ref in structured output | ✓ Good -- eliminated runtime errors |
 
 ---
-*Last updated: 2026-03-08 after v1.1 milestone start*
+*Last updated: 2026-03-10 after v1.1 milestone completion*
