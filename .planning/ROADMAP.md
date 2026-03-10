@@ -28,7 +28,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - [ ] **Phase 7: Knowledge Architecture and Company Profile** - Knowledge module system, prompt builder, per-pass selective loading, and company profile Settings UI with localStorage persistence
 - [x] **Phase 8: Pipeline Integration and Company-Specific Intelligence** - Wire knowledge into analysis pipeline, insurance/bonding comparison against company profile, false positive filtering, bid/no-bid signals (completed 2026-03-09)
 - [ ] **Phase 9: CA Regulatory Knowledge** - Mechanics lien law, prevailing wage/DIR, CA contract law severity overrides, Title 24, Cal/OSHA knowledge modules
-- [ ] **Phase 10: Industry and Trade Knowledge** - Division 08 scope intelligence, AAMA/ASTM standard validation, contract standard form detection and deviation flagging
+- [x] **Phase 10: Industry and Trade Knowledge** - Division 08 scope intelligence, AAMA/ASTM standard validation, contract standard form detection and deviation flagging (completed 2026-03-10)
 
 ## Phase Details
 
@@ -108,4 +108,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
 | 8. Pipeline Integration and Company-Specific Intelligence | 2/2 | Complete   | 2026-03-09 | - |
 | 9. CA Regulatory Knowledge | 1/2 | In Progress|  | - |
-| 10. Industry and Trade Knowledge | 1/2 | In Progress|  | - |
+| 10. Industry and Trade Knowledge | 2/2 | Complete   | 2026-03-10 | - |
