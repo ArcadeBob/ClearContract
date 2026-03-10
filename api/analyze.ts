@@ -29,6 +29,8 @@ import { composeSystemPrompt } from '../src/knowledge/index';
 import { computeBidSignal } from '../src/utils/bidSignal';
 import { extractText } from 'unpdf';
 import '../src/knowledge/regulatory/index';
+import '../src/knowledge/trade/index';
+import '../src/knowledge/standards/index';
 import { fetch as undiciFetch, Agent } from 'undici';
 
 // ---------------------------------------------------------------------------
