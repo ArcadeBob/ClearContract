@@ -3,20 +3,20 @@ import type { KnowledgeModule } from './types';
 export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'risk-overview': [],
   'dates-deadlines': [],
-  'scope-of-work': [],
-  'legal-indemnification': [],
-  'legal-payment-contingency': [],
+  'scope-of-work': ['ca-title24'],
+  'legal-indemnification': ['ca-lien-law'],
+  'legal-payment-contingency': ['ca-lien-law'],
   'legal-liquidated-damages': [],
   'legal-retainage': [],
   'legal-insurance': [],
   'legal-termination': [],
   'legal-flow-down': [],
   'legal-no-damage-delay': [],
-  'legal-lien-rights': [],
+  'legal-lien-rights': ['ca-lien-law'],
   'legal-dispute-resolution': [],
   'legal-change-order': [],
   'verbiage-analysis': [],
-  'labor-compliance': [],
+  'labor-compliance': ['ca-prevailing-wage', 'ca-calosha'],
 };
 
 const moduleStore = new Map<string, KnowledgeModule>();
