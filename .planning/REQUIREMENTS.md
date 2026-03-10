@@ -41,9 +41,9 @@ Requirements for Domain Intelligence milestone. Each maps to roadmap phases.
 
 ### Industry & Trade Knowledge
 
-- [ ] **TRADE-01**: Scope pass receives Division 08 section knowledge and flags non-glazing scope assigned to sub
-- [ ] **TRADE-02**: Technical passes validate AAMA/ASTM standard references are current (flag obsolete, handle AAMA-to-FGIA rebrand)
-- [ ] **TRADE-03**: Analysis detects contract standard form family (AIA A401, ConsensusDocs 750, EJCDC) and flags deviations from standard defaults
+- [x] **TRADE-01**: Scope pass receives Division 08 section knowledge and flags non-glazing scope assigned to sub
+- [x] **TRADE-02**: Technical passes validate AAMA/ASTM standard references are current (flag obsolete, handle AAMA-to-FGIA rebrand)
+- [x] **TRADE-03**: Analysis detects contract standard form family (AIA A401, ConsensusDocs 750, EJCDC) and flags deviations from standard defaults
 
 ## v2 Requirements
 
@@ -90,9 +90,9 @@ Deferred to future release. Tracked but not in current roadmap.
 | CAREG-03 | Phase 9 | Complete |
 | CAREG-04 | Phase 9 | Complete |
 | CAREG-05 | Phase 9 | Complete |
-| TRADE-01 | Phase 10 | Pending |
-| TRADE-02 | Phase 10 | Pending |
-| TRADE-03 | Phase 10 | Pending |
+| TRADE-01 | Phase 10 | Complete |
+| TRADE-02 | Phase 10 | Complete |
+| TRADE-03 | Phase 10 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 23 total
