@@ -107,5 +107,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 6. CategoryFilter Display Fix | v1.0 | 1/1 | Complete | 2026-03-06 |
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
 | 8. Pipeline Integration and Company-Specific Intelligence | 2/2 | Complete   | 2026-03-09 | - |
-| 9. CA Regulatory Knowledge | v1.1 | 0/2 | Not started | - |
+| 9. CA Regulatory Knowledge | 1/2 | In Progress|  | - |
 | 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |

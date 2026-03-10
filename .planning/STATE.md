@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Domain Intelligence
-status: completed
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-09T14:18:41.775Z"
-last_activity: 2026-03-08 -- Completed 08-02 company-specific intelligence UI
+status: in-progress
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-10T00:37:35Z"
+last_activity: 2026-03-09 -- Completed 09-01 CA regulatory knowledge modules
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 8 -- Pipeline Integration and Company-Specific Intelligence
+**Current focus:** Phase 9 -- CA Regulatory Knowledge
 
 ## Current Position
 
-Phase: 8 of 10 (Pipeline Integration and Company-Specific Intelligence)
-Plan: 2 of 2 (complete)
-Status: Phase 8 Complete
-Last activity: 2026-03-08 -- Completed 08-02 company-specific intelligence UI
+Phase: 9 of 10 (CA Regulatory Knowledge)
+Plan: 1 of ? (in progress)
+Status: Completed 09-01 CA regulatory knowledge modules
+Last activity: 2026-03-09 -- Completed 09-01 CA regulatory knowledge modules
 
-Progress: [██████████] 100%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 7 | 2/2 | 7min | 3.5min |
 | 8 | 2/2 | 14min | 7min |
-| 9 | 0/? | - | - |
+| 9 | 1/? | 5min | 5min |
 | 10 | 0/? | - | - |
 
 ## Accumulated Context
@@ -68,6 +68,8 @@ v1.1 decisions:
 - [Phase 08]: Deterministic bid signal with 5 weighted factors (Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15)
 - [Phase 08]: Traffic light bid signal widget, coverage comparison table, severity downgrade annotations in UI
 - [Phase 08]: $refStrategy: 'none' for zodToJsonSchema to avoid $ref in Anthropic structured output
+- [Phase 09]: Content as Claude analysis instructions, not legal reference -- enables direct prompt injection
+- [Phase 09]: Conservative token sizing (~450-560 vs 1500 cap) for future expansion room
 
 ### Pending Todos
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T14:18:41.772Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-ca-regulatory-knowledge/09-CONTEXT.md
+Last session: 2026-03-10T00:37:35Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: .planning/phases/09-ca-regulatory-knowledge/09-01-SUMMARY.md
