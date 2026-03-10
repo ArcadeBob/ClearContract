@@ -24,7 +24,7 @@ No test framework is configured.
 - **Tailwind CSS** for styling, **Framer Motion** for animations
 - **Lucide React** for icons, **React Dropzone** for file uploads
 - **Anthropic SDK** (`@anthropic-ai/sdk`) for Claude API integration
-- **pdf-parse** for server-side PDF text extraction
+- **unpdf** for server-side PDF text extraction
 - Deployed on **Vercel** with serverless functions (`@vercel/node`)
 - No router library — navigation is view-based via `ViewState` string identifiers
 

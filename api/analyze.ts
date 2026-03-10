@@ -1074,7 +1074,12 @@ async function runAnalysisPass(
     }
   }
 
+  if (!responseText.trim()) {
+    throw new Error(`Empty response from model for pass "${pass.name}"`);
+  }
   const parsed = JSON.parse(responseText);
+  if (!Array.isArray(parsed.findings)) parsed.findings = [];
+  if (!Array.isArray(parsed.dates)) parsed.dates = [];
   return { passName: pass.name, result: parsed };
 }
 
@@ -1136,11 +1141,11 @@ interface UnifiedFinding {
   downgradedFrom?: string;
 }
 
-function convertLegalFinding(
+function buildBaseFinding(
   finding: Record<string, unknown>,
   passName: string,
 ): UnifiedFinding {
-  const base: UnifiedFinding = {
+  return {
     severity: finding.severity as string,
     category: finding.category as string,
     title: finding.title as string,
@@ -1154,6 +1159,13 @@ function convertLegalFinding(
     negotiationPosition: finding.negotiationPosition as string,
     downgradedFrom: finding.downgradedFrom as string | undefined,
   };
+}
+
+function convertLegalFinding(
+  finding: Record<string, unknown>,
+  passName: string,
+): UnifiedFinding {
+  const base = buildBaseFinding(finding, passName);
 
   // Pack type-specific metadata into legalMeta
   switch (passName) {
@@ -1259,20 +1271,7 @@ function convertScopeFinding(
   finding: Record<string, unknown>,
   passName: string,
 ): UnifiedFinding {
-  const base: UnifiedFinding = {
-    severity: finding.severity as string,
-    category: finding.category as string,
-    title: finding.title as string,
-    description: finding.description as string,
-    recommendation: finding.recommendation as string,
-    clauseReference: finding.clauseReference as string,
-    clauseText: finding.clauseText as string,
-    explanation: finding.explanation as string,
-    crossReferences: finding.crossReferences as string[],
-    sourcePass: passName,
-    negotiationPosition: finding.negotiationPosition as string,
-    downgradedFrom: finding.downgradedFrom as string | undefined,
-  };
+  const base = buildBaseFinding(finding, passName);
 
   switch (passName) {
     case 'scope-of-work':
@@ -1508,7 +1507,8 @@ export default async function handler(
   res: VercelResponse,
 ) {
   // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://clearcontract.vercel.app';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

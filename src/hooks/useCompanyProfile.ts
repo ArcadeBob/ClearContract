@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react';
 import { CompanyProfile } from '../knowledge/types';
-import { loadCompanyProfile } from '../knowledge/profileLoader';
-
-const STORAGE_KEY = 'clearcontract:company-profile';
+import { loadCompanyProfile, STORAGE_KEY } from '../knowledge/profileLoader';
 
 export function useCompanyProfile() {
   const [profile, setProfile] = useState<CompanyProfile>(loadCompanyProfile);

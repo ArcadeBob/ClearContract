@@ -23,9 +23,7 @@ export function useContractStore() {
 
   const navigateTo = (view: ViewState, contractId?: string) => {
     setActiveView(view);
-    if (contractId) {
-      setActiveContractId(contractId);
-    }
+    setActiveContractId(contractId ?? null);
   };
 
   return {
@@ -37,6 +35,5 @@ export function useContractStore() {
     addContract,
     updateContract,
     navigateTo,
-    setActiveContractId
   };
 }

@@ -3,31 +3,11 @@ import { Category, Finding, Severity } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { FindingCard } from './FindingCard';
 import {
-  Scale,
-  ClipboardList,
-  ShieldCheck,
-  HardHat,
-  Shield,
-  Calendar,
-  DollarSign,
-  Ruler,
   AlertTriangle,
   ChevronDown,
-  type LucideIcon,
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-
-const categoryIcons: Record<string, LucideIcon> = {
-  'Legal Issues': Scale,
-  'Scope of Work': ClipboardList,
-  'Contract Compliance': ShieldCheck,
-  'Labor Compliance': HardHat,
-  'Insurance Requirements': Shield,
-  'Important Dates': Calendar,
-  'Financial Terms': DollarSign,
-  'Technical Standards': Ruler,
-  'Risk Assessment': AlertTriangle,
-};
+import { categoryIcons } from '../utils/categoryIcons';
 
 const SEVERITY_ORDER: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 

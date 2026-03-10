@@ -140,7 +140,7 @@ export function CoverageComparisonTab({ findings }: CoverageComparisonTabProps) 
           {allRows.map((row, i) => {
             const style = statusStyles[row.status];
             return (
-              <tr key={i} className="border-b border-slate-100 last:border-b-0">
+              <tr key={row.requirement} className="border-b border-slate-100 last:border-b-0">
                 <td className="px-4 py-3 font-medium text-slate-900">{row.requirement}</td>
                 <td className="px-4 py-3 text-slate-600">{row.contractRequires}</td>
                 <td className="px-4 py-3 text-slate-600">{row.yourCoverage}</td>

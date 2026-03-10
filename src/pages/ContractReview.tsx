@@ -14,6 +14,15 @@ import { AnimatePresence } from 'framer-motion';
 
 type ViewMode = 'by-category' | 'by-severity' | 'coverage';
 
+function EmptyFindings() {
+  return (
+    <div className="text-center py-12 bg-white rounded-lg border border-slate-200 border-dashed">
+      <CheckCircle className="w-12 h-12 text-emerald-100 mx-auto mb-3" />
+      <p className="text-slate-500 font-medium">No findings found</p>
+    </div>
+  );
+}
+
 const CATEGORY_ORDER: Category[] = [
   'Legal Issues',
   'Financial Terms',
@@ -47,8 +56,13 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
   const [showBanner, setShowBanner] = useState(true);
   const { profile } = useCompanyProfile();
 
-  // Check if any profile fields are empty strings
-  const hasEmptyProfileFields = Object.values(profile).some((v) => v === '');
+  // Check if core profile fields that affect analysis are empty
+  const coreProfileFields: (keyof typeof profile)[] = [
+    'glPerOccurrence', 'glAggregate', 'autoLimit', 'wcStatutoryState',
+    'wcEmployerLiability', 'bondingSingleProject', 'bondingAggregate',
+    'contractorLicenseType', 'contractorLicenseNumber',
+  ];
+  const hasEmptyProfileFields = coreProfileFields.some((k) => profile[k] === '');
 
   // Scroll to category section when a category pill is clicked in by-category mode
   useEffect(() => {
@@ -225,12 +239,7 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
                     defaultExpanded={true}
                   />
                 ))}
-                {groupedFindings.length === 0 && (
-                  <div className="text-center py-12 bg-white rounded-lg border border-slate-200 border-dashed">
-                    <CheckCircle className="w-12 h-12 text-emerald-100 mx-auto mb-3" />
-                    <p className="text-slate-500 font-medium">No findings found</p>
-                  </div>
-                )}
+                {groupedFindings.length === 0 && <EmptyFindings />}
               </div>
             ) : (
               <div className="space-y-4">
@@ -243,12 +252,7 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
                     />
                   ))}
                 </AnimatePresence>
-                {flatFindings.length === 0 && (
-                  <div className="text-center py-12 bg-white rounded-lg border border-slate-200 border-dashed">
-                    <CheckCircle className="w-12 h-12 text-emerald-100 mx-auto mb-3" />
-                    <p className="text-slate-500 font-medium">No findings found</p>
-                  </div>
-                )}
+                {flatFindings.length === 0 && <EmptyFindings />}
               </div>
             )}
           </div>

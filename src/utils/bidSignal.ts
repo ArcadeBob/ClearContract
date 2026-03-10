@@ -29,7 +29,6 @@ const SEVERITY_PENALTIES: Record<string, number> = {
  */
 function matchesBonding(f: Finding): boolean {
   return (
-    (f.sourcePass != null && f.sourcePass.includes('retainage')) ||
     f.title.toLowerCase().includes('bond') ||
     f.description.toLowerCase().includes('bond')
   );

@@ -47,7 +47,7 @@ export function DateTimeline({ dates }: DateTimelineProps) {
             const Icon = getIcon(date.type);
             const colorClass = getColor(date.type);
             return (
-              <div key={idx} className="relative flex items-center">
+              <div key={`${date.label}-${date.date}`} className="relative flex items-center">
                 <div
                   className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${colorClass}`}>
 

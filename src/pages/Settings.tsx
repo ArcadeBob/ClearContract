@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Shield, Scale, ShieldCheck, HardHat } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
@@ -15,7 +14,6 @@ function ProfileField({
   onChange: (v: string) => void;
   type?: string;
 }) {
-  const [local, setLocal] = useState(value);
   return (
     <div>
       <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
@@ -23,9 +21,8 @@ function ProfileField({
       </label>
       <input
         type={type}
-        value={local}
-        onChange={(e) => setLocal(e.target.value)}
-        onBlur={() => onChange(local)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
     </div>

@@ -1,6 +1,6 @@
 import { CompanyProfile, DEFAULT_COMPANY_PROFILE } from './types';
 
-const STORAGE_KEY = 'clearcontract:company-profile';
+export const STORAGE_KEY = 'clearcontract:company-profile';
 
 /**
  * Load company profile from localStorage, merging with defaults.

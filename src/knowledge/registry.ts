@@ -1,4 +1,5 @@
 import type { KnowledgeModule } from './types';
+import { validateTokenBudget } from './tokenBudget';
 
 export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'risk-overview': ['contract-forms'],
@@ -22,6 +23,7 @@ export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
 const moduleStore = new Map<string, KnowledgeModule>();
 
 export function registerModule(mod: KnowledgeModule): void {
+  validateTokenBudget([mod]);
   moduleStore.set(mod.id, mod);
 }
 

@@ -1,43 +1,19 @@
-import React from 'react';
 import { Finding } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { ClauseQuote } from './ClauseQuote';
 import { LegalMetaBadge } from './LegalMetaBadge';
 import { ScopeMetaBadge } from './ScopeMetaBadge';
-import {
-  Scale,
-  ClipboardList,
-  ShieldCheck,
-  HardHat,
-  Shield,
-  Calendar,
-  DollarSign,
-  Ruler,
-  AlertTriangle,
-  type LucideIcon,
-} from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { categoryIcons } from '../utils/categoryIcons';
 interface FindingCardProps {
   finding: Finding;
   index: number;
 }
-const categoryIcons: Record<string, LucideIcon> = {
-  'Legal Issues': Scale,
-  'Scope of Work': ClipboardList,
-  'Contract Compliance': ShieldCheck,
-  'Labor Compliance': HardHat,
-  'Insurance Requirements': Shield,
-  'Important Dates': Calendar,
-  'Financial Terms': DollarSign,
-  'Technical Standards': Ruler,
-  'Risk Assessment': AlertTriangle
-};
-export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
-  function FindingCard({ finding, index }, ref) {
+export function FindingCard({ finding, index }: FindingCardProps) {
   const Icon = categoryIcons[finding.category] || AlertTriangle;
   return (
     <motion.div
-      ref={ref}
       initial={{
         opacity: 0,
         y: 10
@@ -124,5 +100,4 @@ export const FindingCard = React.forwardRef<HTMLDivElement, FindingCardProps>(
         </div>
       }
     </motion.div>);
-
-});
+}
