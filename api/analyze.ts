@@ -28,6 +28,7 @@ import type { CompanyProfile } from '../src/knowledge/types';
 import { composeSystemPrompt } from '../src/knowledge/index';
 import { computeBidSignal } from '../src/utils/bidSignal';
 import { extractText } from 'unpdf';
+import '../src/knowledge/regulatory/index';
 import { fetch as undiciFetch, Agent } from 'undici';
 
 // ---------------------------------------------------------------------------
@@ -1087,6 +1088,32 @@ function computeRiskScore(findings: Array<{ severity: string }>): number {
 }
 
 // ---------------------------------------------------------------------------
+// CA void-by-law severity guard (post-processing)
+// Silently upgrades findings referencing void-by-law statutes to Critical.
+// Risk score uses original severity (display-only upgrade).
+// ---------------------------------------------------------------------------
+
+const VOID_BY_LAW_PATTERNS = [
+  /\bCC\s*8814\b/i,
+  /\bCC\s*2782\b/i,
+  /\bCC\s*8122\b/i,
+  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?8814\b/i,
+  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?2782\b/i,
+  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?8122\b/i,
+];
+
+function applySeverityGuard(finding: UnifiedFinding): void {
+  if (finding.severity === 'Critical') return;
+  const textToScan = [finding.clauseText, finding.explanation]
+    .filter(Boolean)
+    .join(' ');
+  const hasVoidStatute = VOID_BY_LAW_PATTERNS.some(re => re.test(textToScan));
+  if (hasVoidStatute) {
+    finding.severity = 'Critical';
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Convert legal pass findings to unified Finding shape with legalMeta
 // ---------------------------------------------------------------------------
 
@@ -1452,8 +1479,13 @@ function mergePassResults(
 
   const deduplicatedFindings = Array.from(byTitle.values());
 
-  // Compute risk score deterministically
+  // Compute risk score BEFORE severity guard (uses original severities)
   const riskScore = computeRiskScore(deduplicatedFindings);
+
+  // Apply CA void-by-law severity guard AFTER risk score (display-only upgrade)
+  for (const finding of deduplicatedFindings) {
+    applySeverityGuard(finding);
+  }
 
   return {
     client,
