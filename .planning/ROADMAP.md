@@ -86,11 +86,11 @@ Plans:
   1. Scope findings identify and flag non-glazing work (outside Division 08) being assigned to the subcontractor, with specific CSI section references
   2. Findings referencing AAMA or ASTM standards validate whether those references are current, flagging obsolete standards and handling the AAMA-to-FGIA rebrand
   3. Analysis detects the contract standard form family (AIA A401, ConsensusDocs 750, EJCDC) and flags clauses that deviate from that form's standard defaults
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md — Knowledge modules: Division 08 scope, ASTM/AAMA/FGIA standards validation, contract standard form detection
+- [ ] 10-02-PLAN.md — Pipeline wiring: PASS_KNOWLEDGE_MAP updates and analyze.ts imports
 
 ## Progress
 
@@ -108,4 +108,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10
 | 7. Knowledge Architecture and Company Profile | v1.1 | 0/2 | Not started | - |
 | 8. Pipeline Integration and Company-Specific Intelligence | 2/2 | Complete   | 2026-03-09 | - |
 | 9. CA Regulatory Knowledge | 1/2 | In Progress|  | - |
-| 10. Industry and Trade Knowledge | v1.1 | 0/? | Not started | - |
+| 10. Industry and Trade Knowledge | v1.1 | 0/2 | Not started | - |
