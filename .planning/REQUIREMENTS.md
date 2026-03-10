@@ -35,7 +35,7 @@ Requirements for Domain Intelligence milestone. Each maps to roadmap phases.
 
 - [x] **CAREG-01**: Lien Rights pass receives CA mechanics lien law knowledge (prelim notice, recording deadlines, foreclosure, anti-waiver)
 - [x] **CAREG-02**: Labor Compliance pass receives prevailing wage/DIR knowledge (public works detection, CPR, apprenticeship threshold, penalties)
-- [ ] **CAREG-03**: Severity overrides enforce CA void-by-law clauses as Critical (pay-if-paid CC 8814, broad-form indemnity CC 2782, pre-payment lien waiver CC 8122)
+- [x] **CAREG-03**: Severity overrides enforce CA void-by-law clauses as Critical (pay-if-paid CC 8814, broad-form indemnity CC 2782, pre-payment lien waiver CC 8122)
 - [x] **CAREG-04**: Relevant passes receive Title 24 climate-zone glazing requirements for energy code awareness
 - [x] **CAREG-05**: Labor Compliance pass receives Cal/OSHA safety requirements for glazing (fall protection, glass handling)
 
@@ -87,7 +87,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | INTEL-04 | Phase 8 | Complete |
 | CAREG-01 | Phase 9 | Complete |
 | CAREG-02 | Phase 9 | Complete |
-| CAREG-03 | Phase 9 | Pending |
+| CAREG-03 | Phase 9 | Complete |
 | CAREG-04 | Phase 9 | Complete |
 | CAREG-05 | Phase 9 | Complete |
 | TRADE-01 | Phase 10 | Pending |
