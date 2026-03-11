@@ -109,9 +109,7 @@ export function Settings() {
     <div className="flex flex-col h-full overflow-hidden">
       <header className="bg-white border-b border-slate-200 px-8 py-6 shrink-0">
         <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-500 mt-1">
-          Configure your company profile
-        </p>
+        <p className="text-slate-500 mt-1">Configure your company profile</p>
       </header>
 
       <div className="flex-1 overflow-auto bg-slate-50 p-8">
@@ -127,7 +125,9 @@ export function Settings() {
                 className="bg-white rounded-xl border border-slate-200 overflow-hidden"
               >
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${card.iconBg} ${card.iconColor}`}>
+                  <div
+                    className={`p-2 rounded-lg ${card.iconBg} ${card.iconColor}`}
+                  >
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>

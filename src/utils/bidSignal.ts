@@ -59,7 +59,7 @@ interface FactorDef {
 const FACTOR_DEFS: FactorDef[] = [
   { name: 'Bonding', weight: 0.25, match: matchesBonding },
   { name: 'Insurance', weight: 0.25, match: matchesInsurance },
-  { name: 'Scope', weight: 0.20, match: matchesScope },
+  { name: 'Scope', weight: 0.2, match: matchesScope },
   { name: 'Payment', weight: 0.15, match: matchesPayment },
   { name: 'Retainage', weight: 0.15, match: matchesRetainage },
 ];
@@ -89,10 +89,7 @@ export function computeBidSignal(findings: Finding[]): BidSignal {
     return { name: def.name, score, weight: def.weight };
   });
 
-  const weightedScore = factors.reduce(
-    (sum, f) => sum + f.score * f.weight,
-    0,
-  );
+  const weightedScore = factors.reduce((sum, f) => sum + f.score * f.weight, 0);
   // Round to nearest integer
   const score = Math.round(weightedScore);
 

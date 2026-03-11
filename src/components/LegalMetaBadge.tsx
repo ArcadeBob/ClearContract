@@ -4,7 +4,8 @@ interface LegalMetaBadgeProps {
   meta: LegalMeta;
 }
 
-const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mr-2';
+const pillBase =
+  'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mr-2';
 
 export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
   return (
@@ -44,7 +45,9 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
                   : 'bg-amber-100 text-amber-700'
               }`}
             >
-              {meta.paymentType === 'pay-if-paid' ? 'Pay-if-Paid' : 'Pay-when-Paid'}
+              {meta.paymentType === 'pay-if-paid'
+                ? 'Pay-if-Paid'
+                : 'Pay-when-Paid'}
             </span>
           </div>
           {meta.enforceabilityContext && (
@@ -115,11 +118,17 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
             <div className="space-y-1 mb-2">
               {meta.coverageItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className={`w-2 h-2 rounded-full ${item.isAboveStandard ? 'bg-amber-400' : 'bg-green-400'}`} />
-                  <span className="font-medium text-slate-700">{item.coverageType}:</span>
+                  <span
+                    className={`w-2 h-2 rounded-full ${item.isAboveStandard ? 'bg-amber-400' : 'bg-green-400'}`}
+                  />
+                  <span className="font-medium text-slate-700">
+                    {item.coverageType}:
+                  </span>
                   <span className="text-slate-600">{item.requiredLimit}</span>
                   {item.isAboveStandard && (
-                    <span className={`${pillBase} bg-amber-100 text-amber-700`}>Above Standard</span>
+                    <span className={`${pillBase} bg-amber-100 text-amber-700`}>
+                      Above Standard
+                    </span>
                   )}
                 </div>
               ))}
@@ -128,7 +137,10 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
           {meta.endorsements.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 mb-1">
               {meta.endorsements.map((end, i) => (
-                <span key={i} className={`${pillBase} ${end.isNonStandard ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                <span
+                  key={i}
+                  className={`${pillBase} ${end.isNonStandard ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+                >
                   {end.endorsementType}
                 </span>
               ))}
@@ -206,7 +218,9 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
                   : 'bg-red-100 text-red-700'
               }`}
             >
-              {meta.primeContractAvailable ? 'Prime Contract Available' : 'Prime Contract Not Available'}
+              {meta.primeContractAvailable
+                ? 'Prime Contract Available'
+                : 'Prime Contract Not Available'}
             </span>
           </div>
           {meta.problematicObligations.length > 0 && (
@@ -243,7 +257,10 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
           {meta.exceptions.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 mt-1">
               {meta.exceptions.map((exception, i) => (
-                <span key={i} className={`${pillBase} bg-green-100 text-green-700`}>
+                <span
+                  key={i}
+                  className={`${pillBase} bg-green-100 text-green-700`}
+                >
                   {exception}
                 </span>
               ))}
@@ -262,7 +279,8 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
           <div className="flex flex-wrap items-center gap-1">
             <span
               className={`${pillBase} ${
-                meta.waiverType === 'no-lien-clause' || meta.waiverType === 'unconditional-before-payment'
+                meta.waiverType === 'no-lien-clause' ||
+                meta.waiverType === 'unconditional-before-payment'
                   ? 'bg-red-100 text-red-700'
                   : meta.waiverType === 'broad-release'
                     ? 'bg-amber-100 text-amber-700'
@@ -283,11 +301,12 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
                         ? 'Missing'
                         : meta.waiverType}
             </span>
-            {meta.lienFilingDeadline && meta.lienFilingDeadline !== 'Unknown' && (
-              <span className={`${pillBase} bg-slate-100 text-slate-700`}>
-                Filing Deadline: {meta.lienFilingDeadline}
-              </span>
-            )}
+            {meta.lienFilingDeadline &&
+              meta.lienFilingDeadline !== 'Unknown' && (
+                <span className={`${pillBase} bg-slate-100 text-slate-700`}>
+                  Filing Deadline: {meta.lienFilingDeadline}
+                </span>
+              )}
           </div>
           {meta.enforceabilityContext && (
             <p className="text-xs text-slate-500 mt-1 italic">
@@ -306,7 +325,8 @@ export function LegalMetaBadge({ meta }: LegalMetaBadgeProps) {
                   ? 'bg-red-100 text-red-700'
                   : meta.mechanism === 'litigation'
                     ? 'bg-amber-100 text-amber-700'
-                    : meta.mechanism === 'mediation-then-arbitration' || meta.mechanism === 'mediation-then-litigation'
+                    : meta.mechanism === 'mediation-then-arbitration' ||
+                        meta.mechanism === 'mediation-then-litigation'
                       ? 'bg-green-100 text-green-700'
                       : 'bg-slate-100 text-slate-700'
               }`}

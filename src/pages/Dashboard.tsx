@@ -7,23 +7,26 @@ import {
   ShieldAlert,
   Clock,
   Plus,
-  ArrowRight } from
-'lucide-react';
+  ArrowRight,
+} from 'lucide-react';
 interface DashboardProps {
   contracts: Contract[];
   onNavigate: (view: ViewState, id?: string) => void;
 }
 export function Dashboard({ contracts, onNavigate }: DashboardProps) {
   const totalContracts = contracts.length;
-  const totalFindings = contracts.reduce((acc, c) => acc + c.findings.length, 0);
+  const totalFindings = contracts.reduce(
+    (acc, c) => acc + c.findings.length,
+    0
+  );
   const criticalFindings = contracts.reduce(
     (acc, c) =>
-    acc + c.findings.filter((f) => f.severity === 'Critical').length,
+      acc + c.findings.filter((f) => f.severity === 'Critical').length,
     0
   );
   const recentContracts = [...contracts].sort(
     (a, b) =>
-    new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+      new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
   );
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -39,13 +42,15 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
           icon={FileText}
           color="blue"
           trend="12%"
-          trendUp={true} />
+          trendUp={true}
+        />
 
         <StatCard
           label="Total Findings"
           value={totalFindings}
           icon={AlertTriangle}
-          color="amber" />
+          color="amber"
+        />
 
         <StatCard
           label="Critical Risks"
@@ -53,7 +58,8 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
           icon={ShieldAlert}
           color="red"
           trend="5%"
-          trendUp={false} />
+          trendUp={false}
+        />
 
         <StatCard
           label="Avg Review Time"
@@ -61,8 +67,8 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
           icon={Clock}
           color="green"
           trend="30s"
-          trendUp={true} />
-
+          trendUp={true}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -73,19 +79,19 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
             </h2>
             <button
               onClick={() => onNavigate('contracts')}
-              className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center">
-
+              className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center"
+            >
               View All <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>
           <div className="space-y-4">
-            {recentContracts.map((contract) =>
-            <ContractCard
-              key={contract.id}
-              contract={contract}
-              onClick={() => onNavigate('review', contract.id)} />
-
-            )}
+            {recentContracts.map((contract) => (
+              <ContractCard
+                key={contract.id}
+                contract={contract}
+                onClick={() => onNavigate('review', contract.id)}
+              />
+            ))}
           </div>
         </div>
 
@@ -96,8 +102,8 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
             <button
               onClick={() => onNavigate('upload')}
-              className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
-
+              className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
               <Plus className="w-5 h-5" />
               <span>Upload New Contract</span>
             </button>
@@ -115,13 +121,13 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
             </p>
             <a
               href="#"
-              className="text-sm text-blue-300 hover:text-blue-200 underline">
-
+              className="text-sm text-blue-300 hover:text-blue-200 underline"
+            >
               Read more
             </a>
           </div>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

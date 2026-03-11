@@ -1,4 +1,3 @@
-
 interface ClauseQuoteProps {
   text: string;
   reference: string;

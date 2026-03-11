@@ -16,5 +16,6 @@ export function ContractUpload({ onUploadComplete }: ContractUploadProps) {
         </div>
         <UploadZone onFileSelect={onUploadComplete} />
       </div>
-    </div>);
+    </div>
+  );
 }

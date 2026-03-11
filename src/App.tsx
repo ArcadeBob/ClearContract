@@ -59,7 +59,10 @@ export function App() {
               severity: 'Critical',
               category: 'Risk Assessment',
               title: 'Analysis Failed',
-              description: err instanceof Error ? err.message : 'An unexpected error occurred during analysis.',
+              description:
+                err instanceof Error
+                  ? err.message
+                  : 'An unexpected error occurred during analysis.',
               recommendation: 'Please try uploading the contract again.',
             },
           ],
@@ -73,13 +76,14 @@ export function App() {
       case 'upload':
         return <ContractUpload onUploadComplete={handleUploadComplete} />;
       case 'review':
-        return activeContract ?
-        <ContractReview
-          contract={activeContract}
-          onBack={() => navigateTo('dashboard')} /> :
-
-
-        <Dashboard contracts={contracts} onNavigate={navigateTo} />;
+        return activeContract ? (
+          <ContractReview
+            contract={activeContract}
+            onBack={() => navigateTo('dashboard')}
+          />
+        ) : (
+          <Dashboard contracts={contracts} onNavigate={navigateTo} />
+        );
 
       case 'contracts':
         return <AllContracts contracts={contracts} onNavigate={navigateTo} />;
@@ -94,12 +98,12 @@ export function App() {
       <Sidebar
         activeView={activeView}
         onNavigate={(view) => navigateTo(view)}
-        contractCount={contracts.length} />
-
+        contractCount={contracts.length}
+      />
 
       <main className="flex-1 h-full overflow-hidden relative">
         {renderContent()}
       </main>
-    </div>);
-
+    </div>
+  );
 }

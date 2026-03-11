@@ -9,7 +9,7 @@ export function useContractStore() {
   const [isUploading, setIsUploading] = useState(false);
 
   const activeContract =
-  contracts.find((c) => c.id === activeContractId) || null;
+    contracts.find((c) => c.id === activeContractId) || null;
 
   const addContract = (contract: Contract) => {
     setContracts((prev) => [contract, ...prev]);

@@ -13,14 +13,14 @@ export function StatCard({
   icon: Icon,
   trend,
   trendUp,
-  color = 'blue'
+  color = 'blue',
 }: StatCardProps) {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-emerald-50 text-emerald-600',
     amber: 'bg-amber-50 text-amber-600',
     red: 'bg-red-50 text-red-600',
-    slate: 'bg-slate-50 text-slate-600'
+    slate: 'bg-slate-50 text-slate-600',
   };
   return (
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -33,14 +33,14 @@ export function StatCard({
           <Icon className="w-6 h-6" />
         </div>
       </div>
-      {trend &&
-      <div className="mt-4 flex items-center text-sm">
+      {trend && (
+        <div className="mt-4 flex items-center text-sm">
           <span className={trendUp ? 'text-emerald-600' : 'text-red-600'}>
             {trendUp ? '↑' : '↓'} {trend}
           </span>
           <span className="text-slate-400 ml-2">vs last month</span>
         </div>
-      }
-    </div>);
-
+      )}
+    </div>
+  );
 }

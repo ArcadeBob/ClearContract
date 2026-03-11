@@ -20,7 +20,10 @@ const STEPS: {
   { label: 'Reviewing Financials...', category: 'Financial Terms' },
 ];
 
-export function AnalysisProgress({ isLoading = false, onComplete }: AnalysisProgressProps) {
+export function AnalysisProgress({
+  isLoading = false,
+  onComplete,
+}: AnalysisProgressProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
@@ -72,30 +75,36 @@ export function AnalysisProgress({ isLoading = false, onComplete }: AnalysisProg
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${isCompleted ? 'bg-emerald-100 text-emerald-600' : isCurrent ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-300'}`}>
-                  {isCompleted ?
-                    <CheckCircle2 className="w-3.5 h-3.5" /> :
-                    isCurrent ?
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" /> :
-                      <div className="w-2 h-2 bg-slate-300 rounded-full" />
-                  }
+                  className={`w-5 h-5 rounded-full flex items-center justify-center ${isCompleted ? 'bg-emerald-100 text-emerald-600' : isCurrent ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-300'}`}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : isCurrent ? (
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  ) : (
+                    <div className="w-2 h-2 bg-slate-300 rounded-full" />
+                  )}
                 </div>
                 <span
-                  className={`text-sm font-medium ${isCompleted || isCurrent ? 'text-slate-700' : 'text-slate-400'}`}>
+                  className={`text-sm font-medium ${isCompleted || isCurrent ? 'text-slate-700' : 'text-slate-400'}`}
+                >
                   {step.label}
                 </span>
               </div>
 
-              {isCurrent &&
+              {isCurrent && (
                 <motion.div
                   className="h-1 bg-blue-600 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: 60 }}
                   transition={{ duration: 0.8 }}
-                  key={`bar-${currentStep}`} />
-              }
-            </div>);
+                  key={`bar-${currentStep}`}
+                />
+              )}
+            </div>
+          );
         })}
       </div>
-    </div>);
+    </div>
+  );
 }

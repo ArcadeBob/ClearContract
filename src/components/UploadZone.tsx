@@ -16,23 +16,23 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf']
+      'application/pdf': ['.pdf'],
     },
     multiple: false,
-    maxSize: 10 * 1024 * 1024
+    maxSize: 10 * 1024 * 1024,
   });
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50'}`}>
-
+      className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50'}`}
+    >
       <input {...getInputProps()} />
       <div
-        className={`p-4 rounded-full mb-4 ${isDragActive ? 'bg-blue-100' : 'bg-slate-100'}`}>
-
+        className={`p-4 rounded-full mb-4 ${isDragActive ? 'bg-blue-100' : 'bg-slate-100'}`}
+      >
         <UploadCloud
-          className={`w-8 h-8 ${isDragActive ? 'text-blue-600' : 'text-slate-400'}`} />
-
+          className={`w-8 h-8 ${isDragActive ? 'text-blue-600' : 'text-slate-400'}`}
+        />
       </div>
       <h3 className="text-lg font-semibold text-slate-900 mb-2">
         {isDragActive ? 'Drop contract here' : 'Upload Contract PDF'}
@@ -48,6 +48,6 @@ export function UploadZone({ onFileSelect }: UploadZoneProps) {
         <span>•</span>
         <span>Secure Encryption</span>
       </div>
-    </div>);
-
+    </div>
+  );
 }

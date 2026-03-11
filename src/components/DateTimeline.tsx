@@ -47,10 +47,13 @@ export function DateTimeline({ dates }: DateTimelineProps) {
             const Icon = getIcon(date.type);
             const colorClass = getColor(date.type);
             return (
-              <div key={`${date.label}-${date.date}`} className="relative flex items-center">
+              <div
+                key={`${date.label}-${date.date}`}
+                className="relative flex items-center"
+              >
                 <div
-                  className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${colorClass}`}>
-
+                  className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${colorClass}`}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="ml-4 flex-1">
@@ -64,11 +67,11 @@ export function DateTimeline({ dates }: DateTimelineProps) {
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">{date.type}</p>
                 </div>
-              </div>);
-
+              </div>
+            );
           })}
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

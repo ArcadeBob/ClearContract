@@ -3,12 +3,20 @@ import { loadCompanyProfile } from '../knowledge/profileLoader';
 
 export interface AnalysisResult {
   client: string;
-  contractType: 'Prime Contract' | 'Subcontract' | 'Purchase Order' | 'Change Order';
+  contractType:
+    | 'Prime Contract'
+    | 'Subcontract'
+    | 'Purchase Order'
+    | 'Change Order';
   riskScore: number;
   bidSignal?: BidSignal;
   findings: Finding[];
   dates: ContractDate[];
-  passResults: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
+  passResults: Array<{
+    passName: string;
+    status: 'success' | 'failed';
+    error?: string;
+  }>;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -29,7 +37,9 @@ function readFileAsBase64(file: File): Promise<string> {
 
 export async function analyzeContract(file: File): Promise<AnalysisResult> {
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
+    throw new Error(
+      `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`
+    );
   }
 
   if (file.type !== 'application/pdf') {
@@ -41,7 +51,11 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pdfBase64, fileName: file.name, companyProfile: loadCompanyProfile() }),
+    body: JSON.stringify({
+      pdfBase64,
+      fileName: file.name,
+      companyProfile: loadCompanyProfile(),
+    }),
   });
 
   if (!response.ok) {

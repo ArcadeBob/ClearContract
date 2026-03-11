@@ -16,17 +16,17 @@ export function FindingCard({ finding, index }: FindingCardProps) {
     <motion.div
       initial={{
         opacity: 0,
-        y: 10
+        y: 10,
       }}
       animate={{
         opacity: 1,
-        y: 0
+        y: 0,
       }}
       transition={{
-        delay: index * 0.05
+        delay: index * 0.05,
       }}
-      className="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-sm transition-shadow">
-
+      className="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-sm transition-shadow"
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-slate-100 rounded-md text-slate-600">
@@ -36,7 +36,10 @@ export function FindingCard({ finding, index }: FindingCardProps) {
             {finding.category}
           </span>
         </div>
-        <SeverityBadge severity={finding.severity} downgradedFrom={finding.downgradedFrom} />
+        <SeverityBadge
+          severity={finding.severity}
+          downgradedFrom={finding.downgradedFrom}
+        />
       </div>
 
       <h4 className="text-lg font-semibold text-slate-900 mb-2">
@@ -46,25 +49,31 @@ export function FindingCard({ finding, index }: FindingCardProps) {
         {finding.description}
       </p>
 
-      {finding.recommendation &&
-      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mb-3">
+      {finding.recommendation && (
+        <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mb-3">
           <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
             Recommendation
           </p>
           <p className="text-sm text-blue-800">{finding.recommendation}</p>
         </div>
-      }
-
-      {finding.clauseText && finding.clauseText !== 'N/A - Protective clause absent' && (
-        <ClauseQuote text={finding.clauseText} reference={finding.clauseReference || ''} />
       )}
+
+      {finding.clauseText &&
+        finding.clauseText !== 'N/A - Protective clause absent' && (
+          <ClauseQuote
+            text={finding.clauseText}
+            reference={finding.clauseReference || ''}
+          />
+        )}
 
       {finding.explanation && (
         <div className="bg-amber-50 border border-amber-100 rounded-md p-3 mb-3">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
             Why This Matters
           </p>
-          <p className="text-sm text-amber-800 leading-relaxed">{finding.explanation}</p>
+          <p className="text-sm text-amber-800 leading-relaxed">
+            {finding.explanation}
+          </p>
         </div>
       )}
 
@@ -86,18 +95,22 @@ export function FindingCard({ finding, index }: FindingCardProps) {
         <div className="flex flex-wrap items-center gap-1 mt-2 mb-2">
           <span className="text-xs font-medium text-slate-500">See also:</span>
           {finding.crossReferences.map((ref, i) => (
-            <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+            <span
+              key={i}
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600"
+            >
               {ref}
             </span>
           ))}
         </div>
       )}
 
-      {finding.clauseReference &&
-      <div className="flex items-center text-xs text-slate-400 mt-2">
+      {finding.clauseReference && (
+        <div className="flex items-center text-xs text-slate-400 mt-2">
           <span className="font-medium mr-1">Reference:</span>{' '}
           {finding.clauseReference}
         </div>
-      }
-    </motion.div>);
+      )}
+    </motion.div>
+  );
 }

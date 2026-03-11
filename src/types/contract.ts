@@ -1,15 +1,15 @@
 export type Severity = 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
 
 export type Category =
-'Legal Issues' |
-'Scope of Work' |
-'Contract Compliance' |
-'Labor Compliance' |
-'Insurance Requirements' |
-'Important Dates' |
-'Financial Terms' |
-'Technical Standards' |
-'Risk Assessment';
+  | 'Legal Issues'
+  | 'Scope of Work'
+  | 'Contract Compliance'
+  | 'Labor Compliance'
+  | 'Insurance Requirements'
+  | 'Important Dates'
+  | 'Financial Terms'
+  | 'Technical Standards'
+  | 'Risk Assessment';
 
 export interface InsuranceCoverageItem {
   coverageType: string;
@@ -23,17 +23,73 @@ export interface InsuranceEndorsement {
 }
 
 export type LegalMeta =
-  | { clauseType: 'indemnification'; riskType: 'limited' | 'intermediate' | 'broad'; hasInsuranceGap: boolean }
-  | { clauseType: 'payment-contingency'; paymentType: 'pay-if-paid' | 'pay-when-paid'; enforceabilityContext: string }
-  | { clauseType: 'liquidated-damages'; amountOrRate: string; capStatus: 'capped' | 'uncapped'; proportionalityAssessment: string }
-  | { clauseType: 'retainage'; percentage: string; releaseCondition: string; tiedTo: 'sub-work' | 'project-completion' | 'unspecified' }
-  | { clauseType: 'insurance'; coverageItems: InsuranceCoverageItem[]; endorsements: InsuranceEndorsement[]; certificateHolder: string }
-  | { clauseType: 'termination'; terminationType: string; noticePeriod: string; compensation: string; curePeriod: string }
-  | { clauseType: 'flow-down'; flowDownScope: string; problematicObligations: string[]; primeContractAvailable: boolean }
-  | { clauseType: 'no-damage-delay'; waiverScope: string; exceptions: string[]; enforceabilityContext: string }
-  | { clauseType: 'lien-rights'; waiverType: string; lienFilingDeadline: string; enforceabilityContext: string }
-  | { clauseType: 'dispute-resolution'; mechanism: string; venue: string; feeShifting: string; mediationRequired: boolean }
-  | { clauseType: 'change-order'; changeType: string; noticeRequired: string; pricingMechanism: string; proceedPending: boolean };
+  | {
+      clauseType: 'indemnification';
+      riskType: 'limited' | 'intermediate' | 'broad';
+      hasInsuranceGap: boolean;
+    }
+  | {
+      clauseType: 'payment-contingency';
+      paymentType: 'pay-if-paid' | 'pay-when-paid';
+      enforceabilityContext: string;
+    }
+  | {
+      clauseType: 'liquidated-damages';
+      amountOrRate: string;
+      capStatus: 'capped' | 'uncapped';
+      proportionalityAssessment: string;
+    }
+  | {
+      clauseType: 'retainage';
+      percentage: string;
+      releaseCondition: string;
+      tiedTo: 'sub-work' | 'project-completion' | 'unspecified';
+    }
+  | {
+      clauseType: 'insurance';
+      coverageItems: InsuranceCoverageItem[];
+      endorsements: InsuranceEndorsement[];
+      certificateHolder: string;
+    }
+  | {
+      clauseType: 'termination';
+      terminationType: string;
+      noticePeriod: string;
+      compensation: string;
+      curePeriod: string;
+    }
+  | {
+      clauseType: 'flow-down';
+      flowDownScope: string;
+      problematicObligations: string[];
+      primeContractAvailable: boolean;
+    }
+  | {
+      clauseType: 'no-damage-delay';
+      waiverScope: string;
+      exceptions: string[];
+      enforceabilityContext: string;
+    }
+  | {
+      clauseType: 'lien-rights';
+      waiverType: string;
+      lienFilingDeadline: string;
+      enforceabilityContext: string;
+    }
+  | {
+      clauseType: 'dispute-resolution';
+      mechanism: string;
+      venue: string;
+      feeShifting: string;
+      mediationRequired: boolean;
+    }
+  | {
+      clauseType: 'change-order';
+      changeType: string;
+      noticeRequired: string;
+      pricingMechanism: string;
+      proceedPending: boolean;
+    };
 
 export interface ComplianceChecklistItem {
   item: string;
@@ -44,10 +100,32 @@ export interface ComplianceChecklistItem {
 }
 
 export type ScopeMeta =
-  | { passType: 'scope-of-work'; scopeItemType: string; specificationReference: string; affectedTrade: string }
-  | { passType: 'dates-deadlines'; periodType: string; duration: string; triggerEvent: string }
-  | { passType: 'verbiage'; issueType: string; affectedParty: string; suggestedClarification: string }
-  | { passType: 'labor-compliance'; requirementType: string; responsibleParty: string; contactInfo: string; deadline: string; checklistItems: ComplianceChecklistItem[] };
+  | {
+      passType: 'scope-of-work';
+      scopeItemType: string;
+      specificationReference: string;
+      affectedTrade: string;
+    }
+  | {
+      passType: 'dates-deadlines';
+      periodType: string;
+      duration: string;
+      triggerEvent: string;
+    }
+  | {
+      passType: 'verbiage';
+      issueType: string;
+      affectedParty: string;
+      suggestedClarification: string;
+    }
+  | {
+      passType: 'labor-compliance';
+      requirementType: string;
+      responsibleParty: string;
+      contactInfo: string;
+      deadline: string;
+      checklistItems: ComplianceChecklistItem[];
+    };
 
 export interface Finding {
   id: string;
@@ -99,12 +177,16 @@ export interface Contract {
   dates: ContractDate[];
   riskScore: number; // 0-100
   bidSignal?: BidSignal;
-  passResults?: Array<{ passName: string; status: 'success' | 'failed'; error?: string }>;
+  passResults?: Array<{
+    passName: string;
+    status: 'success' | 'failed';
+    error?: string;
+  }>;
 }
 
 export type ViewState =
-'dashboard' |
-'upload' |
-'review' |
-'contracts' |
-'settings';
+  | 'dashboard'
+  | 'upload'
+  | 'review'
+  | 'contracts'
+  | 'settings';

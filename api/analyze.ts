@@ -2,8 +2,15 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
 import { toFile } from '@anthropic-ai/sdk';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { PassResultSchema, RiskOverviewResultSchema } from '../src/schemas/analysis';
-import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis';
+import {
+  PassResultSchema,
+  RiskOverviewResultSchema,
+} from '../src/schemas/analysis';
+import type {
+  PassResult,
+  RiskOverviewResult,
+  MergedAnalysisResult,
+} from '../src/schemas/analysis';
 import {
   IndemnificationPassResultSchema,
   PaymentContingencyPassResultSchema,
@@ -54,8 +61,12 @@ const SEVERITY_WEIGHTS: Record<string, number> = {
 
 // Passes that receive company profile for comparison instructions
 const PASSES_RECEIVING_PROFILE = new Set([
-  'risk-overview', 'legal-insurance', 'legal-retainage',
-  'scope-of-work', 'legal-payment-contingency', 'legal-liquidated-damages',
+  'risk-overview',
+  'legal-insurance',
+  'legal-retainage',
+  'scope-of-work',
+  'legal-payment-contingency',
+  'legal-liquidated-damages',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -68,7 +79,10 @@ const PASSES_RECEIVING_PROFILE = new Set([
  * wraps in the `{ type: 'json_schema', schema }` envelope.
  */
 function zodToOutputFormat(zodSchema: Parameters<typeof zodToJsonSchema>[0]) {
-  const raw = zodToJsonSchema(zodSchema, { target: 'jsonSchema7', $refStrategy: 'none' });
+  const raw = zodToJsonSchema(zodSchema, {
+    target: 'jsonSchema7',
+    $refStrategy: 'none',
+  });
   // Remove the $schema meta key — Anthropic does not expect it
   const { $schema: _, ...schema } = raw as Record<string, unknown>;
   return {
@@ -178,7 +192,8 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
-    userPrompt: 'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
+    userPrompt:
+      'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
   },
   {
     name: 'scope-of-work',
@@ -229,7 +244,8 @@ When a Company Profile section appears in this prompt:
 - Consider the company's capabilities and typical project size when assessing severity
 - If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
 - Set downgradedFrom to the original severity when downgrading`,
-    userPrompt: 'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
+    userPrompt:
+      'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
   },
 
   // --- Legal analysis passes (specialized, one per clause type) ---
@@ -571,8 +587,7 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
-    userPrompt:
-      'Analyze all termination clauses in this glazing subcontract.',
+    userPrompt: 'Analyze all termination clauses in this glazing subcontract.',
   },
   {
     name: 'legal-flow-down',
@@ -626,8 +641,7 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
-    userPrompt:
-      'Analyze all flow-down provisions in this glazing subcontract.',
+    userPrompt: 'Analyze all flow-down provisions in this glazing subcontract.',
   },
   {
     name: 'legal-no-damage-delay',
@@ -894,7 +908,8 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
-    userPrompt: 'Identify questionable verbiage in this glazing subcontract: ambiguous language, one-sided terms, missing standard protections, undefined terms, and overreach clauses.',
+    userPrompt:
+      'Identify questionable verbiage in this glazing subcontract: ambiguous language, one-sided terms, missing standard protections, undefined terms, and overreach clauses.',
   },
   {
     name: 'labor-compliance',
@@ -951,7 +966,8 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
-    userPrompt: 'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
+    userPrompt:
+      'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
   },
 ];
 
@@ -962,7 +978,7 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 async function preparePdfForAnalysis(
   pdfBuffer: Buffer,
   fileName: string,
-  client: Anthropic,
+  client: Anthropic
 ): Promise<{ fileId: string; usedFallback: boolean }> {
   // Rough page count estimate: count "/Type /Page" or "/Type/Page" markers.
   // This is a heuristic — exact count is not critical, just need to know
@@ -984,7 +1000,7 @@ async function preparePdfForAnalysis(
     } catch (uploadError) {
       console.error(
         'Native PDF upload failed, falling back to text extraction:',
-        uploadError instanceof Error ? uploadError.message : uploadError,
+        uploadError instanceof Error ? uploadError.message : uploadError
       );
       // Fall through to text extraction
     }
@@ -998,7 +1014,7 @@ async function preparePdfForAnalysis(
 
   if (textContent.trim().length < 100) {
     throw new Error(
-      'Could not extract sufficient text from this PDF. It may be a scanned/image-based document.',
+      'Could not extract sufficient text from this PDF. It may be a scanned/image-based document.'
     );
   }
 
@@ -1020,7 +1036,7 @@ async function runAnalysisPass(
   client: Anthropic,
   fileId: string,
   pass: AnalysisPass,
-  companyProfile?: CompanyProfile,
+  companyProfile?: CompanyProfile
 ): Promise<{ passName: string; result: PassResult | RiskOverviewResult }> {
   const outputFormat = pass.schema
     ? zodToOutputFormat(pass.schema)
@@ -1033,7 +1049,7 @@ async function runAnalysisPass(
   const systemPrompt = composeSystemPrompt(
     pass.systemPrompt,
     pass.name,
-    PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined,
+    PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined
   );
 
   // Use streaming to avoid HeadersTimeoutError — headers are sent immediately
@@ -1114,7 +1130,7 @@ function applySeverityGuard(finding: UnifiedFinding): void {
   const textToScan = [finding.clauseText, finding.explanation]
     .filter(Boolean)
     .join(' ');
-  const hasVoidStatute = VOID_BY_LAW_PATTERNS.some(re => re.test(textToScan));
+  const hasVoidStatute = VOID_BY_LAW_PATTERNS.some((re) => re.test(textToScan));
   if (hasVoidStatute) {
     finding.severity = 'Critical';
   }
@@ -1143,7 +1159,7 @@ interface UnifiedFinding {
 
 function buildBaseFinding(
   finding: Record<string, unknown>,
-  passName: string,
+  passName: string
 ): UnifiedFinding {
   return {
     severity: finding.severity as string,
@@ -1163,7 +1179,7 @@ function buildBaseFinding(
 
 function convertLegalFinding(
   finding: Record<string, unknown>,
-  passName: string,
+  passName: string
 ): UnifiedFinding {
   const base = buildBaseFinding(finding, passName);
 
@@ -1196,14 +1212,24 @@ function convertLegalFinding(
         clauseType: 'retainage',
         percentage: finding.percentage as string,
         releaseCondition: finding.releaseCondition as string,
-        tiedTo: finding.tiedTo as 'sub-work' | 'project-completion' | 'unspecified',
+        tiedTo: finding.tiedTo as
+          | 'sub-work'
+          | 'project-completion'
+          | 'unspecified',
       };
       break;
     case 'legal-insurance':
       base.legalMeta = {
         clauseType: 'insurance',
-        coverageItems: finding.coverageItems as Array<{ coverageType: string; requiredLimit: string; isAboveStandard: boolean }>,
-        endorsements: finding.endorsements as Array<{ endorsementType: string; isNonStandard: boolean }>,
+        coverageItems: finding.coverageItems as Array<{
+          coverageType: string;
+          requiredLimit: string;
+          isAboveStandard: boolean;
+        }>,
+        endorsements: finding.endorsements as Array<{
+          endorsementType: string;
+          isNonStandard: boolean;
+        }>,
         certificateHolder: finding.certificateHolder as string,
       };
       break;
@@ -1269,7 +1295,7 @@ function convertLegalFinding(
 
 function convertScopeFinding(
   finding: Record<string, unknown>,
-  passName: string,
+  passName: string
 ): UnifiedFinding {
   const base = buildBaseFinding(finding, passName);
 
@@ -1305,7 +1331,9 @@ function convertScopeFinding(
         responsibleParty: finding.responsibleParty as string,
         contactInfo: finding.contactInfo as string,
         deadline: finding.deadline as string,
-        checklistItems: (finding.checklistItems as Array<Record<string, unknown>> || []).map(item => ({
+        checklistItems: (
+          (finding.checklistItems as Array<Record<string, unknown>>) || []
+        ).map((item) => ({
           item: item.item as string,
           deadline: item.deadline as string,
           responsibleParty: item.responsibleParty as string,
@@ -1328,7 +1356,7 @@ function mergePassResults(
     passName: string;
     result: PassResult | RiskOverviewResult;
   }>[],
-  passes: AnalysisPass[],
+  passes: AnalysisPass[]
 ): MergedAnalysisResult {
   const allFindings: UnifiedFinding[] = [];
   const allDates: Array<PassResult['dates'][number]> = [];
@@ -1364,15 +1392,30 @@ function mergePassResults(
       // Convert findings: legal passes get convertLegalFinding, scope passes get convertScopeFinding, others get tagged with sourcePass
       if (passes[i].isLegal) {
         for (const f of result.findings) {
-          allFindings.push(convertLegalFinding(f as unknown as Record<string, unknown>, passName));
+          allFindings.push(
+            convertLegalFinding(
+              f as unknown as Record<string, unknown>,
+              passName
+            )
+          );
         }
       } else if (passes[i].isScope) {
         for (const f of result.findings) {
-          allFindings.push(convertScopeFinding(f as unknown as Record<string, unknown>, passName));
+          allFindings.push(
+            convertScopeFinding(
+              f as unknown as Record<string, unknown>,
+              passName
+            )
+          );
         }
       } else {
         for (const f of result.findings) {
-          allFindings.push({ ...f, sourcePass: passName, negotiationPosition: (f as Record<string, unknown>).negotiationPosition as string | undefined });
+          allFindings.push({
+            ...f,
+            sourcePass: passName,
+            negotiationPosition: (f as Record<string, unknown>)
+              .negotiationPosition as string | undefined,
+          });
         }
       }
     } else {
@@ -1404,7 +1447,13 @@ function mergePassResults(
   // --- Enhanced deduplication ---
   // Helper: detect specialized passes (legal or scope) vs general passes
   const isSpecializedPass = (sp: string) =>
-    sp.startsWith('legal-') || ['scope-of-work', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance'].includes(sp);
+    sp.startsWith('legal-') ||
+    [
+      'scope-of-work',
+      'dates-deadlines',
+      'verbiage-analysis',
+      'labor-compliance',
+    ].includes(sp);
 
   // Phase 1: clauseReference + category composite key dedup
   // Prefer specialized passes over general passes; among same type, prefer higher severity
@@ -1421,8 +1470,12 @@ function mergePassResults(
       if (!existing) {
         byClauseAndCategory.set(key, finding);
       } else {
-        const findingIsSpecialized = isSpecializedPass(finding.sourcePass || '');
-        const existingIsSpecialized = isSpecializedPass(existing.sourcePass || '');
+        const findingIsSpecialized = isSpecializedPass(
+          finding.sourcePass || ''
+        );
+        const existingIsSpecialized = isSpecializedPass(
+          existing.sourcePass || ''
+        );
 
         if (findingIsSpecialized && !existingIsSpecialized) {
           // Specialized pass beats general pass
@@ -1463,7 +1516,9 @@ function mergePassResults(
       byTitle.set(finding.title, finding);
     } else {
       const findingIsSpecialized = isSpecializedPass(finding.sourcePass || '');
-      const existingIsSpecialized = isSpecializedPass(existing.sourcePass || '');
+      const existingIsSpecialized = isSpecializedPass(
+        existing.sourcePass || ''
+      );
 
       if (findingIsSpecialized && !existingIsSpecialized) {
         byTitle.set(finding.title, finding);
@@ -1502,12 +1557,10 @@ function mergePassResults(
 // Main handler
 // ---------------------------------------------------------------------------
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://clearcontract.vercel.app';
+  const allowedOrigin =
+    process.env.ALLOWED_ORIGIN || 'https://clearcontract.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -1558,16 +1611,19 @@ export default async function handler(
     // However, undici's fetch doesn't support FormData file uploads, so we use
     // a separate client with the default fetch for file uploads.
     dispatcher = new Agent({
-      headersTimeout: 0,          // disabled — let SDK AbortController handle timeout
-      bodyTimeout: 0,             // disabled — streaming responses can be long
-      connectTimeout: 30_000,     // 30s to establish TCP connection
-      connections: 20,            // pool size — peak concurrency is 16 parallel API calls
+      headersTimeout: 0, // disabled — let SDK AbortController handle timeout
+      bodyTimeout: 0, // disabled — streaming responses can be long
+      connectTimeout: 30_000, // 30s to establish TCP connection
+      connections: 20, // pool size — peak concurrency is 16 parallel API calls
     });
     const customFetch: typeof globalThis.fetch = (input, init) =>
-      undiciFetch(input as Parameters<typeof undiciFetch>[0], {
-        ...init,
-        dispatcher,
-      } as Parameters<typeof undiciFetch>[1]) as Promise<Response>;
+      undiciFetch(
+        input as Parameters<typeof undiciFetch>[0],
+        {
+          ...init,
+          dispatcher,
+        } as Parameters<typeof undiciFetch>[1]
+      ) as Promise<Response>;
 
     // Upload client uses default fetch (supports FormData for file uploads)
     const uploadClient = new Anthropic({
@@ -1579,31 +1635,41 @@ export default async function handler(
     // Message client uses custom undici fetch (configurable timeouts)
     client = new Anthropic({
       apiKey,
-      timeout: 280 * 1000,   // 280s — under Vercel maxDuration (300s), allows room for cleanup
-      maxRetries: 0,          // Don't retry inside serverless function — wastes budget
+      timeout: 280 * 1000, // 280s — under Vercel maxDuration (300s), allows room for cleanup
+      maxRetries: 0, // Don't retry inside serverless function — wastes budget
       fetch: customFetch,
     });
 
     // Upload PDF to Files API (or fallback to text extraction)
-    console.log(`[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB, uploading...`);
+    console.log(
+      `[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB, uploading...`
+    );
     const uploadStart = Date.now();
     const prepared = await preparePdfForAnalysis(
       pdfBuffer,
       fileName || 'contract.pdf',
-      uploadClient,
+      uploadClient
     );
     fileId = prepared.fileId;
-    console.log(`[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`);
+    console.log(
+      `[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`
+    );
 
     // Execute all analysis passes in parallel (production allows 300s via
     // vercel.json maxDuration; vercel dev defaults to 120s).
-    console.log(`[analyze] Running all ${ANALYSIS_PASSES.length} passes in parallel...`);
+    console.log(
+      `[analyze] Running all ${ANALYSIS_PASSES.length} passes in parallel...`
+    );
     const passStart = Date.now();
     const settledResults = await Promise.allSettled(
-      ANALYSIS_PASSES.map((pass) => runAnalysisPass(client!, fileId!, pass, companyProfile)),
+      ANALYSIS_PASSES.map((pass) =>
+        runAnalysisPass(client!, fileId!, pass, companyProfile)
+      )
     );
-    const failed = settledResults.filter(r => r.status === 'rejected').length;
-    console.log(`[analyze] All passes done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed)`);
+    const failed = settledResults.filter((r) => r.status === 'rejected').length;
+    console.log(
+      `[analyze] All passes done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed)`
+    );
 
     // Merge results from all passes
     const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
@@ -1615,7 +1681,9 @@ export default async function handler(
     }));
 
     // Compute bid/no-bid signal from findings
-    const bidSignal = computeBidSignal(findingsWithIds as unknown as import('../src/types/contract').Finding[]);
+    const bidSignal = computeBidSignal(
+      findingsWithIds as unknown as import('../src/types/contract').Finding[]
+    );
 
     return res.status(200).json({
       client: merged.client,
@@ -1630,9 +1698,9 @@ export default async function handler(
     const err = error as { status?: number; message?: string };
 
     if (err.status === 429) {
-      return res
-        .status(429)
-        .json({ error: 'Rate limit exceeded. Please wait a moment and try again.' });
+      return res.status(429).json({
+        error: 'Rate limit exceeded. Please wait a moment and try again.',
+      });
     }
     if (err.status === 401) {
       return res
@@ -1643,10 +1711,15 @@ export default async function handler(
     const message = err.message || String(error);
     console.error('Analysis error:', message);
 
-    if (message.includes('HeadersTimeoutError') || message.includes('timeout') || message.includes('ETIMEDOUT')) {
-      return res
-        .status(504)
-        .json({ error: 'API timeout — the contract may be too large or the API is slow. Please try again.' });
+    if (
+      message.includes('HeadersTimeoutError') ||
+      message.includes('timeout') ||
+      message.includes('ETIMEDOUT')
+    ) {
+      return res.status(504).json({
+        error:
+          'API timeout — the contract may be too large or the API is slow. Please try again.',
+      });
     }
 
     return res
@@ -1660,9 +1733,7 @@ export default async function handler(
       } catch (cleanupError) {
         console.error(
           'File cleanup failed (non-critical):',
-          cleanupError instanceof Error
-            ? cleanupError.message
-            : cleanupError,
+          cleanupError instanceof Error ? cleanupError.message : cleanupError
         );
       }
     }

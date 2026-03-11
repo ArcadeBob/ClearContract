@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { Category, Finding, Severity } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { FindingCard } from './FindingCard';
-import {
-  AlertTriangle,
-  ChevronDown,
-} from 'lucide-react';
+import { AlertTriangle, ChevronDown } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { categoryIcons } from '../utils/categoryIcons';
 
-const SEVERITY_ORDER: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
+const SEVERITY_ORDER: Severity[] = [
+  'Critical',
+  'High',
+  'Medium',
+  'Low',
+  'Info',
+];
 
 interface CategorySectionProps {
   category: Category;
@@ -25,10 +28,13 @@ export function CategorySection({
   const [expanded, setExpanded] = useState(defaultExpanded);
   const Icon = categoryIcons[category] || AlertTriangle;
 
-  const severityCounts = findings.reduce((acc, f) => {
-    acc[f.severity] = (acc[f.severity] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const severityCounts = findings.reduce(
+    (acc, f) => {
+      acc[f.severity] = (acc[f.severity] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   return (
     <div id={`category-${category.replace(/\s+/g, '-').toLowerCase()}`}>
@@ -48,14 +54,14 @@ export function CategorySection({
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            {SEVERITY_ORDER
-              .filter(sev => severityCounts[sev])
-              .map(sev => (
-                <span key={sev} className="flex items-center gap-1">
-                  <SeverityBadge severity={sev as Severity} />
-                  <span className="text-xs text-slate-500">{severityCounts[sev]}</span>
+            {SEVERITY_ORDER.filter((sev) => severityCounts[sev]).map((sev) => (
+              <span key={sev} className="flex items-center gap-1">
+                <SeverityBadge severity={sev as Severity} />
+                <span className="text-xs text-slate-500">
+                  {severityCounts[sev]}
                 </span>
-              ))}
+              </span>
+            ))}
           </div>
           <ChevronDown
             className={`w-4 h-4 text-slate-400 transition-transform ${
