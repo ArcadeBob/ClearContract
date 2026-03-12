@@ -1,9 +1,12 @@
+import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
 import { ContractReview } from './pages/ContractReview';
 import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
+import { Toast, ToastData } from './components/Toast';
 import { useContractStore } from './hooks/useContractStore';
 import { Contract } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
@@ -15,7 +18,17 @@ export function App() {
     addContract,
     updateContract,
     navigateTo,
+    storageWarning,
+    dismissStorageWarning,
   } = useContractStore();
+  const [toast, setToast] = useState<ToastData | null>(null);
+
+  const isNetworkError = (err: unknown): boolean => {
+    if (err instanceof TypeError && err.message === 'Failed to fetch') return true;
+    if (err instanceof Error && err.message.includes('NetworkError')) return true;
+    return false;
+  };
+
   const handleUploadComplete = (file: File) => {
     const id = `c-${Date.now()}`;
 
@@ -49,24 +62,37 @@ export function App() {
         });
       })
       .catch((err) => {
+        // Mark the placeholder as failed and navigate back to upload
         updateContract(id, {
           status: 'Reviewed',
-          client: 'Unknown',
+          client: 'Error',
           riskScore: 0,
-          findings: [
-            {
-              id: `f-${Date.now()}-err`,
-              severity: 'Critical',
-              category: 'Risk Assessment',
-              title: 'Analysis Failed',
-              description:
-                err instanceof Error
-                  ? err.message
-                  : 'An unexpected error occurred during analysis.',
-              recommendation: 'Please try uploading the contract again.',
-            },
-          ],
+          findings: [],
+          dates: [],
         });
+        navigateTo('upload');
+
+        if (isNetworkError(err)) {
+          setToast({
+            type: 'error',
+            message:
+              'Connection failed. Check your internet and try again.',
+            onRetry: () => {
+              setToast(null);
+              handleUploadComplete(file);
+            },
+            onDismiss: () => setToast(null),
+          });
+        } else {
+          setToast({
+            type: 'error',
+            message:
+              err instanceof Error
+                ? err.message
+                : 'Analysis failed. Please try again.',
+            onDismiss: () => setToast(null),
+          });
+        }
       });
   };
   const renderContent = () => {
@@ -100,6 +126,19 @@ export function App() {
         onNavigate={(view) => navigateTo(view)}
         contractCount={contracts.length}
       />
+
+      {storageWarning && (
+        <div className="fixed top-4 right-4 z-50 max-w-md bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-lg flex items-start gap-3">
+          <span className="text-amber-600 text-sm flex-1">{storageWarning}</span>
+          <button
+            onClick={dismissStorageWarning}
+            className="text-amber-400 hover:text-amber-600 text-lg leading-none"
+            aria-label="Dismiss warning"
+          >
+            &times;
+          </button>
+        </div>
+      )}
 
       <main className="flex-1 h-full overflow-hidden relative">
         {renderContent()}
