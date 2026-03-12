@@ -141,6 +141,9 @@ export function App() {
       )}
 
       <main className="flex-1 h-full overflow-hidden relative">
+        <AnimatePresence>
+          {toast && <Toast {...toast} />}
+        </AnimatePresence>
         {renderContent()}
       </main>
     </div>
