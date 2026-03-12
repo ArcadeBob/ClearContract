@@ -41,7 +41,11 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(None -- planning next milestone)
+- [ ] Export contract analysis as PDF or CSV report
+- [ ] Settings fields validated with save confirmation feedback
+- [ ] URL-based routing with deep links and browser back/forward support
+- [ ] Re-analyze contract after company profile changes
+- [ ] Finding actions: resolve and annotate findings during review
 
 ### Out of Scope
 
@@ -107,5 +111,16 @@ Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, sc
 | Severity guard runs after risk score computation | Display-only upgrade, no risk score inflation | ✓ Good -- accurate scoring preserved |
 | $refStrategy: 'none' for zodToJsonSchema | Anthropic API doesn't support $ref in structured output | ✓ Good -- eliminated runtime errors |
 
+## Current Milestone: v1.3 Workflow Completion
+
+**Goal:** Complete stubbed features, add routing, and enable the full contract review workflow with export, re-analysis, and finding actions.
+
+**Target features:**
+- Export Report (PDF/CSV)
+- Settings Validation + Save Feedback
+- URL-based Routing
+- Re-analyze Contract
+- Finding Actions (Resolve/Annotate)
+
 ---
-*Last updated: 2026-03-10 after v1.1 milestone completion*
+*Last updated: 2026-03-12 after v1.3 milestone start*

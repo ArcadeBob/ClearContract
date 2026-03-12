@@ -1,35 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: UX Foundations
-status: complete
-stopped_at: All v1.2 phases executed
+milestone: v1.3
+milestone_name: Workflow Completion
+status: defining-requirements
+stopped_at: null
 last_updated: "2026-03-12"
-last_activity: 2026-03-12 -- v1.2 Sprint 1 complete (all 4 phases, 5 plans)
+last_activity: 2026-03-12 -- Milestone v1.3 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-10)
+See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.2 complete. Ready to plan v1.3 (Sprint 2: Export PDF, Settings validation, URL routing).
+**Current focus:** v1.3 Workflow Completion -- Export, Settings validation, URL routing, Re-analyze, Finding actions.
 
 ## Current Position
 
-Phase: v1.2 complete (phases 11-14 all shipped)
-Status: Milestone complete, ready for next milestone
-Last activity: 2026-03-12 -- v1.2 Sprint 1 execution complete
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-12 -- Milestone v1.3 started
 
 ## Performance Metrics
 
@@ -77,17 +76,9 @@ None.
 - vercel.json maxDuration: 300 may require Vercel Pro plan
 - Real glazing subcontracts needed for quality validation
 - Attorney review of regulatory knowledge files recommended before deployment
-- v1.2 phase verification (gsd-verifier) not yet run -- phases executed but not formally verified
 
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: v1.2 milestone complete, no verification run yet
-Resume with: /gsd:progress or plan Sprint 2
-
-### Sprint 2 Feature Candidates (from analysis session)
-1. Export Report (PDF/CSV) -- Export button is a dead stub in ContractReview
-2. Settings validation + save feedback -- fields accept garbage, no confirmation
-3. URL-based routing -- no deep linking, back button broken
-4. Re-analyze contract -- can't re-run after profile update
-5. Finding actions (resolve/annotate) -- core review workflow
+Stopped at: Defining v1.3 requirements
+Resume with: Continue new-milestone workflow
