@@ -3,16 +3,12 @@ interface StatCardProps {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  trend?: string;
-  trendUp?: boolean;
   color?: 'blue' | 'green' | 'amber' | 'red' | 'slate';
 }
 export function StatCard({
   label,
   value,
   icon: Icon,
-  trend,
-  trendUp,
   color = 'blue',
 }: StatCardProps) {
   const colorClasses = {
@@ -33,14 +29,6 @@ export function StatCard({
           <Icon className="w-6 h-6" />
         </div>
       </div>
-      {trend && (
-        <div className="mt-4 flex items-center text-sm">
-          <span className={trendUp ? 'text-emerald-600' : 'text-red-600'}>
-            {trendUp ? '↑' : '↓'} {trend}
-          </span>
-          <span className="text-slate-400 ml-2">vs last month</span>
-        </div>
-      )}
     </div>
   );
 }
