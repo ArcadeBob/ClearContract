@@ -68,7 +68,9 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. User refreshes the page while viewing a contract review and the same contract review reloads
   3. User pastes a contract review URL into a new browser tab and lands on that contract's review page
   4. User navigates to a non-existent URL (e.g., `/contracts/bad-id`) and sees the dashboard instead of a blank screen
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 15-01-PLAN.md — Create useRouter hook, wire into App.tsx, update vercel.json for SPA routing
 
 ### Phase 16: Finding Actions
 **Goal**: Users can track remediation progress by resolving findings and adding notes during contract review
@@ -132,7 +134,7 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 12. Contract Management | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 13. Upload Error Feedback | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
-| 15. URL-based Routing | v1.3 | 0/? | Not started | - |
+| 15. URL-based Routing | v1.3 | 0/1 | Planning | - |
 | 16. Finding Actions | v1.3 | 0/? | Not started | - |
 | 17. Settings Validation | v1.3 | 0/? | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
