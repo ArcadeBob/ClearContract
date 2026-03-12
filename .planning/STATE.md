@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: UX Foundations
-status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-12T21:53:27.841Z"
-last_activity: 2026-03-12 -- Completed 14-01 (empty states and dashboard polish)
+status: complete
+stopped_at: All v1.2 phases executed
+last_updated: "2026-03-12"
+last_activity: 2026-03-12 -- v1.2 Sprint 1 complete (all 4 phases, 5 plans)
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 50
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.2 UX Foundations -- persistence, contract management, error feedback, empty states
+**Current focus:** v1.2 complete. Ready to plan v1.3 (Sprint 2: Export PDF, Settings validation, URL routing).
 
 ## Current Position
 
-Phase: 14 - Empty States and Dashboard Polish (complete)
-Status: Executing
-Last activity: 2026-03-12 -- Completed 14-01 (empty states and dashboard polish)
+Phase: v1.2 complete (phases 11-14 all shipped)
+Status: Milestone complete, ready for next milestone
+Last activity: 2026-03-12 -- v1.2 Sprint 1 execution complete
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -42,6 +42,12 @@ Progress: [█████░░░░░] 50%
 - Plans: 8
 - Average duration: ~4.25 min/plan
 - Total execution time: ~34 min
+
+**v1.2 (Phases 11-14):**
+- Plans: 5
+- All executed in single session
+- Wave 1: 11-01, 13-01, 13-02 (parallel)
+- Wave 2: 12-01, 14-01 (parallel, after Phase 11)
 
 ## Accumulated Context
 
@@ -71,9 +77,17 @@ None.
 - vercel.json maxDuration: 300 may require Vercel Pro plan
 - Real glazing subcontracts needed for quality validation
 - Attorney review of regulatory knowledge files recommended before deployment
+- v1.2 phase verification (gsd-verifier) not yet run -- phases executed but not formally verified
 
 ## Session Continuity
 
-Last session: 2026-03-12T21:53:27.840Z
-Stopped at: Completed 14-01-PLAN.md
-Resume file: None
+Last session: 2026-03-12
+Stopped at: v1.2 milestone complete, no verification run yet
+Resume with: /gsd:progress or plan Sprint 2
+
+### Sprint 2 Feature Candidates (from analysis session)
+1. Export Report (PDF/CSV) -- Export button is a dead stub in ContractReview
+2. Settings validation + save feedback -- fields accept garbage, no confirmation
+3. URL-based routing -- no deep linking, back button broken
+4. Re-analyze contract -- can't re-run after profile update
+5. Finding actions (resolve/annotate) -- core review workflow
