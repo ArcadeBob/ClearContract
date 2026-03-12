@@ -1,140 +1,121 @@
 # Technology Stack
 
-**Analysis Date:** 2026-03-01
+**Analysis Date:** 2026-03-12
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.5.4 - Full application codebase (`src/` and `api/`)
-- JSX - React component templates
+- TypeScript 5.5+ (strict mode) - All application code, both client and server
+- TSX - React component files in `src/components/` and `src/pages/`
 
 **Secondary:**
-- JavaScript - Configuration files and build scripts
+- CSS - Tailwind utility layer plus custom classes in `src/index.css`
+- HTML - Single `index.html` entry point
 
 ## Runtime
 
 **Environment:**
-- Node.js (no version pinned in package.json) - Required for `@vercel/node` serverless functions
+- Node.js (ES2020 target, ESNext modules)
+- Browser (DOM, DOM.Iterable libs)
+- Vercel serverless functions (Node.js runtime for `api/analyze.ts`)
 
 **Package Manager:**
-- npm - Lockfile: `package-lock.json` present
+- npm
+- Lockfile: `package-lock.json` (present)
 
 ## Frameworks
 
 **Core:**
-- React 18.3.1 - UI component library
-- Vite 5.2.0 - Build tool and dev server
-- TypeScript - Type checking (strict mode enabled in `tsconfig.json`)
+- React 18.3 - UI framework, functional components only
+- Vite 5.2 - Dev server and build tool, configured in `vite.config.ts`
+- Tailwind CSS 3.4 - Utility-first styling, configured in `tailwind.config.js`
 
-**UI/Styling:**
-- Tailwind CSS 3.4.17 - Utility-based CSS framework
-- Framer Motion 11.5.4 - Animation library for staggered entries and presence detection
-- Lucide React 0.522.0 - Icon library
-- Emotion 11.13.3 - CSS-in-JS utilities (included as dependency)
-
-**Form/Input:**
-- React Dropzone 14.2.3 - File upload handling with drag-and-drop
-
-**Backend/Serverless:**
-- @vercel/node 5.6.9 - Vercel serverless functions (`api/analyze.ts`)
-
-**Testing:**
-- Not configured (no test framework in package.json)
+**Animation:**
+- Framer Motion 11.5 - Component animations, staggered entries, `AnimatePresence`
 
 **Build/Dev:**
-- Vite 5.2.0 - Development server and production bundler
-- @vitejs/plugin-react 4.2.1 - React Fast Refresh integration
-- Tailwind CSS 3.4.17 - CSS processing
-- PostCSS - CSS transformation
-- Autoprefixer - Vendor prefixes for CSS
+- `@vitejs/plugin-react` 4.2 - React Fast Refresh for Vite
+- PostCSS + Autoprefixer - CSS processing pipeline (`postcss.config.js`)
+- Vercel CLI - Local serverless function development (`vercel dev`)
+
+**Code Quality:**
+- ESLint 8.50 - Linting (`.eslintrc.cjs`)
+- Prettier 3.8 - Formatting (`.prettierrc`)
+- lint-staged 16.3 - Pre-commit formatting and linting
 
 ## Key Dependencies
 
 **Critical:**
-- @anthropic-ai/sdk 0.78.0 - Claude API client for contract analysis
-- pdf-parse 2.4.5 - Server-side PDF text extraction (used in Vercel function)
-- react 18.3.1 - UI framework
-- react-dropzone 14.2.3 - File upload UX
+- `@anthropic-ai/sdk` ^0.78.0 - Claude API client for contract analysis (used in `api/analyze.ts`)
+- `zod` ^3.25.76 - Schema validation for all analysis pass results (`src/schemas/`)
+- `zod-to-json-schema` ^3.25.1 - Converts Zod schemas to JSON Schema for Anthropic structured output
+- `unpdf` ^1.4.0 - Server-side PDF text extraction (`api/analyze.ts`)
 
-**Infrastructure/DevOps:**
-- @vercel/node 5.6.9 - Serverless function runtime
-- typescript 5.5.4 - Language and type checker
-- vite 5.2.0 - Build and dev server
+**Infrastructure:**
+- `@vercel/node` ^5.6.9 - Vercel serverless function types and runtime
+- `undici` ^7.22.0 - HTTP client with custom Agent for Anthropic API calls (`api/analyze.ts`)
 
-**Linting:**
-- eslint 8.50.0 - Code quality checks
-- @typescript-eslint/eslint-plugin 5.54.0 - TypeScript-specific rules
-- @typescript-eslint/parser 5.54.0 - TypeScript parsing for ESLint
-- eslint-plugin-react-hooks 4.6.0 - React Hooks rules
-- eslint-plugin-react-refresh 0.4.1 - React Refresh rules
+**UI:**
+- `react-dropzone` ^14.2.3 - PDF file upload drag-and-drop (`src/components/UploadZone.tsx`)
+- `lucide-react` 0.522.0 - Icon library used throughout components
 
-**Type Definitions:**
-- @types/react 18.3.1 - React type definitions
-- @types/react-dom 18.3.1 - React DOM type definitions
-- @types/node 20.11.18 - Node.js type definitions
-- @types/pdf-parse 1.1.5 - pdf-parse type definitions
+## TypeScript Configuration
+
+**Client (`tsconfig.json`):**
+- Target: ES2020
+- Module: ESNext with bundler resolution
+- Strict mode enabled
+- `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` enforced
+- JSX: react-jsx (automatic runtime)
+- Scope: `src/` directory only
+
+**Server (`tsconfig.node.json`):**
+- Composite project for `vite.config.ts`
+- Module: ESNext with bundler resolution
+- Strict mode enabled
 
 ## Configuration
 
-**TypeScript:**
-- Config file: `tsconfig.json`
-- Target: ES2020
-- Module: ESNext
-- Strict mode enabled (`strict: true`)
-- JSX mode: react-jsx
-- Settings: noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch enabled
-
-**Tailwind CSS:**
-- Config file: `tailwind.config.js`
-- Scans: `index.html` and `src/**/*.{js,ts,jsx,tsx}`
-
-**PostCSS:**
-- Config file: `postcss.config.js`
-- Configured for Tailwind and Autoprefixer
-
-**Vite:**
-- Config file: `vite.config.ts`
-- Plugins: React plugin with Fast Refresh
-
-**ESLint:**
-- Config file: `.eslintrc.cjs`
-- Extends: eslint:recommended, @typescript-eslint/recommended, react-hooks/recommended
-- Parser: @typescript-eslint/parser
-- Plugins: react-refresh, @typescript-eslint
-- Key rule: `react-refresh/only-export-components` (warn)
-
 **Environment:**
-- `.env.local` file present - Contains `ANTHROPIC_API_KEY` (git-ignored)
-- Node environment: `browser: true, es2020: true` in ESLint config
+- `.env.local` file present - contains `ANTHROPIC_API_KEY` (git-ignored)
+- Environment variable accessed server-side only in `api/analyze.ts` via `process.env.ANTHROPIC_API_KEY`
+- Company profile stored in browser `localStorage` under key `clearcontract:company-profile` (`src/knowledge/profileLoader.ts`)
 
-## Deployment
+**Build:**
+- `vite.config.ts` - Dev server on port 3000, proxy `/api` to `localhost:3001`
+- `vercel.json` - Serverless function config, `api/analyze.ts` max duration 300 seconds
+- `tailwind.config.js` - Content paths: `index.html`, `src/**/*.{js,ts,jsx,tsx}`
+- `postcss.config.js` - Tailwind + Autoprefixer plugins
 
-**Hosting:**
-- Vercel - Serverless deployment
+**Code Style:**
+- `.prettierrc` - Single quotes, ES5 trailing commas
+- `.eslintrc.cjs` - Extends `eslint:recommended`, `@typescript-eslint/recommended`, `react-hooks/recommended`
+- `lint-staged` in `package.json` - Runs Prettier and ESLint on staged `.ts/.tsx` files
 
-**Serverless Configuration:**
-- File: `vercel.json`
-- `/api/analyze.ts` function max duration: 60 seconds
+## Scripts
 
-**Build Command:**
-- `npm run build` → `vite build`
-
-**Start Command:**
-- Development: `npm run dev` → `vite`
-- Preview: `npm run preview` → `vite preview`
+```bash
+npm run dev          # Vite dev server (frontend only, no API)
+npm run dev:full     # vercel dev (frontend + serverless API)
+npm run build        # vite build (production)
+npm run lint         # ESLint check
+npm run format       # Prettier write
+npm run format:check # Prettier check
+npm run preview      # Preview production build
+```
 
 ## Platform Requirements
 
 **Development:**
-- Node.js runtime (version unspecified, compatible with latest npm)
-- npm package manager
-- Supported OS: Windows, macOS, Linux (Vite supports all)
+- Node.js with npm
+- Vercel CLI for full-stack local development (`vercel dev`)
+- Ports 3000 (Vite) and 3001 (API proxy target) - note ports 3000-3007 often occupied on dev machine
 
 **Production:**
-- Vercel platform required for deployment
-- Node 18+ implied by @vercel/node 5.6.9
-- ANTHROPIC_API_KEY environment variable required
+- Vercel hosting with serverless functions
+- `ANTHROPIC_API_KEY` env var required in Vercel project settings
+- Serverless function timeout: 300 seconds (for multi-pass AI analysis)
 
 ---
 
-*Stack analysis: 2026-03-01*
+*Stack analysis: 2026-03-12*

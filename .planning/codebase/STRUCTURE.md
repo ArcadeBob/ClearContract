@@ -1,200 +1,269 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-01
+**Analysis Date:** 2026-03-12
 
 ## Directory Layout
 
 ```
-ClearContract/
+clearcontract/
 ├── api/
-│   └── analyze.ts                    # Vercel serverless function: PDF parse + Claude API
+│   └── analyze.ts               # Vercel serverless function (sole backend endpoint)
 ├── src/
-│   ├── index.tsx                     # React DOM render entry point
-│   ├── App.tsx                       # Root component: layout, view routing, upload handler
-│   ├── index.css                     # Tailwind imports, Inter font, .glass-panel custom class
-│   ├── types/
-│   │   └── contract.ts               # Domain types: Contract, Finding, Category, ViewState
-│   ├── hooks/
-│   │   └── useContractStore.ts       # Central state hook: contracts array, active contract/view
 │   ├── api/
-│   │   └── analyzeContract.ts        # Client-side API wrapper: file validation, base64 encode, fetch
+│   │   └── analyzeContract.ts   # Client-side API wrapper (base64 encode + fetch)
+│   ├── components/              # Reusable UI components
+│   │   ├── AnalysisProgress.tsx
+│   │   ├── BidSignalWidget.tsx
+│   │   ├── CategoryFilter.tsx
+│   │   ├── CategorySection.tsx
+│   │   ├── ClauseQuote.tsx
+│   │   ├── ContractCard.tsx
+│   │   ├── CoverageComparisonTab.tsx
+│   │   ├── DateTimeline.tsx
+│   │   ├── FindingCard.tsx
+│   │   ├── LegalMetaBadge.tsx
+│   │   ├── ScopeMetaBadge.tsx
+│   │   ├── SeverityBadge.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── StatCard.tsx
+│   │   └── UploadZone.tsx
 │   ├── data/
-│   │   └── mockContracts.ts          # Initial contract data (3 sample contracts)
-│   ├── components/                   # Reusable UI components
-│   │   ├── Sidebar.tsx               # Left navigation panel
-│   │   ├── SeverityBadge.tsx         # Severity indicator (Critical, High, Medium, Low, Info)
-│   │   ├── FindingCard.tsx           # Individual finding display with icon, title, description
-│   │   ├── ContractCard.tsx          # Contract summary for list views
-│   │   ├── CategoryFilter.tsx        # Filter findings by category
-│   │   ├── DateTimeline.tsx          # Visual timeline of contract dates
-│   │   ├── StatCard.tsx              # Dashboard metric card (value + trend)
-│   │   ├── UploadZone.tsx            # PDF drag-drop interface (react-dropzone)
-│   │   └── AnalysisProgress.tsx      # Animated progress during contract analysis
-│   └── pages/                        # Page components (rendered via view state)
-│       ├── Dashboard.tsx             # Overview: stats, recent contracts, quick actions
-│       ├── ContractUpload.tsx        # Upload form wrapper
-│       ├── ContractReview.tsx        # Detailed analysis view with findings, timeline, filters
-│       ├── AllContracts.tsx          # Full contract list
-│       └── Settings.tsx              # Settings page (placeholder)
-├── dist/                             # Production build output (Vite)
-├── node_modules/                     # Dependencies
-├── vite.config.ts                    # Vite build config
-├── tsconfig.json                     # TypeScript compiler options (strict mode)
-├── tsconfig.node.json                # TS config for vite.config.ts
-├── package.json                      # Dependencies and scripts
-├── package-lock.json                 # Locked dependency versions
-├── postcss.config.js                 # Tailwind CSS processing
-├── tailwind.config.js                # Tailwind theme customization
-├── vercel.json                       # Vercel deployment config (60s timeout for /api/analyze)
-├── CLAUDE.md                         # Project instructions and architecture docs
-└── .planning/codebase/               # GSD analysis documents (this directory)
-    ├── ARCHITECTURE.md
-    ├── STRUCTURE.md
-    └── ...
+│   │   └── mockContracts.ts     # Sample contract data (3 contracts, seeded on load)
+│   ├── hooks/
+│   │   ├── useCompanyProfile.ts # React hook for company profile CRUD (localStorage)
+│   │   └── useContractStore.ts  # Central app state hook (contracts, view, navigation)
+│   ├── knowledge/               # Domain knowledge module system
+│   │   ├── index.ts             # Public API: composeSystemPrompt, exports
+│   │   ├── profileLoader.ts     # Load company profile from localStorage
+│   │   ├── registry.ts          # Module registry + pass-to-module mapping
+│   │   ├── tokenBudget.ts       # Token cap enforcement (10K per module, 4 per pass)
+│   │   ├── types.ts             # KnowledgeModule, CompanyProfile interfaces + defaults
+│   │   ├── regulatory/          # Regulatory knowledge modules
+│   │   │   ├── index.ts         # Side-effect registration barrel
+│   │   │   ├── ca-calosha.ts
+│   │   │   ├── ca-lien-law.ts
+│   │   │   ├── ca-prevailing-wage.ts
+│   │   │   └── ca-title24.ts
+│   │   ├── standards/           # Industry standards modules
+│   │   │   ├── index.ts         # Side-effect registration barrel
+│   │   │   ├── contract-forms.ts
+│   │   │   └── standards-validation.ts
+│   │   └── trade/               # Trade-specific knowledge modules
+│   │       ├── index.ts         # Side-effect registration barrel
+│   │       └── div08-scope.ts
+│   ├── pages/                   # Page-level components (one per ViewState)
+│   │   ├── AllContracts.tsx
+│   │   ├── ContractReview.tsx
+│   │   ├── ContractUpload.tsx
+│   │   ├── Dashboard.tsx
+│   │   └── Settings.tsx
+│   ├── schemas/                 # Zod schemas for Claude structured outputs
+│   │   ├── analysis.ts          # Core schemas (Finding, PassResult, MergedAnalysisResult)
+│   │   ├── legalAnalysis.ts     # 11 legal pass schemas (self-contained, no cross-imports)
+│   │   └── scopeComplianceAnalysis.ts  # 4 scope/compliance pass schemas
+│   ├── types/
+│   │   └── contract.ts          # All domain type definitions (Contract, Finding, ViewState, etc.)
+│   ├── utils/
+│   │   ├── bidSignal.ts         # Deterministic bid/no-bid signal computation
+│   │   └── categoryIcons.ts     # Category-to-icon mapping
+│   ├── App.tsx                  # Root component: view routing, upload handling
+│   ├── index.tsx                # React DOM entry point
+│   └── index.css                # Tailwind imports, Inter font, .glass-panel utility
+├── index.html                   # Vite HTML entry point
+├── package.json                 # Dependencies and scripts
+├── tsconfig.json                # TypeScript config (strict mode)
+├── tsconfig.node.json           # TypeScript config for Vite/Node tooling
+├── vite.config.ts               # Vite configuration
+├── tailwind.config.js           # Tailwind CSS configuration
+├── postcss.config.js            # PostCSS configuration (Tailwind + autoprefixer)
+├── vercel.json                  # Vercel deployment config (300s maxDuration for API)
+├── .eslintrc.cjs                # ESLint configuration
+├── .prettierrc                  # Prettier configuration
+└── CLAUDE.md                    # AI assistant instructions
 ```
 
 ## Directory Purposes
 
-**api/**
-- Purpose: Vercel serverless functions handling backend logic
-- Contains: TypeScript files compiled and deployed as Functions on Vercel
-- Key files: `api/analyze.ts` (PDF processing, Claude API integration)
+**`api/`:**
+- Purpose: Vercel serverless function(s)
+- Contains: Single file `analyze.ts` (1745 lines) -- the entire backend
+- Key files: `api/analyze.ts`
 
-**src/**
-- Purpose: Client-side React application source code
-- Contains: Components, pages, hooks, types, data, styles
-- Entry point: `src/index.tsx` → `src/App.tsx`
-
-**src/types/**
-- Purpose: Domain type definitions
-- Contains: TypeScript interfaces and types used throughout the app
-- Key files: `src/types/contract.ts` (Contract, Finding, ContractDate, Category, Severity, ViewState)
-
-**src/hooks/**
-- Purpose: Custom React hooks for state and business logic
-- Contains: `useContractStore` (single custom hook managing all application state)
-- Pattern: State management via `useState`, returned methods for mutations
-
-**src/api/**
-- Purpose: API client and integration logic
-- Contains: Functions for communicating with serverless backend
-- Key files: `src/api/analyzeContract.ts` (file validation, base64 encoding, POST to /api/analyze)
-
-**src/data/**
-- Purpose: Static mock data for development and initialization
-- Contains: Sample contracts at varying risk levels (3 contracts)
-- Key files: `src/data/mockContracts.ts` (MOCK_CONTRACTS array)
-
-**src/components/**
+**`src/components/`:**
 - Purpose: Reusable UI building blocks
-- Contains: Presentational components (no state except local UI state)
-- Pattern: Functional components, props-based, Tailwind styling, Lucide icons
+- Contains: Presentational React components; each is a single `.tsx` file with a named export
+- Key files: `Sidebar.tsx` (navigation), `UploadZone.tsx` (file upload), `FindingCard.tsx` (finding display), `BidSignalWidget.tsx` (bid signal display), `CoverageComparisonTab.tsx` (insurance comparison)
 
-**src/pages/**
-- Purpose: Full-page components rendered based on active ViewState
-- Contains: Dashboard, upload form, contract review, settings
-- Pattern: Receive data and callbacks from `App.tsx` via props
-- Not a router: pages rendered via simple switch statement in `App.tsx`
+**`src/pages/`:**
+- Purpose: Top-level page components, one per view
+- Contains: Page components rendered by `App.tsx` based on `ViewState`
+- Key files: `Dashboard.tsx`, `ContractReview.tsx` (main analysis display), `ContractUpload.tsx`, `AllContracts.tsx`, `Settings.tsx`
 
-**dist/**
-- Purpose: Compiled production build
-- Contains: Bundled JavaScript, CSS, assets (output of `npm run build`)
-- Generated: Yes (do not commit, included in .gitignore)
-- Committed: No
+**`src/hooks/`:**
+- Purpose: Custom React hooks for state management
+- Contains: `useContractStore.ts` (central app state), `useCompanyProfile.ts` (localStorage-backed profile)
+- Key files: `useContractStore.ts`
+
+**`src/schemas/`:**
+- Purpose: Zod schemas that define the shape of Claude structured output responses
+- Contains: Three schema files, self-contained (no cross-imports between legal and scope schemas)
+- Key files: `analysis.ts` (core + merged), `legalAnalysis.ts` (11 legal passes), `scopeComplianceAnalysis.ts` (4 scope passes)
+
+**`src/knowledge/`:**
+- Purpose: Domain knowledge injection system for AI prompts
+- Contains: Module types, registry, token budgeting, prompt composition, and domain content files
+- Key files: `index.ts` (public API), `registry.ts` (pass-to-module mapping), `types.ts` (interfaces + defaults)
+
+**`src/knowledge/regulatory/`:**
+- Purpose: California-specific regulatory knowledge for AI analysis
+- Contains: Modules for Cal/OSHA, lien law, prevailing wage, Title 24
+- Pattern: Each file exports nothing directly; calls `registerModule()` as a side effect
+
+**`src/knowledge/standards/`:**
+- Purpose: Industry contract form standards and validation rules
+- Contains: Contract forms knowledge, standards validation rules
+
+**`src/knowledge/trade/`:**
+- Purpose: Glazing trade-specific knowledge (Division 08 scope definitions)
+- Contains: `div08-scope.ts`
+
+**`src/types/`:**
+- Purpose: TypeScript type definitions shared across client and server
+- Contains: Single file with all domain types
+- Key files: `contract.ts`
+
+**`src/utils/`:**
+- Purpose: Pure utility functions
+- Contains: Bid signal computation, category icon mapping
+- Key files: `bidSignal.ts`
+
+**`src/api/`:**
+- Purpose: Client-side API communication
+- Contains: Single file wrapping fetch to `/api/analyze`
+- Key files: `analyzeContract.ts`
+
+**`src/data/`:**
+- Purpose: Mock/seed data
+- Contains: `mockContracts.ts` with 3 pre-built contracts for demo purposes
 
 ## Key File Locations
 
 **Entry Points:**
-- `src/index.tsx`: React app mount point, renders App into DOM
-- `src/App.tsx`: Root component, layout and view routing logic
-- `api/analyze.ts`: Vercel serverless endpoint for contract analysis
+- `index.html`: Vite HTML entry, loads `src/index.tsx`
+- `src/index.tsx`: React DOM render of `<App />`
+- `src/App.tsx`: Application root -- state initialization, view routing, upload orchestration
+- `api/analyze.ts`: Sole serverless endpoint (`POST /api/analyze`)
 
 **Configuration:**
-- `tsconfig.json`: TypeScript compiler settings (strict mode)
-- `vite.config.ts`: Vite bundler configuration
-- `tailwind.config.js`: Tailwind theme and customization
-- `postcss.config.js`: PostCSS and Tailwind processing
-- `vercel.json`: Deployment settings (60s timeout for analyze function)
-- `package.json`: Dependencies and npm scripts
-- `CLAUDE.md`: Project instructions and architecture overview
+- `tsconfig.json`: TypeScript strict mode config
+- `vite.config.ts`: Vite build config
+- `tailwind.config.js`: Tailwind theme configuration
+- `vercel.json`: Deployment config (300s function timeout)
+- `.eslintrc.cjs`: ESLint rules
+- `.prettierrc`: Prettier formatting rules
+- `postcss.config.js`: PostCSS plugins
 
 **Core Logic:**
+- `api/analyze.ts`: Multi-pass analysis pipeline, PDF processing, result merging, deduplication
 - `src/hooks/useContractStore.ts`: Central state management
-- `src/api/analyzeContract.ts`: Client-side API wrapper
-- `api/analyze.ts`: Server-side PDF processing and Claude API
-- `src/types/contract.ts`: All domain type definitions
+- `src/api/analyzeContract.ts`: Client-to-server analysis bridge
+- `src/utils/bidSignal.ts`: Bid/no-bid signal algorithm
+- `src/knowledge/index.ts`: Prompt composition with domain knowledge
 
-**Testing:**
-- No test files present (no test framework configured)
+**Domain Types:**
+- `src/types/contract.ts`: All shared types (`Contract`, `Finding`, `LegalMeta`, `ScopeMeta`, `ViewState`, etc.)
+- `src/knowledge/types.ts`: `KnowledgeModule`, `CompanyProfile` interfaces
+
+**Schemas (Claude structured outputs):**
+- `src/schemas/analysis.ts`: Core schemas (`FindingSchema`, `PassResultSchema`, `MergedAnalysisResultSchema`)
+- `src/schemas/legalAnalysis.ts`: 11 legal clause-type schemas
+- `src/schemas/scopeComplianceAnalysis.ts`: 4 scope/compliance schemas
 
 ## Naming Conventions
 
 **Files:**
-- React components: `PascalCase.tsx` (e.g., `FindingCard.tsx`, `Dashboard.tsx`)
-- Hooks: `camelCase` prefix `use`, e.g. `useContractStore.ts`
-- Utilities/helpers: `camelCase.ts` (e.g., `analyzeContract.ts`)
-- Type definition files: `contract.ts` (contains all Contract-related types)
-- Config files: lowercase (e.g., `vite.config.ts`, `tailwind.config.js`)
+- Components: PascalCase `.tsx` (`FindingCard.tsx`, `SeverityBadge.tsx`)
+- Pages: PascalCase `.tsx` (`Dashboard.tsx`, `ContractReview.tsx`)
+- Hooks: camelCase with `use` prefix `.ts` (`useContractStore.ts`, `useCompanyProfile.ts`)
+- Utilities: camelCase `.ts` (`bidSignal.ts`, `categoryIcons.ts`)
+- Types: camelCase `.ts` (`contract.ts`)
+- Schemas: camelCase `.ts` (`analysis.ts`, `legalAnalysis.ts`)
+- Knowledge modules: kebab-case `.ts` (`ca-calosha.ts`, `div08-scope.ts`)
+- Serverless functions: camelCase `.ts` (`analyze.ts`)
 
 **Directories:**
-- Plural names for categories: `components/`, `pages/`, `hooks/`, `types/`, `api/`
-- Lowercase: `src/`, `dist/`, `api/`, `data/`
+- All lowercase, no separators (`components/`, `pages/`, `hooks/`, `schemas/`)
+- Knowledge subdirs by domain (`regulatory/`, `standards/`, `trade/`)
 
-**TypeScript:**
-- Domain types: PascalCase (e.g., `Contract`, `Finding`, `Severity`, `Category`, `ViewState`)
-- Interfaces: PascalCase prefixed with context (e.g., `ContractUploadProps`, `AnalysisResult`)
-- Functions: camelCase (e.g., `useContractStore()`, `analyzeContract()`, `updateContract()`)
-- Constants: SCREAMING_SNAKE_CASE for objects/arrays (e.g., `MOCK_CONTRACTS`)
+**Exports:**
+- Components: Named exports (not default) -- `export function Dashboard()`
+- Hooks: Named exports -- `export function useContractStore()`
+- Types: Named exports -- `export interface Contract`, `export type ViewState`
+- Schemas: Named exports -- `export const FindingSchema`
+- Knowledge modules: Side-effect registration (no explicit exports needed)
 
 ## Where to Add New Code
 
-**New Feature (e.g., contract export, filtering):**
-- Primary code: Add hook method to `src/hooks/useContractStore.ts` if state needed; add component in `src/components/` or refactor existing page in `src/pages/`
-- Tests: No test structure currently; add unit tests to new file following `[name].test.ts` pattern if tests are configured
-- Types: Extend types in `src/types/contract.ts` if new domain model needed
+**New Page/View:**
+1. Add view name to `ViewState` type in `src/types/contract.ts`
+2. Create page component in `src/pages/NewPage.tsx` (PascalCase, named export)
+3. Add case to `renderContent()` switch in `src/App.tsx`
+4. Add nav item to `navItems` array in `src/components/Sidebar.tsx`
 
-**New Component/Module:**
-- Implementation: Create `.tsx` file in `src/components/` (reusable) or `src/pages/` (full-page)
-- Export from barrel file: Consider creating barrel files if directory grows (e.g., `src/components/index.ts` with `export * from './...'`)
-- Props: Define `interface [ComponentName]Props` at top of file
-- Styling: Use Tailwind utility classes exclusively; add custom classes to `src/index.css` if `.glass-panel`-style utility needed
+**New UI Component:**
+- Create in `src/components/ComponentName.tsx`
+- Use named export, accept props interface defined inline or in types file
+- Use Tailwind utility classes for styling
 
-**Utilities/Helpers:**
-- Shared logic: Create in `src/api/` if API-related, or create new `src/utils/` directory if general helpers
-- File naming: Match function name (e.g., `validatePDF.ts` for `validatePDF()` function)
-- Types: Define types in `src/types/` if used across multiple files
+**New Analysis Pass:**
+1. Define Zod schema in `src/schemas/legalAnalysis.ts` or `src/schemas/scopeComplianceAnalysis.ts`
+2. Add `AnalysisPass` entry to `ANALYSIS_PASSES` array in `api/analyze.ts`
+3. Add conversion logic to `convertLegalFinding()` or `convertScopeFinding()` in `api/analyze.ts`
+4. If needed, add new `LegalMeta` or `ScopeMeta` variant to `src/types/contract.ts`
+5. Map knowledge modules in `PASS_KNOWLEDGE_MAP` in `src/knowledge/registry.ts`
 
-**New API Integration:**
-- Client wrapper: Add function to `src/api/analyzeContract.ts` following same pattern (validation, error handling, fetch with error response parsing)
-- Server handler: Add new file to `api/` directory (e.g., `api/exportContract.ts`) with Vercel request/response signature
-- Environment: Add required env var to `vercel.json` references and `.env.local` (locally); document in CLAUDE.md
+**New Knowledge Module:**
+1. Create module file in appropriate subdomain: `src/knowledge/regulatory/`, `src/knowledge/standards/`, or `src/knowledge/trade/`
+2. Call `registerModule()` in the file (side-effect registration pattern)
+3. Import the file in the subdomain's `index.ts` barrel
+4. Map to relevant passes in `PASS_KNOWLEDGE_MAP` in `src/knowledge/registry.ts`
+5. Ensure content stays under 10K estimated tokens (content.length / 4)
 
-**New Page:**
-- File: Create `src/pages/[PageName].tsx`
-- Add to ViewState: Update type in `src/types/contract.ts` (e.g., add `'newPage'` to ViewState union)
-- Add to routing: Add case to switch statement in `src/App.tsx` `renderContent()` method
-- Navigation: Add button to `src/components/Sidebar.tsx` `navItems` array to make navigable
+**New Utility:**
+- Add to `src/utils/utilityName.ts`
+- Use named exports, keep functions pure
+
+**New Hook:**
+- Add to `src/hooks/useHookName.ts`
+- Prefix with `use`, named export
+
+**New Domain Type:**
+- Add to `src/types/contract.ts` (all domain types live in one file)
 
 ## Special Directories
 
-**dist/:**
-- Purpose: Production build output directory
-- Generated: Yes (via `npm run build`)
-- Committed: No (.gitignore)
-- Clean: Run `npm run build` to regenerate
+**`api/`:**
+- Purpose: Vercel serverless functions (auto-routed by filename)
+- Generated: No
+- Committed: Yes
+- Note: Files here become API endpoints at `/api/{filename}`. Currently only `analyze.ts` exists.
 
-**node_modules/:**
-- Purpose: Installed npm dependencies
-- Generated: Yes (via `npm install`)
-- Committed: No (.gitignore)
-- Clean: Delete and re-run `npm install`
+**`dist/`:**
+- Purpose: Vite production build output
+- Generated: Yes (by `npm run build`)
+- Committed: Yes (present in repo)
 
-**.planning/codebase/:**
-- Purpose: GSD analysis documents
-- Generated: Yes (by mapping tools)
-- Committed: Yes (tracked in git for CI/CD reference)
-- Contents: ARCHITECTURE.md, STRUCTURE.md, and other analysis files
+**`.vercel/`:**
+- Purpose: Vercel CLI project config
+- Generated: Yes (by `vercel` CLI)
+- Committed: Partial (`project.json` is committed)
+
+**`src/knowledge/regulatory/`, `src/knowledge/standards/`, `src/knowledge/trade/`:**
+- Purpose: Domain knowledge content for AI prompt injection
+- Generated: No (hand-authored)
+- Committed: Yes
+- Note: Each has a `.gitkeep` file and an `index.ts` barrel that imports all modules for side-effect registration
 
 ---
 
-*Structure analysis: 2026-03-01*
+*Structure analysis: 2026-03-12*

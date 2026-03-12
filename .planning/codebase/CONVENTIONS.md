@@ -1,157 +1,209 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-03-01
+**Analysis Date:** 2026-03-12
 
 ## Naming Patterns
 
 **Files:**
-- React components: PascalCase (e.g., `FindingCard.tsx`, `SeverityBadge.tsx`)
-- Utility/hook files: camelCase (e.g., `useContractStore.ts`, `analyzeContract.ts`)
-- Type/interface files: camelCase (e.g., `contract.ts`)
-- API handlers: camelCase (e.g., `analyze.ts`)
+- Components: PascalCase `.tsx` files (e.g., `FindingCard.tsx`, `SeverityBadge.tsx`, `AnalysisProgress.tsx`)
+- Pages: PascalCase `.tsx` files in `src/pages/` (e.g., `ContractReview.tsx`, `Dashboard.tsx`)
+- Hooks: camelCase with `use` prefix (e.g., `useContractStore.ts`, `useCompanyProfile.ts`)
+- Utilities: camelCase `.ts` files (e.g., `bidSignal.ts`, `categoryIcons.ts`)
+- Schemas: camelCase `.ts` files (e.g., `analysis.ts`, `legalAnalysis.ts`)
+- Types: camelCase `.ts` files (e.g., `contract.ts`, `types.ts`)
+- API client wrappers: camelCase `.ts` (e.g., `analyzeContract.ts`)
+- Serverless functions: camelCase `.ts` in `api/` (e.g., `api/analyze.ts`)
 
 **Functions:**
-- React components: PascalCase (e.g., `function Dashboard()`, `export function SeverityBadge()`)
-- Utility functions: camelCase (e.g., `readFileAsBase64()`, `analyzeContract()`)
-- Event handlers: camelCase with `on` prefix or `handle` prefix (e.g., `onNavigate()`, `handleUploadComplete()`, `onDrop()`)
-- Hook functions: camelCase with `use` prefix (e.g., `useContractStore()`)
+- Use camelCase: `analyzeContract`, `computeBidSignal`, `loadCompanyProfile`
+- Component functions: PascalCase (e.g., `FindingCard`, `Dashboard`)
+- Helper/matcher functions: camelCase with descriptive verb prefix (e.g., `matchesBonding`, `buildBaseFinding`, `convertLegalFinding`)
+- Boolean predicates: `is` or `has` prefix (e.g., `isSpecializedPass`, `hasEmptyProfileFields`)
 
 **Variables:**
-- State variables: camelCase (e.g., `activeContract`, `isUploading`, `selectedCategory`)
-- Type/interface variables: PascalCase (e.g., `Contract`, `Finding`, `ViewState`)
-- Constants: UPPER_SNAKE_CASE (e.g., `MAX_FILE_SIZE`, `SYSTEM_PROMPT`, `MOCK_CONTRACTS`)
-- Object properties/keys: camelCase (e.g., `riskScore`, `uploadDate`, `clauseReference`)
+- camelCase for all variables: `activeContract`, `selectedCategory`, `riskScore`
+- Constants: UPPER_SNAKE_CASE for module-level constants (e.g., `MAX_FILE_SIZE`, `SEVERITY_WEIGHTS`, `ANALYSIS_PASSES`, `BETAS`)
+- State variables: camelCase with setter following React convention (`[activeView, setActiveView]`)
 
 **Types:**
-- Interface names: PascalCase (e.g., `Finding`, `Contract`, `ContractDate`)
-- Type aliases: PascalCase (e.g., `Severity`, `Category`, `ViewState`)
-- Generic parameters: PascalCase (e.g., `T`, `Props`)
-- Discriminated union literals: PascalCase or quoted strings (e.g., `'Critical' | 'High'` for severity)
+- Interfaces: PascalCase with descriptive suffix (e.g., `FindingCardProps`, `AnalysisResult`, `ComparisonRow`)
+- Type aliases: PascalCase (e.g., `Severity`, `Category`, `ViewState`, `BidSignalLevel`)
+- Zod schemas: PascalCase with `Schema` suffix (e.g., `FindingSchema`, `PassResultSchema`, `RiskOverviewResultSchema`)
+- Inferred types from Zod: PascalCase with `Result` suffix (e.g., `PassResult`, `MergedAnalysisResult`)
+- Discriminated unions: Use literal string `clauseType` or `passType` discriminator (see `LegalMeta` and `ScopeMeta` in `src/types/contract.ts`)
 
 ## Code Style
 
 **Formatting:**
-- No Prettier config in repo — formatting is manual/editor-based
-- ESLint configuration: `.eslintrc.cjs` with `eslint:recommended`, `@typescript-eslint/recommended`, and `react-hooks/recommended`
-- Indentation: 2 spaces (implicit from codebase style)
-- Line length: No explicit limit enforced (see ~80-90 character lines throughout)
-- Trailing semicolons: Always included
-- Arrow functions: Preferred over function declarations in component/callback contexts
+- Prettier with config in `.prettierrc`
+- Single quotes (`'singleQuote': true`)
+- Trailing commas: ES5 style (`'trailingComma': 'es5'`)
+- Default Prettier settings for everything else (2-space indent, 80 char print width)
+- lint-staged runs Prettier + ESLint on staged `*.{ts,tsx}` files
 
 **Linting:**
-- Tool: ESLint 8.50.0 with `@typescript-eslint/parser`
-- Key rule: `react-refresh/only-export-components` (warn) — Ensures exported components work with React Refresh fast refresh
-- No custom lint rules beyond defaults; codebase follows standard TS/React conventions
+- ESLint 8 with config in `.eslintrc.cjs`
+- Extends: `eslint:recommended`, `plugin:@typescript-eslint/recommended`, `plugin:react-hooks/recommended`
+- Plugin: `react-refresh` with `only-export-components` rule (warn)
+- Browser + ES2020 environment
+
+**TypeScript:**
+- Strict mode enabled in `tsconfig.json`
+- `noUnusedLocals: true`, `noUnusedParameters: true`, `noFallthroughCasesInSwitch: true`
+- Target: ES2020, JSX: react-jsx
+- Module resolution: bundler
 
 ## Import Organization
 
 **Order:**
-1. React imports (`import React from 'react'`)
-2. Third-party library imports (`framer-motion`, `lucide-react`, `react-dropzone`, `@vercel/node`, `@anthropic-ai/sdk`)
-3. Internal absolute imports (`from '../types/contract'`, `from '../hooks/useContractStore'`, `from '../components/...'`)
+1. React imports (`import { useState, useEffect } from 'react'`)
+2. External library imports (`framer-motion`, `lucide-react`, `react-dropzone`, `zod`)
+3. Internal type imports (`from '../types/contract'`)
+4. Internal module imports (hooks, components, utils, schemas, knowledge)
 
-**Path Aliases:**
-- No path aliases configured; all imports are relative (`../', `./`)
-
-**Example:**
-```typescript
-import React from 'react';
-import { Contract, Category } from '../types/contract';
-import { FindingCard } from '../components/FindingCard';
-import { CategoryFilter } from '../components/CategoryFilter';
-import { ChevronLeft, Download, Share2, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-```
+**Style:**
+- Use named imports throughout, no default imports except for SDK clients (`import Anthropic from '@anthropic-ai/sdk'`)
+- Use `import type` for type-only imports in API/server code (e.g., `import type { VercelRequest, VercelResponse } from '@vercel/node'`)
+- Relative paths only -- no path aliases configured
+- Typical relative depth: `../types/`, `../components/`, `../hooks/`, `../utils/`
 
 ## Error Handling
 
-**Patterns:**
-- Custom `Error` constructor with descriptive message strings for validation: `throw new Error('Only PDF files are supported.')`
-- HTTP error responses wrapped in user-friendly messages: `throw new Error(body.error || 'Analysis failed (HTTP ${response.status})')`
-- Type narrowing for caught errors: `const err = error as { status?: number; message?: string }`
-- Error type guards: `if (err instanceof SyntaxError)` or `if (err.status === 429)`
-- Graceful fallback on missing response body: `.catch(() => ({ error: 'Unknown error' }))`
-- No global error boundary or centralized error handler — error handling is local to each async operation
+**Client-side API calls (`src/api/analyzeContract.ts`):**
+- Validate inputs (file size, file type) before making API call -- throw `Error` with user-facing message
+- Parse response: check `response.ok`, then inspect `content-type` header
+- JSON error responses: extract `.error` field
+- HTML responses: detect `<!DOCTYPE` and provide helpful message ("Is the API server running?")
+- Truncate raw text errors to 200 chars
+- All errors thrown as `new Error(message)` -- no custom error classes
 
-**Error propagation in App.tsx (`src/App.tsx`):**
-- Upload failures during `analyzeContract()` are caught and converted to a "Critical" finding in the contract UI
-- Error message displayed as a Finding with severity "Critical", category "Risk Assessment", title "Analysis Failed"
+**Caller error handling (`src/App.tsx`):**
+- `.catch()` on Promise chain converts error to a Critical finding displayed in the UI
+- Uses `err instanceof Error ? err.message : 'An unexpected error occurred'` pattern
+- No global error boundary
 
-**Error propagation in analyzeContract.ts (`src/api/analyzeContract.ts`):**
-- File validation errors (size, type) throw immediately with descriptive messages
-- HTTP errors extract body and throw with either provided error message or HTTP status code
-- Reader errors from FileReader API throw with generic message
+**Server-side (`api/analyze.ts`):**
+- HTTP method validation (405 for non-POST)
+- Input validation (400 for missing fields, file size check)
+- API key validation (401 for missing key)
+- Content validation (422 for image-based PDFs with insufficient text)
+- Rate limit handling (429 from Anthropic API)
+- Failed analysis passes: `PromiseSettledResult` pattern -- failures become Critical findings in output rather than killing the whole request
+- Console logging for errors (`console.error`)
 
-**Error propagation in analyze.ts (`api/analyze.ts`):**
-- Missing/invalid API key: 500 response with "Server configuration error"
-- Missing pdfBase64: 400 response with "Missing or invalid pdfBase64 field"
-- Insufficient text extraction (image-based PDF): 422 response with specific guidance on text-based PDF requirement
-- Rate limit (429) from Claude API: Pass through to client as 429
-- Auth failure (401) from Claude API: Convert to 500 with "Server configuration error"
-- JSON parse failure: 500 response with "Failed to parse AI response"
-- Unexpected errors: 500 response with generic "An error occurred during analysis"
-- Errors logged to console: `console.error('Analysis error:', err.message || error)`
+**Pattern to follow for new error handling:**
+```typescript
+// Client-side: throw Error with user message
+if (condition) {
+  throw new Error('User-friendly error description.');
+}
+
+// Server-side: return JSON error with HTTP status
+return res.status(400).json({ error: 'Description of what went wrong' });
+
+// Graceful degradation for partial failures
+const results = await Promise.allSettled(passes);
+// Handle each settled result individually
+```
 
 ## Logging
 
-**Framework:** `console` object only — no dedicated logging library
+**Framework:** `console` (no logging library)
 
 **Patterns:**
-- Errors logged in catch blocks: `console.error('Analysis error:', err.message || error)` in `api/analyze.ts` line 157
-- No info/debug logging in client code
-- No structured logging; plain text messages to console
-- No log levels (info, warn, debug) — only error logging used
+- `console.error()` for caught exceptions in server-side code
+- No client-side logging in production code
+- No structured logging or log levels beyond console methods
 
 ## Comments
 
 **When to Comment:**
-- Inline comments for non-obvious logic (e.g., PDF base64 prefix stripping in `readFileAsBase64()` explains "Strip the data:...;base64, prefix")
-- Section comments for major blocks (e.g., "Create placeholder contract in Analyzing state" in `App.tsx`)
-- No over-commenting; self-documenting code via clear naming is preferred
+- Section dividers in long files: use `// ----` horizontal rule blocks with section titles (see `api/analyze.ts`)
+- Important constraints: use `// IMPORTANT:` prefix for schema constraints or behavioral notes
+- Inline comments for non-obvious logic (e.g., `// Clamp to 0-100`, `// Rough page count estimate`)
+- CRITICAL comments for guarding fragile code (e.g., `/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED */` in `src/index.css`)
 
 **JSDoc/TSDoc:**
-- Not used in codebase; no function-level documentation comments
-- Type definitions provide documentation via interfaces (e.g., `interface FindingCardProps`)
+- Used sparingly, mainly on utility functions and exported functions in `src/utils/` and `src/knowledge/`
+- `/** ... */` block style with `@param` omitted (description only)
+- Not used on React components or hooks
 
 ## Function Design
 
-**Size:** Typically 10-40 lines; larger functions break at logical boundaries (e.g., `renderContent()` in `App.tsx` uses switch statement to delegate)
+**Size:** Components range from 20 to 320 lines. Utility functions are short (10-30 lines). The serverless handler (`api/analyze.ts`) is ~1500 lines total but decomposed into many small helper functions.
 
 **Parameters:**
-- Destructured from objects when multiple related values (e.g., `{ finding, index }` in `FindingCard`)
-- Callback props use type-safe handlers (e.g., `onNavigate: (view: ViewState, contractId?: string) => void`)
-- Optional parameters using `?` for nullable values (e.g., `contractId?`, `className?`)
+- Components: destructured props with explicit interface (`{ finding, index }: FindingCardProps`)
+- Utility functions: typed positional parameters
+- Default parameter values used for optional props (e.g., `color = 'blue'`, `className = ''`)
 
 **Return Values:**
-- JSX for component functions
-- Promises for async functions (`Promise<T>`)
-- Typed data objects for utilities (e.g., `AnalysisResult` interface)
-- Void for event handlers (`onClick`, `onDrop`)
+- Components: JSX (single root element)
+- Hooks: plain object with named properties (not tuple except for `useState`)
+- Utility functions: typed return values
 
 ## Module Design
 
 **Exports:**
-- Named exports for reusable components and functions: `export function SeverityBadge()`, `export function useContractStore()`
-- Default exports: Not used
-- Type exports: `export type Severity = ...`, `export interface Contract`
+- Components: named export of a single function component per file (`export function FindingCard`)
+- Hooks: named export of a single hook per file (`export function useContractStore`)
+- Types: named exports of all types from a single file (`src/types/contract.ts`)
+- Knowledge system: barrel file re-exports via `src/knowledge/index.ts`
+- No default exports anywhere in the codebase
 
 **Barrel Files:**
-- Not used; components imported directly from their files
+- `src/knowledge/index.ts` re-exports from `types.ts`, `registry.ts`, `tokenBudget.ts`
+- `src/knowledge/regulatory/index.ts`, `src/knowledge/trade/index.ts`, `src/knowledge/standards/index.ts` register modules via side-effect imports
+- No barrel files for components or pages -- each is imported directly
 
-**Example structure:**
+## Component Patterns
+
+**Props Interface:**
+- Always define an explicit `interface XxxProps` immediately before the component
+- Keep interface in the same file as the component (not in a shared types file)
+- Use `children` sparingly -- prefer explicit props
+
+**State Management:**
+- All app state lives in `useContractStore` hook (`src/hooks/useContractStore.ts`) using `useState`
+- Local component state for UI concerns (filters, view mode, toggle state)
+- No Context, no Redux, no external state libraries
+- Company profile persisted to `localStorage` via `useCompanyProfile` hook
+
+**Animation Pattern:**
+- Framer Motion `motion.div` for entry animations
+- Staggered delays: `delay: index * 0.05`
+- Standard initial/animate: `{ opacity: 0, y: 10 }` to `{ opacity: 1, y: 0 }`
+- `AnimatePresence` with `mode="popLayout"` for filtered list transitions
+
+**Severity Color Map (use consistently):**
 ```typescript
-// Component with typed props
-interface MyComponentProps {
-  prop1: string;
-  prop2?: number;
-  onClick: () => void;
-}
-
-export function MyComponent({ prop1, prop2, onClick }: MyComponentProps) {
-  return <div>{prop1}</div>;
-}
+const colors = {
+  Critical: 'bg-red-100 text-red-700 border-red-200',
+  High: 'bg-amber-100 text-amber-700 border-amber-200',
+  Medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  Low: 'bg-blue-100 text-blue-700 border-blue-200',
+  Info: 'bg-slate-100 text-slate-700 border-slate-200',
+};
 ```
+
+**Tailwind Patterns:**
+- Use `slate` as the neutral color throughout (not `gray` or `zinc`)
+- Background: `bg-slate-50` for page, `bg-white` for cards
+- Borders: `border-slate-200` standard, `border-slate-100` for subtle dividers
+- Text: `text-slate-900` for headings, `text-slate-600` for body, `text-slate-500` for secondary, `text-slate-400` for muted
+- Rounded corners: `rounded-lg` for cards, `rounded-xl` for larger containers, `rounded-full` for badges/pills
+- Custom class: `.glass-panel` (`bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm`) defined in `src/index.css`
+
+## Zod Schema Conventions
+
+**Location:** `src/schemas/analysis.ts`, `src/schemas/legalAnalysis.ts`, `src/schemas/scopeComplianceAnalysis.ts`
+
+**Rules:**
+- No `.min()`, `.max()`, `.minLength()`, `.maxLength()` constraints -- Anthropic structured outputs does not support them
+- Enum values kept in sync manually with `src/types/contract.ts`
+- Convert to JSON Schema via `zod-to-json-schema` for API `output_config`
+- Infer TypeScript types from Zod schemas with `z.infer<typeof Schema>`
 
 ---
 
-*Convention analysis: 2026-03-01*
+*Convention analysis: 2026-03-12*

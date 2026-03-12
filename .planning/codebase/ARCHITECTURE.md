@@ -1,170 +1,178 @@
 # Architecture
 
-**Analysis Date:** 2026-03-01
+**Analysis Date:** 2026-03-12
 
 ## Pattern Overview
 
-**Overall:** View-based SPA with client-side state management and server-side AI analysis pipeline.
+**Overall:** Client-server SPA with serverless backend, multi-pass AI analysis pipeline
 
 **Key Characteristics:**
-- Single-page application with view routing (no Next.js, no React Router)
-- Centralized in-memory state via custom `useContractStore` hook
-- Asynchronous AI processing via Vercel serverless function
-- Immediate UI feedback with placeholder contracts during analysis
-- Two-tier contract analysis: client-side validation + server-side Claude API integration
+- Single-page React application with view-based routing (no router library)
+- Centralized in-memory state via a single custom hook (`useContractStore`)
+- Vercel serverless function as the sole backend endpoint (`/api/analyze`)
+- Multi-pass parallel AI analysis pipeline using Claude structured outputs
+- Domain knowledge module system for injecting regulatory/trade context into AI prompts
+- Zod schemas enforce type-safe structured responses from Claude API
+- No database or persistence layer; state resets on page refresh
 
 ## Layers
 
-**Presentation Layer (Components):**
-- Purpose: Render UI and handle user interactions
-- Location: `src/components/` and `src/pages/`
-- Contains: Functional React components with hooks, Tailwind styling, Framer Motion animations
-- Depends on: React, custom hooks, types, Lucide icons
-- Used by: `App.tsx` root component
+**Presentation Layer (Pages + Components):**
+- Purpose: Render UI, handle user interactions, display analysis results
+- Location: `src/pages/`, `src/components/`
+- Contains: React functional components using Tailwind CSS and Framer Motion
+- Depends on: State layer (useContractStore), types
+- Used by: `src/App.tsx` (view router)
 
-**Business Logic Layer (Hooks & Services):**
-- Purpose: Manage application state and coordinate data flow
-- Location: `src/hooks/useContractStore.ts`, `src/api/analyzeContract.ts`
-- Contains: Custom hooks for state management, API wrapper functions
-- Depends on: React hooks, types, Anthropic SDK (indirectly via server)
-- Used by: Page components and `App.tsx`
+**State Layer:**
+- Purpose: Manage application state (contracts, active view, upload status)
+- Location: `src/hooks/useContractStore.ts`
+- Contains: Single hook wrapping `useState` calls; no Context API or Redux
+- Depends on: `src/types/contract.ts`, `src/data/mockContracts.ts`
+- Used by: `src/App.tsx` exclusively (state is prop-drilled to pages)
 
-**Data Layer (Types & Data):**
-- Purpose: Define domain contracts and provide mock data for initialization
-- Location: `src/types/contract.ts`, `src/data/mockContracts.ts`
-- Contains: TypeScript interfaces (Contract, Finding, ContractDate, ViewState), constants for mock data
-- Depends on: None (foundational layer)
+**Client API Layer:**
+- Purpose: Encode PDF to base64, POST to serverless function, handle response/errors
+- Location: `src/api/analyzeContract.ts`
+- Contains: `analyzeContract()` function, `readFileAsBase64()` helper
+- Depends on: `src/types/contract.ts`, `src/knowledge/profileLoader.ts`
+- Used by: `src/App.tsx` (upload handler)
+
+**Server API Layer:**
+- Purpose: Receive PDF, extract text, run multi-pass Claude analysis, merge results
+- Location: `api/analyze.ts` (Vercel serverless function, 1745 lines)
+- Contains: Pass definitions, PDF preparation, Claude API calls, result merging, deduplication, risk scoring
+- Depends on: `src/schemas/`, `src/knowledge/`, `src/utils/bidSignal.ts`, `src/types/contract.ts`
+- Used by: Client API layer via HTTP POST to `/api/analyze`
+
+**Schema Layer:**
+- Purpose: Define Zod schemas for Claude structured output responses; ensure type-safe AI results
+- Location: `src/schemas/`
+- Contains: `analysis.ts` (core/merged schemas), `legalAnalysis.ts` (11 legal pass schemas), `scopeComplianceAnalysis.ts` (4 scope pass schemas)
+- Depends on: `zod`
+- Used by: `api/analyze.ts` (converted to JSON Schema for Claude output_config)
+
+**Knowledge Layer:**
+- Purpose: Inject domain-specific regulatory, trade, and standards context into AI prompts
+- Location: `src/knowledge/`
+- Contains: Module registry, token budget enforcement, prompt composition, company profile
+- Depends on: Nothing external
+- Used by: `api/analyze.ts` (via `composeSystemPrompt()`), `src/api/analyzeContract.ts` (via `loadCompanyProfile()`)
+
+**Types Layer:**
+- Purpose: Define all domain types used across client and server
+- Location: `src/types/contract.ts`
+- Contains: `Contract`, `Finding`, `ContractDate`, `Severity`, `Category`, `ViewState`, `LegalMeta`, `ScopeMeta`, `BidSignal`, `CompanyProfile`
+- Depends on: Nothing
 - Used by: All other layers
 
-**API/Integration Layer:**
-- Purpose: Handle external service integration and PDF processing
-- Location: `api/analyze.ts` (Vercel serverless), `src/api/analyzeContract.ts` (client wrapper)
-- Contains: Vercel request/response handler, PDF extraction, Claude API communication
-- Depends on: Anthropic SDK, pdf-parse, @vercel/node
-- Used by: `App.tsx` when handling file uploads
+**Utilities Layer:**
+- Purpose: Pure computation functions
+- Location: `src/utils/`
+- Contains: `bidSignal.ts` (bid/no-bid signal computation), `categoryIcons.ts` (icon mapping)
+- Depends on: `src/types/contract.ts`
+- Used by: `api/analyze.ts`, presentation components
 
 ## Data Flow
 
-**Contract Upload & Analysis Flow:**
+**Contract Upload and Analysis Flow:**
 
-1. User selects PDF in `UploadZone` component (via `ContractUpload` page)
-2. `App.tsx` `handleUploadComplete` called with File object
-3. Placeholder contract created in "Analyzing" state and added to store
-4. Navigation redirects to review page immediately (placeholder visible)
-5. `analyzeContract()` in `src/api/analyzeContract.ts` triggers:
-   - Converts PDF to base64 in browser
-   - POST to `/api/analyze` with encoded PDF
-6. `api/analyze.ts` (serverless) receives request:
-   - Decodes base64 → Buffer
-   - `pdf-parse` extracts text (validates 100+ chars, rejects image PDFs)
-   - Truncates text to 100k chars to fit Claude context
-   - Sends to Claude API with domain-specific system prompt
-   - Parses JSON response, validates data, normalizes findings & dates
-   - Returns AnalysisResult with client, contractType, riskScore, findings, dates
-7. Response flows back to client, `updateContract()` called in store
-8. Contract status changes to "Reviewed", placeholder updated with real data
-9. Component re-renders with findings visible
-10. On error: Critical finding created with error message
-
-**State Transitions:**
-
-```
-Contract created with status: "Analyzing" → "Reviewed" (on success)
-                                           → "Reviewed" (on error, with error finding)
-```
+1. User drops PDF onto `UploadZone` component (react-dropzone, max 10MB, PDF only)
+2. `App.tsx` `handleUploadComplete()` creates a placeholder `Contract` with `status: 'Analyzing'`, adds it to state via `addContract()`, and navigates to review page
+3. `analyzeContract()` in `src/api/analyzeContract.ts` reads file as base64 via `FileReader`, loads company profile from localStorage, POSTs both to `/api/analyze`
+4. `api/analyze.ts` serverless function:
+   a. Decodes base64 PDF to buffer, validates size
+   b. Uploads PDF to Anthropic Files API (or falls back to text extraction via `unpdf`)
+   c. Runs all 16 analysis passes in parallel via `Promise.allSettled()`
+   d. Each pass calls Claude (`claude-sonnet-4-5-20250929`) with pass-specific system prompt, structured output schema, and file reference
+   e. Merges results: collects findings/dates, deduplicates by clauseReference+category then by title (specialized passes win over general), computes deterministic risk score
+   f. Applies CA void-by-law severity guard (display-only upgrade)
+   g. Computes bid/no-bid signal from deduplicated findings
+   h. Returns merged JSON response, cleans up uploaded file
+5. On success, `App.tsx` calls `updateContract(id, result)` to replace placeholder data
+6. On failure, `updateContract()` creates a single Critical "Analysis Failed" finding
 
 **State Management:**
+- All state lives in `useContractStore()` hook, called once in `App.tsx`
+- State is prop-drilled to pages: `contracts`, `activeContract`, `navigateTo`
+- No persistence: `contracts` initializes from `MOCK_CONTRACTS` on every page load
+- Company profile persisted separately in localStorage via `src/knowledge/profileLoader.ts`
 
-- Single source of truth: `contracts` array in `useContractStore`
-- Active contract: `activeContractId` tracks currently viewed contract
-- Active view: `activeView` tracks which page is rendered (dashboard, upload, review, contracts, settings)
-- Uploads in flight: `isUploading` flag (defined but not actively used in current code)
-- State is ephemeral: Lost on page refresh, no persistence layer
+**Navigation:**
+- `ViewState` type: `'dashboard' | 'upload' | 'review' | 'contracts' | 'settings'`
+- `navigateTo(view, contractId?)` sets active view and optional contract ID
+- `App.tsx` `renderContent()` switch renders the corresponding page component
+- `Sidebar` component renders nav items, calls `onNavigate` callback
 
 ## Key Abstractions
 
-**Contract:**
-- Purpose: Represents a single glazing/construction contract with analysis results
-- Examples: `src/types/contract.ts` (type definition), `src/data/mockContracts.ts` (instances)
-- Pattern: Immutable data structure with id, metadata (name, client, type), analysis results (riskScore, findings, dates), status
+**Multi-Pass Analysis Pipeline:**
+- Purpose: Break contract analysis into 16 specialized Claude API calls run in parallel
+- Defined in: `api/analyze.ts` `ANALYSIS_PASSES` array (lines 108+)
+- Pattern: Each `AnalysisPass` has `name`, `systemPrompt`, `userPrompt`, `schema` (Zod), and flags (`isOverview`, `isLegal`, `isScope`)
+- Pass categories: 1 risk-overview, 11 legal clause passes, 4 scope/compliance passes
+- Execution: `runAnalysisPass()` calls Claude with pass-specific schema via `output_config`
+- Merging: `mergePassResults()` deduplicates, computes risk score, applies severity guards
 
-**Finding:**
-- Purpose: Represents a single issue or risk flagged during contract analysis
-- Examples: All findings within Contract objects in `src/data/mockContracts.ts`
-- Pattern: Severity-based classification (Critical, High, Medium, Low, Info), category-based organization (9 categories: Legal Issues, Scope of Work, etc.), includes title, description, optional recommendation and clause reference
+**Knowledge Module System:**
+- Purpose: Inject domain-specific context (regulations, trade standards) into per-pass prompts
+- Registry: `src/knowledge/registry.ts` - `PASS_KNOWLEDGE_MAP` maps pass names to module IDs
+- Registration: Modules self-register via side-effect imports (e.g., `src/knowledge/regulatory/index.ts`)
+- Composition: `composeSystemPrompt()` appends matched modules and company profile to base prompt
+- Budget: `src/knowledge/tokenBudget.ts` enforces 10K token cap per module, max 4 modules per pass
 
-**ViewState:**
-- Purpose: Type-safe navigation between application pages
-- Pattern: Literal union type ('dashboard' | 'upload' | 'review' | 'contracts' | 'settings') rather than route objects
+**Finding Model:**
+- Purpose: Unified representation of a contract analysis finding across all pass types
+- Definition: `src/types/contract.ts` `Finding` interface
+- Extensions: `LegalMeta` (11 discriminated union variants by `clauseType`) and `ScopeMeta` (4 variants by `passType`)
+- Conversion: `api/analyze.ts` `convertLegalFinding()` and `convertScopeFinding()` map pass-specific flat fields into the `legalMeta`/`scopeMeta` nested structure
 
-**AnalysisResult:**
-- Purpose: Structured response from AI analysis API
-- Pattern: Validated and normalized output from Claude, matching Contract data structure
+**Company Profile:**
+- Purpose: Customize analysis by comparing contract requirements against company capabilities
+- Definition: `src/knowledge/types.ts` `CompanyProfile` interface
+- Storage: localStorage key `clearcontract:company-profile`
+- Loader: `src/knowledge/profileLoader.ts` merges stored values with `DEFAULT_COMPANY_PROFILE`
+- Usage: Sent to server with each analysis request; injected into prompts of select passes
 
 ## Entry Points
 
-**Application Root:**
+**Client Entry:**
 - Location: `src/index.tsx`
-- Triggers: Page load, renders React app into DOM element with id="root"
-- Responsibilities: React mounting point
+- Triggers: Browser loads `index.html` which loads Vite-bundled JS
+- Responsibilities: Renders `<App />` into DOM root
 
-**Main App Component:**
+**Application Root:**
 - Location: `src/App.tsx`
-- Triggers: Loaded by `src/index.tsx`
-- Responsibilities:
-  - Render Sidebar + active page via view-based routing
-  - Manage navigation via `navigateTo()`
-  - Handle file uploads via `handleUploadComplete()`
-  - Coordinate placeholder creation and background analysis
-  - Error handling for analysis failures
+- Triggers: React render
+- Responsibilities: Initializes state via `useContractStore()`, renders `Sidebar` + active page, orchestrates upload-to-analysis flow
 
-**Page Components (Routable):**
-- `src/pages/Dashboard.tsx`: Overview of all contracts, recent uploads, statistics
-- `src/pages/ContractUpload.tsx`: PDF upload interface
-- `src/pages/ContractReview.tsx`: Detailed analysis view with findings, timeline, filtering
-- `src/pages/AllContracts.tsx`: List view of all contracts
-- `src/pages/Settings.tsx`: Application settings (placeholder)
-
-**Vercel Serverless Function:**
-- Location: `api/analyze.ts`
-- Triggers: HTTP POST request to `/api/analyze`
-- Responsibilities: Orchestrate PDF processing and Claude API call
+**Server Entry:**
+- Location: `api/analyze.ts` `export default handler()`
+- Triggers: POST to `/api/analyze`
+- Responsibilities: Validates request, orchestrates multi-pass analysis, returns merged results
 
 ## Error Handling
 
-**Strategy:** Try-catch at integration points, errors converted to Critical findings in contract.
+**Strategy:** Defensive with graceful degradation; errors surface as findings in the UI rather than crashes
 
 **Patterns:**
-
-1. **File Validation:** `analyzeContract()` in `src/api/analyzeContract.ts` validates file size (≤3MB) and type (application/pdf) before processing
-2. **PDF Processing:** `api/analyze.ts` validates text extraction (≥100 chars), rejects image-based PDFs with specific 422 error
-3. **API Errors:** Catch Anthropic SDK errors, check status codes (429=rate limit, 401=auth, others=500), return user-friendly messages
-4. **JSON Parsing:** Try-parse response, handle markdown code fence wrapping, fallback on SyntaxError
-5. **Contract Update:** On analysis error, `updateContract()` creates Critical finding with error message rather than leaving contract in "Analyzing" state indefinitely
+- Client API (`src/api/analyzeContract.ts`): Parses HTTP error responses (JSON or HTML), throws typed `Error` with descriptive message
+- `App.tsx` catch block: Converts any analysis error into a Critical finding with "Analysis Failed" title, so the user sees it in the review page
+- Server (`api/analyze.ts`): `Promise.allSettled()` ensures individual pass failures don't abort other passes; failed passes become Critical "Analysis Pass Failed" findings
+- Server error codes: 400 (bad input), 401/500 (API key), 405 (wrong method), 429 (rate limit), 504 (timeout)
+- File cleanup: `finally` block deletes uploaded file from Anthropic Files API (best-effort)
+- Knowledge system: Throws on missing modules or token budget violations (fail-fast during development)
 
 ## Cross-Cutting Concerns
 
-**Logging:**
-- Client: Console errors from API wrapper
-- Server: `console.error()` in serverless function error handler
-- No structured logging framework
+**Logging:** `console.log`/`console.error` in `api/analyze.ts` for timing and failure tracking; no structured logging framework
 
-**Validation:**
-- Client: File type/size checks in UploadZone and analyzeContract
-- Server: pdfBase64 presence, text extraction length, JSON structure
-- Type safety: TypeScript strict mode enabled, all domain types exported from `src/types/contract.ts`
+**Validation:** Zod schemas enforce structured output from Claude; input validation in serverless handler (size, type, required fields); client-side file type/size validation in `analyzeContract()`
 
-**Authentication:**
-- API Key: `ANTHROPIC_API_KEY` in environment variables (Vercel project settings)
-- No user authentication; app assumes single-user/organization context
-- API key protected on server-side only (never exposed to client)
+**Authentication:** No user authentication; API key (`ANTHROPIC_API_KEY`) is server-side only; CORS restricts to `ALLOWED_ORIGIN`
 
-**Caching & Optimization:**
-- No caching layer; each analysis re-runs Claude API (costs money, but fresh results)
-- Placeholder contracts enable immediate UX feedback while background task runs
-- PDF text truncated to 100k chars to reduce API costs and stay within token limits
-- react-dropzone handles file drag-drop with built-in validation
+**PDF Processing:** Anthropic Files API (primary) with `unpdf` text extraction fallback; 10MB size limit; 100-page threshold for fallback decision
 
 ---
 
-*Architecture analysis: 2026-03-01*
+*Architecture analysis: 2026-03-12*

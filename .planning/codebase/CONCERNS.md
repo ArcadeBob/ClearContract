@@ -1,250 +1,192 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-01
+**Analysis Date:** 2026-03-12
 
 ## Tech Debt
 
-**In-Memory State Only (No Persistence):**
-- Issue: All contract data lives in `useContractStore` via React `useState`. No database or storage layer. Data disappears completely on page refresh.
+**Monolithic Serverless Function (1745 lines):**
+- Issue: `api/analyze.ts` is a single 1745-line file containing all analysis pass definitions, PDF processing, result merging, deduplication, severity guards, and the HTTP handler. It handles 16+ analysis passes with inline system prompts as template literals.
+- Files: `api/analyze.ts`
+- Impact: Extremely difficult to modify individual analysis passes, test in isolation, or review changes. A typo in one pass prompt can break the entire endpoint.
+- Fix approach: Extract each analysis pass definition into its own file under `api/passes/`. Extract `mergePassResults`, `preparePdfForAnalysis`, `computeRiskScore`, and `applySeverityGuard` into separate utility modules. Keep `handler()` as a thin orchestrator.
+
+**No Data Persistence:**
+- Issue: All contract data lives in React `useState` via `useContractStore`. Data resets completely on page refresh. Company profile is stored in `localStorage` but analyzed contracts are lost.
 - Files: `src/hooks/useContractStore.ts`
-- Impact: Users lose all uploaded contracts and analysis results on refresh. Severely limits production viability and user trust.
-- Fix approach: Add persistence layer (localStorage for immediate fix, backend database for production). Either persist to localStorage on every state change or integrate a real database with API endpoints for CRUD operations on contracts.
+- Impact: Users lose all analyzed contracts on refresh. No ability to compare contracts over time. Every contract must be re-uploaded and re-analyzed (costing API credits).
+- Fix approach: Add a persistence layer -- either `localStorage` for MVP or a database (Supabase, etc.) for multi-device access. At minimum, serialize the `contracts` array to `localStorage` on change and restore on mount.
 
-**Weak Type Safety in Navigation Props:**
-- Issue: `Dashboard.tsx` and `AllContracts.tsx` accept `onNavigate: (view: any, id?: string)` with `any` type instead of proper `ViewState` union type.
-- Files: `src/pages/Dashboard.tsx` (line 16), `src/pages/AllContracts.tsx` (line 8)
-- Impact: No compile-time safety for navigation targets. Could navigate to non-existent views. Defeats TypeScript strict mode purpose.
-- Fix approach: Change to `(view: ViewState, id?: string) => void` to match `useContractStore` signature already correctly defined.
+**Multiple `as unknown as` Type Casts in API:**
+- Issue: Four instances of `as unknown as Record<string, unknown>` and `as unknown as` casts in `api/analyze.ts` (lines 1071, 1397, 1406, 1685) bypass TypeScript's type safety for converting between pass-specific finding shapes and the unified finding type.
+- Files: `api/analyze.ts` (lines 1071, 1397, 1406, 1685)
+- Impact: Runtime type errors can silently produce malformed findings that crash the UI. The type system cannot catch mismatches between Zod schemas and TypeScript interfaces.
+- Fix approach: Define proper type guards or use Zod's `.parse()` / `.safeParse()` to validate findings at runtime before conversion. Create a shared base finding interface that all pass-specific schemas extend.
 
-**No Error Recovery for Long Analyses:**
-- Issue: Server-side analysis timeout is 60 seconds per `vercel.json`. Large PDFs or slow API responses could exceed this silently with no user feedback mechanism.
-- Files: `api/analyze.ts`, `src/App.tsx` (lines 40-67), `vercel.json`
-- Impact: User sees "Analyzing..." state indefinitely. No indication of timeout or failure until manual page reload. No retry mechanism.
-- Fix approach: Add explicit timeout handling in client (`src/api/analyzeContract.ts`). Implement exponential backoff retry with user notification on failure.
+**Mock Data Ships in Production:**
+- Issue: `MOCK_CONTRACTS` is imported and used as default state in `useContractStore`. Three hardcoded sample contracts appear on every fresh load.
+- Files: `src/data/mockContracts.ts`, `src/hooks/useContractStore.ts` (line 6)
+- Impact: Every user sees fake contract data on first load, which is confusing in production. Mock data inflates dashboard statistics.
+- Fix approach: Initialize `contracts` as an empty array in production. Gate mock data behind an environment variable or remove entirely.
 
-**ID Generation Collision Risk:**
-- Issue: `App.tsx` generates contract IDs as `c-${Date.now()}` (line 22). Multiple simultaneous uploads in same millisecond would collide.
-- Files: `src/App.tsx` (line 22)
-- Impact: Duplicate IDs could overwrite contracts in the store, losing data.
-- Fix approach: Use UUID library (e.g., `uuid` package) or append random suffix: `c-${Date.now()}-${Math.random().toString(36).substr(2,9)}`.
+**Package Name Mismatch:**
+- Issue: `package.json` has `"name": "magic-patterns-vite-template"` -- a leftover from the template used to scaffold the project.
+- Files: `package.json` (line 2)
+- Impact: Minor -- affects npm registry, logging, and developer confusion.
+- Fix approach: Rename to `"clearcontract"`.
 
-**Hardcoded Claude Model Version:**
-- Issue: Model is pinned to `claude-sonnet-4-20250514` in `api/analyze.ts` (line 87).
-- Files: `api/analyze.ts` (line 87)
-- Impact: No flexibility to upgrade AI model without code change. If Anthropic deprecates this version, analysis breaks.
-- Fix approach: Move model name to environment variable `ANTHROPIC_MODEL` with fallback default.
+**Outdated CLAUDE.md Documentation:**
+- Issue: `CLAUDE.md` references `pdf-parse` for PDF extraction and `3MB max` file size, but the actual code uses `unpdf` (via `extractText`) and enforces a `10MB` limit. It also references `claude-sonnet-4-20250514` but the code uses `claude-sonnet-4-5-20250929`.
+- Files: `CLAUDE.md`
+- Impact: Misleads developers and AI assistants working on the codebase.
+- Fix approach: Update CLAUDE.md to reflect current dependencies (`unpdf`), file size limits (10MB), model version, and multi-pass architecture.
 
 ## Known Bugs
 
-**Missing Export Report Button Implementation:**
-- Symptoms: "Export Report" button in `ContractReview.tsx` header renders but does nothing when clicked.
-- Files: `src/pages/ContractReview.tsx` (lines 63-66)
-- Trigger: Click "Export Report" button on any contract review page.
-- Workaround: None. Button is non-functional placeholder.
-- Fix approach: Implement PDF export using library like `jsPDF` or `html2pdf`.
+**Share and Export Buttons Are Non-Functional:**
+- Symptoms: "Share" and "Export Report" buttons in the contract review header render but have no `onClick` handlers -- they do nothing when clicked.
+- Files: `src/pages/ContractReview.tsx` (lines 146-154)
+- Trigger: Click either button on any reviewed contract.
+- Workaround: None -- features are not implemented.
 
-**Share Button Not Implemented:**
-- Symptoms: "Share" button in `ContractReview.tsx` header renders but does nothing when clicked.
-- Files: `src/pages/ContractReview.tsx` (lines 59-62)
-- Trigger: Click "Share" button on any contract review page.
-- Workaround: None.
-- Fix approach: Implement sharing mechanism (generate shareable link, email, or copy-to-clipboard).
+**No Upload Cancellation:**
+- Symptoms: Once a PDF upload and analysis begins, there is no way to cancel. The user must wait for the full multi-pass analysis (which can take 60-300 seconds) or refresh the page (losing all data).
+- Files: `src/App.tsx` (lines 38-70), `src/api/analyzeContract.ts`
+- Trigger: Upload any PDF and attempt to navigate away or cancel.
+- Workaround: Refresh the page (loses all contract data).
 
-**Generate Monthly Report Button Non-Functional:**
-- Symptoms: "Generate Monthly Report" button on Dashboard renders but does nothing.
-- Files: `src/pages/Dashboard.tsx` (lines 106-109)
-- Trigger: Click button on dashboard Quick Actions section.
-- Workaround: None.
-- Fix approach: Implement monthly reporting functionality with aggregated statistics and PDF generation.
-
-**Compliance Link Not Functional:**
-- Symptoms: "Read more" link in Dashboard Compliance Update section is a dead `#` link.
-- Files: `src/pages/Dashboard.tsx` (line 119)
-- Trigger: Click link in bottom-right compliance alert.
-- Workaround: None; is purely informational.
-- Fix approach: Link to external documentation or internal page with compliance updates.
+**Race Condition on Rapid Uploads:**
+- Symptoms: If a user uploads multiple PDFs quickly, `updateContract(id, ...)` calls from concurrent analyses can interleave, and the `contracts` state array may not reflect all updates correctly due to closure-captured state.
+- Files: `src/App.tsx` (lines 38-70), `src/hooks/useContractStore.ts` (line 18-21)
+- Trigger: Upload two PDFs in rapid succession.
+- Workaround: Wait for each analysis to complete before uploading the next.
 
 ## Security Considerations
 
-**Missing CORS Validation:**
-- Risk: `/api/analyze` endpoint accepts POST requests from any origin without explicit CORS validation. Could be exploited for unauthorized API calls from third-party sites.
-- Files: `api/analyze.ts`
-- Current mitigation: Vercel automatically applies CORS restrictions for serverless functions.
-- Recommendations: Add explicit CORS headers. Validate `origin` header against whitelist. Consider requiring authentication token for API calls.
+**No Authentication or Authorization:**
+- Risk: The `/api/analyze` endpoint is publicly accessible. Anyone with the URL can submit PDFs for analysis, consuming Anthropic API credits. No user accounts, sessions, or API keys protect the endpoint.
+- Files: `api/analyze.ts` (lines 1560-1574)
+- Current mitigation: CORS is restricted to `ALLOWED_ORIGIN` env var (defaults to `clearcontract.vercel.app`), but CORS is browser-enforced only -- a direct `curl` call bypasses it entirely.
+- Recommendations: Add rate limiting per IP (e.g., Vercel KV or Upstash), require an API key or session token, or add Vercel authentication middleware.
 
-**Base64 PDF Encoding Over HTTP in Development:**
-- Risk: During development, PDFs are base64-encoded and sent as JSON POST body over HTTP (not HTTPS). Captures file content in cleartext on network.
-- Files: `src/api/analyzeContract.ts` (lines 36-42)
-- Current mitigation: Vercel deployment uses HTTPS. Local dev uses HTTP.
-- Recommendations: Use HTTPS even locally (ngrok, local cert). Consider multipart form-data upload instead of base64 encoding. Add Content-Security-Policy headers to prevent data exfiltration.
+**Misleading "Secure Encryption" Claim:**
+- Risk: The upload zone displays "Secure Encryption" text, but no encryption is implemented. PDFs are base64-encoded and sent as plain JSON over HTTPS. There is no at-rest encryption, no client-side encryption, and no document access controls.
+- Files: `src/components/UploadZone.tsx` (line 49)
+- Current mitigation: HTTPS provides transport encryption (standard for all Vercel deployments).
+- Recommendations: Remove the misleading "Secure Encryption" label, or implement actual document encryption and clarify what is encrypted.
 
-**API Key Exposure Risk:**
-- Risk: `ANTHROPIC_API_KEY` is passed to Vercel environment and must never be committed. `.env.local` is git-ignored, but a developer could accidentally create `.env` instead.
-- Files: `api/analyze.ts` (line 58), `.gitignore`
-- Current mitigation: `.env.*` in .gitignore.
-- Recommendations: Use Vercel's secrets manager instead of `.env` files. Add pre-commit hook to prevent `.env` from being staged. Document in CONTRIBUTING.md.
+**Company Profile Sent to Server Unvalidated:**
+- Risk: The `companyProfile` object from `localStorage` is sent in the request body to `/api/analyze` and injected directly into LLM prompts. A malicious user could craft a profile with prompt injection content.
+- Files: `src/api/analyzeContract.ts` (line 57), `api/analyze.ts` (lines 1588-1592), `src/knowledge/index.ts` (lines 53-56)
+- Current mitigation: The profile is formatted through `formatCompanyProfile()` which only reads specific keys, limiting injection surface.
+- Recommendations: Validate and sanitize `companyProfile` fields on the server side with Zod schema validation before injecting into prompts. Set max length limits on all string fields.
 
 **No Input Validation on PDF Content:**
-- Risk: `api/analyze.ts` validates PDF is >100 chars and PDFs are limited to 3MB, but doesn't validate the extracted text contains meaningful contract language. Malicious PDFs with padding could bypass checks.
-- Files: `api/analyze.ts` (lines 75-79), `src/api/analyzeContract.ts` (lines 28-34)
-- Current mitigation: Text truncation to 100k chars limits token usage.
-- Recommendations: Add content validation (minimum word count, presence of legal keywords). Sanitize extracted text before sending to Claude API.
-
-**Unpaginated Contract List:**
-- Risk: No pagination or virtual scrolling on `AllContracts.tsx`. Loading thousands of contracts will render thousands of DOM nodes, causing browser memory issues and UI lag.
-- Files: `src/pages/AllContracts.tsx` (lines 174-200)
-- Current mitigation: Currently only 3 mock contracts.
-- Recommendations: Implement pagination (page size 20-50) or infinite scroll with React hooks. Use `react-window` for virtualization if maintaining full search/filter across all contracts.
+- Risk: The server accepts any base64 string, decodes it, and attempts to process it as a PDF. Malformed input could cause crashes or resource exhaustion in `unpdf`.
+- Files: `api/analyze.ts` (lines 1594-1606)
+- Current mitigation: Size check (10MB max) and text length check (100 chars minimum after extraction).
+- Recommendations: Validate PDF magic bytes (`%PDF-`) before processing. Add a timeout wrapper around `extractText()`.
 
 ## Performance Bottlenecks
 
-**Synchronous PDF Text Extraction on Serverless Function:**
-- Problem: `pdf-parse` blocks the serverless function thread while extracting text. With 60s max duration, large PDFs slow down analysis significantly.
-- Files: `api/analyze.ts` (lines 71-73)
-- Cause: Single-threaded event loop in Node.js. No async PDF parsing.
-- Improvement path: Consider async PDF library or offload to background job queue (AWS SQS + Lambda, or Google Cloud Tasks). Stream large PDFs instead of loading entirely into memory.
+**16 Parallel API Calls per Analysis:**
+- Problem: Each contract analysis fires 16 parallel Claude API calls (one per analysis pass), all running concurrently via `Promise.allSettled`.
+- Files: `api/analyze.ts` (lines 1664-1668, line 108 `ANALYSIS_PASSES` array)
+- Cause: The multi-pass architecture requires separate LLM calls for each analysis dimension (indemnification, payment, insurance, scope, etc.).
+- Improvement path: Batch related passes together where possible. Consider whether all 16 passes are needed for every contract type (e.g., skip labor compliance for Purchase Orders). Add pass concurrency limits to avoid rate-limiting.
 
-**Full List Recomputation on Every State Change:**
-- Problem: `AllContracts.tsx` uses `useMemo` with dependency array including `contracts`, `searchQuery`, `typeFilter`, `sortBy`. Re-renders entire filtered/sorted list on any prop change.
-- Files: `src/pages/AllContracts.tsx` (lines 44-82)
-- Cause: No index or database query optimization. O(n) filter + O(n log n) sort on every render.
-- Improvement path: For 10k+ contracts, implement server-side filtering/sorting or pagination. Cache sorted results. Use indexes if database backed.
+**Full PDF Base64 in Request Body:**
+- Problem: The entire PDF file is base64-encoded on the client and sent as a JSON string in the request body. Base64 encoding adds ~33% overhead, so a 10MB PDF becomes ~13.3MB in the request.
+- Files: `src/api/analyzeContract.ts` (lines 24-36, 49-58)
+- Cause: Using JSON body instead of `multipart/form-data` file upload.
+- Improvement path: Switch to `multipart/form-data` upload to avoid base64 overhead. This also enables streaming uploads and reduces client memory pressure.
 
-**Category Filter Dynamically Computes from Findings:**
-- Problem: `ContractReview.tsx` derives available categories from current contract findings on every render using `new Set()` (lines 18-20).
-- Files: `src/pages/ContractReview.tsx` (lines 18-20)
-- Cause: Not actually a performance issue with small finding counts, but creates implicit coupling to Finding data structure.
-- Improvement path: Could memoize with `useMemo` to avoid recomputation, though current impact is minimal.
+**No Caching of Analysis Results:**
+- Problem: Re-uploading the same PDF triggers a full re-analysis (16 API calls). There is no content hashing or result caching.
+- Files: `api/analyze.ts`, `src/api/analyzeContract.ts`
+- Cause: No persistence layer exists to store or compare previous results.
+- Improvement path: Compute a SHA-256 hash of the PDF content and check against cached results before running analysis. Store results keyed by content hash.
 
-**No Lazy Loading of Contract Details:**
-- Problem: Full contract data with all findings loaded in memory for every contract in store.
-- Files: `src/hooks/useContractStore.ts`
-- Cause: No backend pagination or data streaming.
-- Improvement path: Load contract metadata initially, fetch detailed findings on demand. Lazy load dates and findings arrays.
+**Findings Recomputed Every Render:**
+- Problem: `ContractReview` component recomputes `groupedFindings` and `flatFindings` on every render, including sorting and filtering operations on potentially large arrays.
+- Files: `src/pages/ContractReview.tsx` (lines 100-121)
+- Cause: No `useMemo` wrapping the computation.
+- Improvement path: Wrap `groupedFindings` and `flatFindings` in `useMemo` with `[contract.findings, selectedCategory]` dependencies.
 
 ## Fragile Areas
 
-**AI Response JSON Parsing:**
-- Files: `api/analyze.ts` (lines 104-111)
-- Why fragile: Parses Claude's JSON response with regex-based code fence detection, then `JSON.parse()`. If Claude returns markdown fence, or fails to wrap output, or includes trailing text, parsing silently fails at line 111 and crashes.
-- Safe modification: Test with various Claude response formats. Add try-catch around `JSON.parse()` with detailed error message. Log raw response for debugging.
-- Test coverage: No test for JSON parsing failure scenarios. Unit tests needed.
+**Analysis Pass Result Merging:**
+- Files: `api/analyze.ts` (lines 1354-1554, `mergePassResults` function)
+- Why fragile: The merge function handles 16 different pass types with two deduplication phases, severity ranking, and special-case logic for legal vs. scope vs. overview passes. The `convertLegalFinding` and `convertScopeFinding` functions use a large switch statement with `as` casts for each pass type.
+- Safe modification: When adding a new analysis pass, update `ANALYSIS_PASSES` array, create its Zod schema, add a case to the appropriate converter (`convertLegalFinding` or `convertScopeFinding`), and add its meta type to the `LegalMeta` or `ScopeMeta` union in `src/types/contract.ts`.
+- Test coverage: No tests exist. A single malformed pass result can corrupt the entire merged output.
 
-**Finding ID Generation (Time-Based):**
-- Files: `api/analyze.ts` (line 117), `src/App.tsx` (line 58)
-- Why fragile: Uses `Date.now()` which can collide if multiple findings generated in same millisecond. No guarantee of uniqueness.
-- Safe modification: Use UUID or append random component.
-- Test coverage: No tests for ID collision scenarios.
+**Company Profile Flow:**
+- Files: `src/knowledge/profileLoader.ts`, `src/hooks/useCompanyProfile.ts`, `src/api/analyzeContract.ts`, `api/analyze.ts`, `src/knowledge/index.ts`
+- Why fragile: The company profile flows through 5 files: localStorage -> profileLoader -> analyzeContract (client) -> analyze (server) -> composeSystemPrompt. A schema mismatch at any point silently degrades analysis quality rather than failing visibly.
+- Safe modification: Any field changes to `CompanyProfile` must be updated in `src/knowledge/types.ts` (interface + defaults), `src/knowledge/index.ts` (formatter), `src/pages/Settings.tsx` (UI fields), and `src/pages/ContractReview.tsx` (profile field check list).
+- Test coverage: None.
 
-**Contract Status State Machine:**
-- Files: `src/types/contract.ts` (line 36), `src/App.tsx` (lines 24-37, 40-67)
-- Why fragile: Status transitions are implicit (`'Analyzing'` → `'Reviewed'`) with no validation. No state machine enforces valid transitions. Could navigate to 'review' while contract is still in 'Analyzing' and UI shows inconsistent state.
-- Safe modification: Add explicit state transition function. Add guards to prevent invalid state changes.
-- Test coverage: No tests for state transitions.
-
-**Truncated PDF Text Loss:**
-- Files: `api/analyze.ts` (lines 81-82)
-- Why fragile: Large PDFs (>100k chars) are silently truncated at analysis time. User doesn't know important contract sections were excluded from AI analysis.
-- Safe modification: Return metadata indicating truncation occurred. Show warning to user.
-- Test coverage: No test for truncation scenario.
+**View-Based Navigation:**
+- Files: `src/App.tsx` (lines 72-95), `src/hooks/useContractStore.ts` (lines 24-27)
+- Why fragile: Navigation state is purely in-memory. No URL routing means browser back/forward buttons do not work. Refreshing always returns to dashboard. Deep linking to a specific contract review is impossible.
+- Safe modification: Replace the `ViewState` string with a proper router (e.g., React Router or TanStack Router) to get URL-based navigation with history support.
+- Test coverage: None.
 
 ## Scaling Limits
 
-**3MB PDF Upload Limit:**
-- Current capacity: 3MB max file size (enforced client and server).
-- Limit: Some complex construction contracts with scans/images exceed 3-5MB easily.
-- Scaling path: Increase limit to 10-20MB. Consider chunked upload for larger files. Add progress tracking for multi-part uploads.
+**Vercel Serverless Function Duration:**
+- Current capacity: 300 seconds max duration (`vercel.json`), 16 parallel API calls.
+- Limit: Large or complex contracts that require longer LLM processing may timeout. The 280-second Anthropic SDK timeout (line 1638) leaves only 20 seconds for upload, merge, and response.
+- Scaling path: Move to a queue-based architecture (e.g., Vercel Background Functions, or a separate worker service) for long-running analysis. Stream partial results to the client.
 
-**100k Character Truncation on PDF Extract:**
-- Current capacity: Full PDF text up to 100k chars sent to Claude.
-- Limit: Large contracts (>100k chars) lose content at analysis time. No way to re-analyze with different sections.
-- Scaling path: Implement multi-pass analysis. Chunk large documents and run Claude analysis on each chunk separately, then aggregate findings. Add option to user to select which sections matter most.
+**Single-Tenant In-Memory State:**
+- Current capacity: One browser tab per user, no multi-user support.
+- Limit: No persistence, no user isolation, no concurrent access.
+- Scaling path: Add a database backend, user authentication, and server-side state management.
 
-**In-Memory Contract Store (No Pagination):**
-- Current capacity: Fits in browser memory comfortably up to 1000 contracts.
-- Limit: Beyond 10,000 contracts, browser performance degrades. DOM becomes unwieldy.
-- Scaling path: Implement backend database. Add pagination (50 contracts per page). Use React virtualization for large lists.
-
-**Vercel Serverless Function 60s Timeout:**
-- Current capacity: Handles contracts that PDF extract in <30s and Claude analyzes in <30s.
-- Limit: Large PDFs or slow API responses near 60s boundary will timeout.
-- Scaling path: Increase max duration if possible (Vercel Pro tier). Use background job queue for async analysis (webhook callback). Split analysis into multiple API calls.
+**Client-Side Memory for Large PDFs:**
+- Current capacity: 10MB file size limit.
+- Limit: Base64 encoding a 10MB PDF creates a ~13.3MB string in memory, plus the original file buffer. On low-memory devices this could cause browser tab crashes.
+- Scaling path: Use `multipart/form-data` with streaming upload instead of base64 JSON body.
 
 ## Dependencies at Risk
 
-**pdf-parse Deprecated in Some Ecosystems:**
-- Risk: `pdf-parse` (v2.4.5) is commonly flagged as having maintenance concerns. No major updates in 12+ months.
-- Impact: If abandoned, security vulnerabilities won't be patched. Breaking changes in PDFKit could occur.
-- Migration plan: Monitor `npm audit`. Be prepared to switch to `pdfjs-dist` (Mozilla's maintained PDF.js library) or `pypdf` via Python service. Both are actively maintained.
+**Anthropic SDK Beta APIs:**
+- Risk: The codebase relies on `client.beta.files.upload`, `client.beta.files.delete`, and `client.beta.messages.create` with `betas: ['files-api-2025-04-14']`. Beta APIs can change or be removed without notice.
+- Files: `api/analyze.ts` (lines 47, 993-998, 1057-1080, 1732)
+- Impact: If the Files API beta changes, all PDF upload and analysis functionality breaks.
+- Migration plan: Monitor Anthropic SDK changelogs. When the Files API graduates from beta, remove the `betas` parameter and update SDK types.
 
-**Framer Motion Version Gap:**
-- Risk: Using `framer-motion@^11.5.4`. Major version 12 may have breaking changes not yet accounted for.
-- Impact: Future npm updates could break animations. No constraints prevent major version bump.
-- Migration plan: Lock major version: `framer-motion@^11` in package.json. Run regular updates to latest v11.x. Plan major version upgrade with full animation test pass.
-
-**Old @typescript-eslint Versions:**
-- Risk: Using `@typescript-eslint/eslint-plugin@^5.54.0` (v5 is old). Current is v7+.
-- Impact: Rules may not catch modern TS patterns. Future dependencies might not support v5.
-- Migration plan: Upgrade to v7: `npm install --save-dev @typescript-eslint/eslint-plugin@^7`. Requires eslint v8+, already satisfied.
+**Outdated ESLint/TypeScript Plugin Versions:**
+- Risk: `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` are at `^5.54.0` while the current major version is 8.x. ESLint is at `^8.50.0` while current is 9.x with flat config.
+- Files: `package.json` (lines 38-39, 42)
+- Impact: Missing newer lint rules, potential compatibility issues with newer TypeScript features.
+- Migration plan: Upgrade to ESLint 9 + `@typescript-eslint` v8 with flat config (`eslint.config.js`).
 
 ## Missing Critical Features
 
-**No Persistence / Data Loss on Refresh:**
-- Problem: All contracts lost on page refresh. Blocks any production use.
-- Blocks: Any real user workflow. Completely non-viable for actual contract management.
-- Priority: CRITICAL — must be fixed before any production deployment.
+**No Test Suite:**
+- Problem: Zero test files exist in the entire codebase. No test framework is configured. No unit tests, integration tests, or E2E tests.
+- Blocks: Safe refactoring of the 1745-line `api/analyze.ts`, confident deployment of changes, regression prevention.
 
-**No Authentication / User Isolation:**
-- Problem: No login system. All users share same contract store. No multi-tenant support.
-- Blocks: Usage by Clean Glass or multiple companies. Single browser instance = shared access.
-- Priority: CRITICAL for multi-user/company deployment.
+**No Error Boundary:**
+- Problem: No React Error Boundary component exists. An unhandled exception in any component crashes the entire app with a white screen.
+- Files: `src/App.tsx`
+- Blocks: Graceful error recovery and user-facing error messages for component-level failures.
 
-**No Contract Editing:**
-- Problem: Contracts are read-only after AI analysis. Users cannot mark issues as resolved, add notes, or track follow-ups.
-- Blocks: Contract management workflow. Users need to track which risks were mitigated.
-- Priority: HIGH — expected feature for contract review tool.
-
-**No Export Formats (PDF, CSV):**
-- Problem: "Export Report" button is non-functional. Users cannot generate reports for stakeholders.
-- Blocks: Sharing analysis results. Legal/compliance teams can't review outside the app.
-- Priority: HIGH — essential for enterprise adoption.
-
-**No Model Configuration in UI:**
-- Problem: AI analysis model is hardcoded. No way for user to choose model or adjust analysis depth.
-- Blocks: Flexibility for different contract types (simple vs. complex).
-- Priority: MEDIUM — could allow cost optimization or accuracy tuning.
-
-**No Audit Log:**
-- Problem: No record of who analyzed what contract when. No change history.
-- Blocks: Compliance and accountability. Can't audit decisions.
-- Priority: MEDIUM for enterprise, LOW for MVP.
+**No Accessibility (a11y):**
+- Problem: No ARIA labels, roles, or keyboard navigation support. No screen reader compatibility. Color-coded severity badges rely solely on color differentiation.
+- Files: All components in `src/components/` and `src/pages/`
+- Blocks: Compliance with WCAG guidelines, usability for users with disabilities.
 
 ## Test Coverage Gaps
 
-**API Analysis Endpoint:**
-- What's not tested: JSON parsing from Claude API, error handling for malformed JSON, timeout scenarios, rate limit handling.
-- Files: `api/analyze.ts`
-- Risk: Silent failures if Claude returns non-compliant JSON. No validation that all required fields exist.
-- Priority: HIGH — core feature, affects all contracts.
-
-**Contract Store State Management:**
-- What's not tested: ID collision scenarios, state transitions (Analyzing → Reviewed), concurrent updates, contract deletion.
-- Files: `src/hooks/useContractStore.ts`
-- Risk: Data loss from ID collisions. Invalid state transitions cause UI inconsistencies.
-- Priority: HIGH — all features depend on store.
-
-**UI Component Integration:**
-- What's not tested: File upload flow, category filtering, sort operations, finding card rendering with all severity levels.
-- Files: `src/pages/ContractReview.tsx`, `src/pages/AllContracts.tsx`, `src/components/`
-- Risk: Regressions in filtering/sorting. Silent failures in UI state.
-- Priority: MEDIUM — should catch UI bugs early.
-
-**Error Handling & Recovery:**
-- What's not tested: Analysis timeout recovery, network failures, API errors, empty PDF handling.
-- Files: `src/api/analyzeContract.ts`, `src/App.tsx`
-- Risk: Poor user experience on failures. No indication what went wrong.
-- Priority: MEDIUM — affects reliability perception.
+**Entire Codebase is Untested:**
+- What's not tested: Every file in `src/` and `api/` -- zero test coverage.
+- Files: All files
+- Risk: Any change can introduce regressions in analysis merging, risk score computation, bid signal calculation, severity guards, or finding deduplication -- all of which are deterministic pure functions ideal for unit testing.
+- Priority: High -- start with `api/analyze.ts` pure functions (`computeRiskScore`, `applySeverityGuard`, `mergePassResults`, `computeBidSignal`), then add component tests for critical UI flows.
 
 ---
 
-*Concerns audit: 2026-03-01*
+*Concerns audit: 2026-03-12*
