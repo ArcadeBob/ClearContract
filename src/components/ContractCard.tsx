@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { Contract } from '../types/contract';
-import { FileText, AlertTriangle } from 'lucide-react';
+import { FileText, AlertTriangle, Trash2 } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
+import { ConfirmDialog } from './ConfirmDialog';
+
 interface ContractCardProps {
   contract: Contract;
   onClick: () => void;
+  onDelete?: (id: string) => void;
 }
-export function ContractCard({ contract, onClick }: ContractCardProps) {
+export function ContractCard({ contract, onClick, onDelete }: ContractCardProps) {
+  const [showConfirm, setShowConfirm] = useState(false);
   const criticalCount = contract.findings.filter(
     (f) => f.severity === 'Critical'
   ).length;
@@ -31,7 +36,20 @@ export function ContractCard({ contract, onClick }: ContractCardProps) {
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex items-start gap-2">
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowConfirm(true);
+              }}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+              aria-label="Delete contract"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+          <div className="flex flex-col items-end">
           <span className="text-xs text-slate-400 mb-1">
             {contract.uploadDate}
           </span>
@@ -40,6 +58,7 @@ export function ContractCard({ contract, onClick }: ContractCardProps) {
           >
             {contract.status}
           </span>
+          </div>
         </div>
       </div>
 
@@ -59,6 +78,17 @@ export function ContractCard({ contract, onClick }: ContractCardProps) {
           {contract.findings.length} findings
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="Delete Contract"
+        message={`Are you sure you want to delete "${contract.name}"? This action cannot be undone.`}
+        onConfirm={() => {
+          onDelete?.(contract.id);
+          setShowConfirm(false);
+        }}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   );
 }

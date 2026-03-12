@@ -17,11 +17,20 @@ export function App() {
     activeView,
     addContract,
     updateContract,
+    deleteContract,
     navigateTo,
     storageWarning,
     dismissStorageWarning,
   } = useContractStore();
   const [toast, setToast] = useState<ToastData | null>(null);
+
+  const handleDeleteContract = (id: string) => {
+    const isDeletingActive = activeContract?.id === id;
+    deleteContract(id);
+    if (isDeletingActive) {
+      navigateTo('dashboard');
+    }
+  };
 
   const isNetworkError = (err: unknown): boolean => {
     if (err instanceof TypeError && err.message === 'Failed to fetch') return true;
@@ -106,13 +115,14 @@ export function App() {
           <ContractReview
             contract={activeContract}
             onBack={() => navigateTo('dashboard')}
+            onDelete={handleDeleteContract}
           />
         ) : (
           <Dashboard contracts={contracts} onNavigate={navigateTo} />
         );
 
       case 'contracts':
-        return <AllContracts contracts={contracts} onNavigate={navigateTo} />;
+        return <AllContracts contracts={contracts} onNavigate={navigateTo} onDelete={handleDeleteContract} />;
       case 'settings':
         return <Settings />;
       default:

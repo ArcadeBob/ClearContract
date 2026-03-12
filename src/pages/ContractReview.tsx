@@ -18,7 +18,9 @@ import {
   List,
   Shield,
   X,
+  Trash2,
 } from 'lucide-react';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AnimatePresence } from 'framer-motion';
 
 type ViewMode = 'by-category' | 'by-severity' | 'coverage';
@@ -55,14 +57,16 @@ const severityRank: Record<Severity, number> = {
 interface ContractReviewProps {
   contract: Contract;
   onBack: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export function ContractReview({ contract, onBack }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete }: ContractReviewProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
     'All'
   );
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { profile } = useCompanyProfile();
 
   // Check if core profile fields that affect analysis are empty
@@ -143,6 +147,13 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
           </div>
         </div>
         <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-sm font-medium transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
           <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">
             <Share2 className="w-4 h-4" />
             <span>Share</span>
@@ -152,6 +163,16 @@ export function ContractReview({ contract, onBack }: ContractReviewProps) {
             <span>Export Report</span>
           </button>
         </div>
+        <ConfirmDialog
+          isOpen={showConfirm}
+          title="Delete Contract"
+          message={`Are you sure you want to delete "${contract.name}"? This action cannot be undone.`}
+          onConfirm={() => {
+            onDelete?.(contract.id);
+            setShowConfirm(false);
+          }}
+          onCancel={() => setShowConfirm(false)}
+        />
       </header>
 
       {/* Main Content */}

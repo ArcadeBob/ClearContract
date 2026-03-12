@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface AllContractsProps {
   contracts: Contract[];
   onNavigate: (view: ViewState, id?: string) => void;
+  onDelete?: (id: string) => void;
 }
 const CONTRACT_TYPES = [
   'All',
@@ -36,7 +37,7 @@ const SORT_OPTIONS = [
     value: 'name-asc',
   },
 ] as const;
-export function AllContracts({ contracts, onNavigate }: AllContractsProps) {
+export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>('date-desc');
@@ -200,6 +201,7 @@ export function AllContracts({ contracts, onNavigate }: AllContractsProps) {
                     <ContractCard
                       contract={contract}
                       onClick={() => onNavigate('review', contract.id)}
+                      onDelete={onDelete}
                     />
                   </motion.div>
                 ))}
