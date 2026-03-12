@@ -75,28 +75,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROUTE-01 | — | Pending |
-| ROUTE-02 | — | Pending |
-| ROUTE-03 | — | Pending |
-| ROUTE-04 | — | Pending |
-| EXPORT-01 | — | Pending |
-| EXPORT-02 | — | Pending |
-| FIND-01 | — | Pending |
-| FIND-02 | — | Pending |
-| FIND-03 | — | Pending |
-| FIND-04 | — | Pending |
-| FIND-05 | — | Pending |
-| SET-01 | — | Pending |
-| SET-02 | — | Pending |
-| REANA-01 | — | Pending |
-| REANA-02 | — | Pending |
-| REANA-03 | — | Pending |
+| ROUTE-01 | Phase 15 | Pending |
+| ROUTE-02 | Phase 15 | Pending |
+| ROUTE-03 | Phase 15 | Pending |
+| ROUTE-04 | Phase 15 | Pending |
+| EXPORT-01 | Phase 19 | Pending |
+| EXPORT-02 | Phase 19 | Pending |
+| FIND-01 | Phase 16 | Pending |
+| FIND-02 | Phase 16 | Pending |
+| FIND-03 | Phase 16 | Pending |
+| FIND-04 | Phase 16 | Pending |
+| FIND-05 | Phase 16 | Pending |
+| SET-01 | Phase 17 | Pending |
+| SET-02 | Phase 17 | Pending |
+| REANA-01 | Phase 18 | Pending |
+| REANA-02 | Phase 18 | Pending |
+| REANA-03 | Phase 18 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 after roadmap creation*
