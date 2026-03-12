@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: UX Foundations
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-12"
-last_activity: 2026-03-12 -- Completed phase 13 plan 01 (upload error feedback)
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-12T21:46:36.852Z"
+last_activity: 2026-03-12 -- Completed 13-01 (inline upload error feedback)
 progress:
-  total_phases: 4
+  total_phases: 0
   completed_phases: 0
-  total_plans: 5
-  completed_plans: 1
+  total_plans: 0
+  completed_plans: 0
   percent: 20
 ---
 
@@ -50,6 +50,9 @@ Progress: [██░░░░░░░░] 20%
 Full decision log in PROJECT.md Key Decisions table (22 decisions, all marked Good).
 
 - [13-01] Used first fileRejection only since multiple:false means single file drops
+- [11-01] Followed profileLoader.ts pattern for contract storage utility
+- [11-01] Seed-once pattern with SEEDED_KEY flag for first-visit detection
+- [11-01] persistAndSet wrapper ensures auto-save on every state mutation
 
 ### Pending Todos
 
@@ -64,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-03-12T21:46:36.851Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
