@@ -4,6 +4,7 @@
 
 - **v1.0 Enhanced Analysis Release** -- Phases 1-6 (shipped 2026-03-06)
 - **v1.1 Domain Intelligence** -- Phases 7-10 (shipped 2026-03-10)
+- **v1.2 UX Foundations** -- Phases 11-14 (in progress)
 
 ## Phases
 
@@ -33,6 +34,18 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 
 </details>
 
+### v1.2 UX Foundations (In Progress)
+
+**Milestone Goal:** Make the app feel like a real product -- contracts persist across sessions, users can manage their contract list, errors surface clearly, and empty/loading states guide users instead of showing blank screens.
+
+- [ ] **Phase 11: Data Persistence** - localStorage integration for contract store, serialization, mock data migration, quota handling
+  **Plans:** 1 plan
+  Plans:
+  - [ ] 11-01-PLAN.md -- localStorage persistence layer, store refactor with seed logic and quota handling
+- [ ] **Phase 12: Contract Management** - Delete operation with confirmation, state+storage sync, navigation guards
+- [ ] **Phase 13: Upload Error Feedback** - Inline validation errors in UploadZone, toast notifications for API failures, retry on network errors
+- [ ] **Phase 14: Empty States and Dashboard Polish** - Empty state CTAs, real stat calculation, risk score on cards, timeline empty state
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -47,3 +60,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 8. Pipeline Integration and Company-Specific Intelligence | v1.1 | 2/2 | Complete | 2026-03-09 |
 | 9. CA Regulatory Knowledge | v1.1 | 2/2 | Complete | 2026-03-09 |
 | 10. Industry and Trade Knowledge | v1.1 | 2/2 | Complete | 2026-03-10 |
+| 11. Data Persistence | v1.2 | 0/1 | Not started | - |
+| 12. Contract Management | v1.2 | 0/? | Not started | - |
+| 13. Upload Error Feedback | v1.2 | 0/? | Not started | - |
+| 14. Empty States and Dashboard Polish | v1.2 | 0/? | Not started | - |
