@@ -4,6 +4,21 @@ interface DateTimelineProps {
   dates: ContractDate[];
 }
 export function DateTimeline({ dates }: DateTimelineProps) {
+  if (dates.length === 0) {
+    return (
+      <div className="bg-white rounded-lg border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6">
+          Key Dates &amp; Milestones
+        </h3>
+        <div className="flex flex-col items-center py-8 text-center">
+          <Calendar className="w-8 h-8 text-slate-300 mb-3" />
+          <p className="text-sm text-slate-500">
+            No dates found in this contract
+          </p>
+        </div>
+      </div>
+    );
+  }
   const sortedDates = [...dates].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
@@ -43,7 +58,7 @@ export function DateTimeline({ dates }: DateTimelineProps) {
       <div className="relative">
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-100" />
         <div className="space-y-6">
-          {sortedDates.map((date, idx) => {
+          {sortedDates.map((date) => {
             const Icon = getIcon(date.type);
             const colorClass = getColor(date.type);
             return (

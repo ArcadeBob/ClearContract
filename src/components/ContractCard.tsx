@@ -73,9 +73,18 @@ export function ContractCard({ contract, onClick, onDelete }: ContractCardProps)
             </span>
           )}
         </div>
-        <div className="flex items-center text-xs text-slate-500">
-          <AlertTriangle className="w-3 h-3 mr-1" />
-          {contract.findings.length} findings
+        <div className="flex items-center space-x-3">
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+            contract.riskScore >= 70 ? 'bg-red-100 text-red-700' :
+            contract.riskScore >= 40 ? 'bg-amber-100 text-amber-700' :
+            'bg-emerald-100 text-emerald-700'
+          }`}>
+            Risk: {contract.riskScore}/100
+          </span>
+          <span className="flex items-center text-xs text-slate-500">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            {contract.findings.length} findings
+          </span>
         </div>
       </div>
 
