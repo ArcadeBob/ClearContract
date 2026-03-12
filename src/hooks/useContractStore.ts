@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Contract, ViewState } from '../types/contract';
+import { Contract } from '../types/contract';
 import { loadContracts, saveContracts } from '../storage/contractStorage';
 
 export function useContractStore() {
@@ -7,13 +7,8 @@ export function useContractStore() {
     const { contracts } = loadContracts();
     return contracts;
   });
-  const [activeContractId, setActiveContractId] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<ViewState>('dashboard');
   const [isUploading, setIsUploading] = useState(false);
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
-
-  const activeContract =
-    contracts.find((c) => c.id === activeContractId) || null;
 
   const persistAndSet = (updater: (prev: Contract[]) => Contract[]) => {
     setContracts((prev) => {
@@ -44,21 +39,13 @@ export function useContractStore() {
 
   const dismissStorageWarning = () => setStorageWarning(null);
 
-  const navigateTo = (view: ViewState, contractId?: string) => {
-    setActiveView(view);
-    setActiveContractId(contractId ?? null);
-  };
-
   return {
     contracts,
-    activeContract,
-    activeView,
     isUploading,
     setIsUploading,
     addContract,
     updateContract,
     deleteContract,
-    navigateTo,
     storageWarning,
     dismissStorageWarning,
   };

@@ -8,20 +8,20 @@ import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
 import { Toast, ToastData } from './components/Toast';
 import { useContractStore } from './hooks/useContractStore';
+import { useRouter } from './hooks/useRouter';
 import { Contract } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
 export function App() {
   const {
     contracts,
-    activeContract,
-    activeView,
     addContract,
     updateContract,
     deleteContract,
-    navigateTo,
     storageWarning,
     dismissStorageWarning,
   } = useContractStore();
+  const { activeView, activeContractId, navigateTo } = useRouter();
+  const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const [toast, setToast] = useState<ToastData | null>(null);
 
   const handleDeleteContract = (id: string) => {
@@ -111,14 +111,17 @@ export function App() {
       case 'upload':
         return <ContractUpload onUploadComplete={handleUploadComplete} />;
       case 'review':
-        return activeContract ? (
+        if (!activeContract) {
+          window.history.replaceState(null, '', '/');
+          navigateTo('dashboard');
+          return <Dashboard contracts={contracts} onNavigate={navigateTo} />;
+        }
+        return (
           <ContractReview
             contract={activeContract}
             onBack={() => navigateTo('dashboard')}
             onDelete={handleDeleteContract}
           />
-        ) : (
-          <Dashboard contracts={contracts} onNavigate={navigateTo} />
         );
 
       case 'contracts':
