@@ -45,6 +45,9 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 - [ ] **Phase 12: Contract Management** - Delete operation with confirmation, state+storage sync, navigation guards
 - [ ] **Phase 13: Upload Error Feedback** - Inline validation errors in UploadZone, toast notifications for API failures, retry on network errors
 - [ ] **Phase 14: Empty States and Dashboard Polish** - Empty state CTAs, real stat calculation, risk score on cards, timeline empty state
+  **Plans:** 1 plan
+  Plans:
+  - [ ] 14-01-PLAN.md -- Dashboard empty state, remove fake trends, DateTimeline empty state, ContractCard risk score
 
 ## Progress
 
@@ -63,4 +66,4 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 11. Data Persistence | v1.2 | 0/1 | Not started | - |
 | 12. Contract Management | v1.2 | 0/? | Not started | - |
 | 13. Upload Error Feedback | v1.2 | 0/? | Not started | - |
-| 14. Empty States and Dashboard Polish | v1.2 | 0/? | Not started | - |
+| 14. Empty States and Dashboard Polish | v1.2 | 0/1 | Not started | - |
