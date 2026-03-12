@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: UX Foundations
 status: executing
 stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-03-12T21:46:36.852Z"
+last_updated: "2026-03-12T21:46:53.960Z"
 last_activity: 2026-03-12 -- Completed 13-01 (inline upload error feedback)
 progress:
   total_phases: 0
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 
 ## Current Position
 
-Phase: 13 - Upload Error Feedback (plan 01 complete)
+Phase: 13 - Upload Error Feedback (complete)
 Status: Executing
-Last activity: 2026-03-12 -- Completed 13-01 (inline upload error feedback)
+Last activity: 2026-03-12 -- Completed 13-02 (toast error notifications)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -49,6 +49,9 @@ Progress: [██░░░░░░░░] 20%
 
 Full decision log in PROJECT.md Key Decisions table (22 decisions, all marked Good).
 
+- [13-02] Navigate user back to upload page on API failure for easy re-upload
+- [13-02] Network errors get retry button; API errors auto-dismiss after 8 seconds
+- [13-02] Toast positioned absolute inside main to avoid sidebar overlap
 - [13-01] Used first fileRejection only since multiple:false means single file drops
 - [11-01] Followed profileLoader.ts pattern for contract storage utility
 - [11-01] Seed-once pattern with SEEDED_KEY flag for first-visit detection
@@ -67,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-12T21:46:36.851Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-03-12T21:46:06Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None
