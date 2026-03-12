@@ -44,6 +44,10 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
   - [ ] 11-01-PLAN.md -- localStorage persistence layer, store refactor with seed logic and quota handling
 - [ ] **Phase 12: Contract Management** - Delete operation with confirmation, state+storage sync, navigation guards
 - [ ] **Phase 13: Upload Error Feedback** - Inline validation errors in UploadZone, toast notifications for API failures, retry on network errors
+  **Plans:** 2 plans
+  Plans:
+  - [ ] 13-01-PLAN.md -- Inline file rejection errors in UploadZone (type + size validation)
+  - [ ] 13-02-PLAN.md -- Toast notification system for API/network errors with retry
 - [ ] **Phase 14: Empty States and Dashboard Polish** - Empty state CTAs, real stat calculation, risk score on cards, timeline empty state
   **Plans:** 1 plan
   Plans:
@@ -65,5 +69,5 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full details.
 | 10. Industry and Trade Knowledge | v1.1 | 2/2 | Complete | 2026-03-10 |
 | 11. Data Persistence | v1.2 | 0/1 | Not started | - |
 | 12. Contract Management | v1.2 | 0/? | Not started | - |
-| 13. Upload Error Feedback | v1.2 | 0/? | Not started | - |
+| 13. Upload Error Feedback | v1.2 | 0/2 | Not started | - |
 | 14. Empty States and Dashboard Polish | v1.2 | 0/1 | Not started | - |
