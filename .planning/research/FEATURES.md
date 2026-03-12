@@ -1,206 +1,245 @@
-# Feature Landscape: v1.1 Domain Intelligence
+# Feature Landscape: v1.3 Workflow Completion
 
-**Domain:** Domain-specific knowledge system for glazing subcontract AI analysis
-**Researched:** 2026-03-08
-**Scope:** NEW features only -- v1.0 analysis engine (16 passes, clause quoting, severity, categories) already shipped
+**Domain:** Contract Review AI -- Export, Routing, Re-analysis, Finding Actions
+**Researched:** 2026-03-12
+**Scope:** NEW features only -- v1.0 analysis engine and v1.1 domain intelligence already shipped
+**Confidence:** HIGH (features are well-understood patterns; implementation details verified against existing codebase)
 
 ## Table Stakes
 
-Features the user expects from a "domain intelligence" upgrade. Without these, injecting knowledge is theater -- the AI still guesses about things it should know.
+Features users expect given what already exists. Missing = workflow feels incomplete.
 
 | Feature | Why Expected | Complexity | Dependencies | Notes |
 |---------|--------------|------------|--------------|-------|
-| Company profile data entry (Settings UI) | User must input actual insurance limits, bonding capacity, license info so AI can compare against contract requirements | Medium | Existing Settings page (currently placeholder toggles + fake stats) | Form with localStorage persistence. Fields: GL limit, umbrella, auto, WC, bond capacity, C-17 license, DIR registration, employee count, geographic service area, typical project size range |
-| Insurance requirement comparison | Insurance pass already extracts required limits -- comparing against actual company limits is the obvious next step | Low | Company profile + existing Insurance pass output | When contract requires $2M GL and company carries $1M, flag as Critical with specific gap. Currently AI guesses "isAboveStandard" without knowing the company's actual limits |
-| Bonding capacity check | Contract bonding requirements vs company capacity is pass/fail | Low | Company profile + existing Financial Terms findings | Flag when required bond exceeds capacity. Direct bid/no-bid signal |
-| CA mechanics lien law knowledge | Lien rights pass exists but lacks CA-specific statutory deadlines and enforceability rules | Medium | Existing Lien Rights pass | Inject CA Civil Code 8000-9566: 20-day prelim notice, 90-day recording (30 after NOC for subs), 90-day foreclosure. Flag contracts attempting to waive statutory lien rights (unenforceable in CA) |
-| Prevailing wage / DIR knowledge | Labor compliance pass exists but needs CA-specific triggers for public works detection | Medium | Existing Labor Compliance pass | Detect public works (agency owner, funding source mentions) and activate: DIR registration check, CPR requirements, apprenticeship >$30K threshold, penalty exposure ($200/day/worker) |
-| Per-pass selective knowledge loading | Each pass receives only its relevant knowledge -- not everything dumped into every prompt | Medium | All knowledge modules + existing pass architecture in api/analyze.ts | Insurance pass gets company insurance data. Lien pass gets CA lien law. Scope pass gets Division 08 knowledge. Critical for token budget |
-| False positive filtering via company capabilities | Stop flagging things the company already handles | Low-Medium | Company profile + completed analysis findings | If company has $2M GL and contract requires $1M, downgrade from High to Info. Post-processing filter after all passes complete |
+| **Export Report (PDF)** | "Export Report" button already visible in ContractReview header (line 161) and does nothing. A non-functional button is worse than no button. Users need to share findings with legal counsel, PMs, or attach to Procore. | Medium | Contract data model, FindingCard layout (existing) | Must include findings with clause quotes, risk score, dates, bid signal, disclaimer |
+| **Export Report (CSV)** | Spreadsheet format for users who want to sort/filter findings in Excel or track remediation. Complementary to PDF. | Low | Contract data model (existing) | Flat tabular export: one row per finding with all fields |
+| **Settings Validation** | Settings currently accept any string for dollar amounts and dates. Entering "abc" for GL Per Occurrence breaks insurance comparison silently. Users expect form fields to reject invalid input. | Low | useCompanyProfile hook, Settings page, ProfileField component (existing) | Dollar fields need currency validation; date fields need expiry warnings; inline error display |
+| **Save Feedback** | Settings save silently on blur with no confirmation (useCompanyProfile line 12-17). User has no idea if save succeeded or if localStorage quota was exceeded. Standard form UX requires visible feedback. | Low | useCompanyProfile hook (existing), Toast component (existing) | Brief "Saved" indicator or toast on success; error toast on failure |
+| **URL-based Routing** | Browser back button does nothing. Refreshing loses current view (ViewState resets to 'dashboard' on mount). Cannot bookmark or share a link to a contract review. These are baseline web app behaviors. | Medium | ViewState type, navigateTo(), App.tsx switch/case (existing) | Must sync URL with ViewState bidirectionally; handle deep links on load; preserve back/forward |
+| **Finding Actions: Resolve** | Users review findings and want to mark items as "addressed" or "not applicable" to track progress. Without this, findings are static -- no remediation workflow. | Medium | Finding interface, FindingCard component, contract persistence (existing) | Adds `status` field to Finding. Resolved findings visually dim but remain visible. Toggleable. |
+| **Finding Actions: Annotate** | Users want to add notes like "Discussed with attorney -- acceptable risk" or "Negotiate per Bob's guidance." Institutional knowledge that makes the review actionable. | Medium | Finding interface, FindingCard component, contract persistence (existing) | Adds `userNote` field to Finding. Plain text, not rich text. |
+| **Re-analyze Contract** | After updating company profile (insurance limits, bonding), existing analyses are stale -- severity downgrades and bid signals reflect old profile. No way to refresh without re-uploading. | High | Analysis pipeline (api/analyze.ts), company profile, handleUploadComplete in App.tsx (existing). **Critical constraint: original PDF not stored.** | User must re-select file from disk. Refactor upload handler to support update-in-place. |
 
 ## Differentiators
 
-Features that make ClearContract a genuine glazing contract expert, not just a generic contract reviewer with a glazing prompt. These separate it from Document Crunch and general-purpose tools.
+Features beyond expected that add clear value for this user and use case.
 
-| Feature | Value Proposition | Complexity | Dependencies | Notes |
-|---------|-------------------|------------|--------------|-------|
-| Bid/no-bid signal aggregation | Synthesize all findings into explicit bid/no-bid recommendation with weighted factors: bonding gap, insurance gap, scope beyond C-17, payment risk, geographic distance | Medium | Company profile + all analysis passes complete | Post-analysis synthesis. Show as prominent widget on review page. Factors: (1) bonding exceeds capacity, (2) insurance gap >50% of limit, (3) scope includes non-C-17 work, (4) pay-if-paid present, (5) LD uncapped, (6) retainage >10% |
-| Contract standard recognition (AIA/ConsensusDocs/EJCDC) | Detect base standard form and flag deviations. Deviations from standard = intentional risk shifting by the GC | Medium-High | Risk overview pass or new pass | AIA A401 uses Articles 1-15 with specific numbering. ConsensusDocs 750 has different indemnification defaults (mutual vs broad). EJCDC has engineer-centric provisions. Detect form family, flag what was changed |
-| Division 08 scope intelligence | Know CSI Division 08 sections (08 44 13 curtain walls, 08 44 16 storefronts, 08 80 00 glazing, 08 51 13 aluminum windows) and flag non-glazing scope pushed to the sub | Medium | Existing Scope of Work pass | Flag when scope references Division 07 (waterproofing), Division 05 (structural steel), Division 09 (finishes), Division 22 (plumbing for louvers) being assigned to glazing sub |
-| AAMA/ASTM standard reference validation | When contract references AAMA 501, 503, ASTM E2190 etc., validate standards are current and applicable | Medium | Existing Scope/Technical Standards passes | Maintain lookup of key standards with current versions. AAMA merged into FGIA. Flag obsolete references. Key standards: AAMA 501 (water testing), AAMA 503 (field testing), ASTM E2190 (IG unit durability), ASTM E1300 (glass load design) |
-| Title 24 energy code awareness | Detect Title 24 Part 6 references and flag climate-zone-specific glazing requirements that affect material costs | Medium | Scope/Technical Standards passes | 2025 Title 24 (effective Jan 2026) changed to climate-zone-specific U-factor/SHGC. Contract may reference old standards. Flag climate zone mismatch if project location is known |
-| Cal/OSHA safety requirement detection | Cross-reference safety obligations with Cal/OSHA Title 8 for glazing: fall protection, glass handling, scaffolding | Low-Medium | Existing Labor Compliance pass | Relevant for curtain wall work at height. Flag contracts shifting employer OSHA compliance burden inappropriately. Cal/OSHA Articles 5, 6, 24 for fall protection |
-| Severity recalibration with domain rules | Override AI-judged severity with deterministic CA-specific legal rules | Medium | All knowledge modules + existing severity weights | Pay-if-paid in CA = always Critical (void per Civil Code 8814). Broad-form indemnity = always Critical (void per Civil Code 2782). Lien waiver before payment = always Critical (void). These override AI judgment with statutory certainty |
-| Knowledge versioning with effective dates | Each knowledge module displays version and currency date in Settings | Low | All knowledge modules exist | "CA Lien Law: current as of 2026-03-08". "AAMA Standards: current as of 2026-01-15". Builds trust, signals when updates needed |
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Findings Progress Tracker** | Dashboard shows "12 of 28 findings resolved" per contract. Tracks remediation across contracts. Computed from finding status -- zero new data needed. | Low | Pure UI addition on Dashboard and ContractReview sidebar |
+| **Export Filtered Findings** | Export only Critical/High findings, or only a specific category. Attorneys only need Legal Issues, PMs only need Important Dates. | Low | Apply existing filter state (selectedCategory, severity filter) before generating PDF/CSV |
+| **Deep Link Sharing** | URL like `/review/c-123456` bookmarkable directly to a specific contract. Falls out naturally from URL routing. | Low | Free consequence of URL routing implementation |
+| **PDF Report with Branding** | Professional cover page with company name, formatted sections, severity color-coding. Looks credible when shared with GCs. | Medium | jsPDF supports custom fonts and colors. Company name from profile. Logo upload is out of scope. |
+| **Re-analyze Diff** | After re-analysis, show what changed: new findings, removed findings, severity changes. Shows whether profile updates actually affected the analysis. | High | Requires storing previous findings snapshot. Significant diff UI work. v1.4 candidate. |
 
 ## Anti-Features
 
-Features to explicitly NOT build. Each is tempting but wrong for this product.
+Features to explicitly NOT build in v1.3.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| RAG with vector database | Single user, reference data changes quarterly. This is structured reference data, not a retrieval problem. Vector DB adds infrastructure complexity (embeddings, indexing, similarity search) for data that fits in 2K tokens per pass | Hardcode domain knowledge as TypeScript objects imported directly into pass definitions. Version-controlled, type-safe, zero infrastructure |
-| Full standard form document storage | Copyright issues with AIA/ConsensusDocs forms. Cannot legally embed full document text | Store clause patterns and structural signatures for detection (article numbering, section structure, key phrase patterns), not full document text |
-| Real-time regulatory monitoring | CA regulations change 1-2x/year. Building a monitoring pipeline for a single user is massive over-engineering | Manual knowledge updates with version dates visible in Settings. Developer updates modules when regulations change |
-| Multi-state regulatory support | User operates exclusively in California. Adding other states bloats every prompt with unused knowledge | CA-only knowledge modules. If expansion needed, make modules state-scoped but only implement CA |
-| Custom rule builder UI | Single user, rules change rarely. A drag-and-drop rule editor is weeks of work for something that changes quarterly | Domain rules live in TypeScript code. Developer updates them. Settings UI is for company data that the user changes (insurance, bonding), not analysis rules |
-| AI fine-tuning or model training | Using Claude API -- cannot fine-tune third-party models. And knowledge injection via prompts is more maintainable | Prompt engineering with structured knowledge. This is the correct architecture for API-based LLM usage |
-| Automated "safe to sign" verdict | Legal liability. Tool identifies risks, does not practice law | Bid/no-bid is a business signal ("this contract has 5 deal-breaker terms for your company profile"), not legal advice |
-| Contract clause library / precedent search | Not a law firm tool. User reviews one contract at a time | Focus on single-contract analysis enhanced with domain knowledge |
+| **Server-side PDF generation** | Adds serverless function complexity (wkhtmltopdf/Puppeteer), cold start latency, Vercel function size limits, and a new dependency chain. Client-side is simpler and sufficient for single user. | Use jsPDF + jspdf-autotable client-side. Both are well-maintained (jsPDF: 2.6M weekly npm downloads; autotable: v3.8+). |
+| **Full react-router-dom adoption** | The app has 5 views with one parameterized route (`/review/:id`). React Router v7 brings ~45KB gzipped, framework mode, loaders, actions -- massive overhead for a problem solvable in ~80 lines. | Custom router hook using History API (pushState + popstate), syncing directly with existing ViewState. Zero dependencies added. |
+| **Hash-based routing (#)** | Hash URLs look outdated (`/#/review/c-123`). Modern browsers universally support pushState. Vercel handles SPA routing natively with rewrites. | Clean path URLs (`/review/c-123`) via History API. Add Vercel rewrite rule in vercel.json. |
+| **Rich text annotations** | Markdown/WYSIWYG editor for finding notes is overkill. Single user writing quick notes. Adds editor dependencies and complexity. | Plain text textarea, max 500 chars. Enough for "Discussed with attorney -- acceptable" or "Negotiate clause 12.3." |
+| **Finding edit/override** | Letting users edit AI-generated titles, descriptions, or severities blurs the line between AI analysis and user opinion. Creates liability confusion about what the AI said vs what the user changed. | Resolve (mark as addressed) and Annotate (add note) keep original AI output intact. User workflow actions are separate from AI analysis. |
+| **Automatic re-analysis on profile change** | Auto-triggering re-analysis burns API credits silently and surprises user with changed results. | Manual "Re-analyze" button with explicit confirmation dialog explaining what will happen. |
+| **PDF storage in localStorage** | Storing base64 PDFs for re-analysis would blow the ~5MB localStorage quota instantly (a 3MB PDF = ~4MB base64). Even IndexedDB is fragile for this. | User re-selects the file from disk for re-analysis. Clear UX guidance: "Select the original PDF to re-analyze with your updated profile." |
+| **Batch export** | Exporting multiple contracts at once. Single user reviews one contract at a time. | Export from individual contract review page only. |
+
+## Feature Details
+
+### 1. Export Report (PDF/CSV)
+
+**Expected behavior:**
+- "Export Report" button (already exists, line 161-164 of ContractReview.tsx) opens a dropdown menu with "Export as PDF" and "Export as CSV" options
+- PDF layout: header section (contract name, client, type, date, risk score, bid signal level), findings grouped by category with severity color-coding, clause quotes in blockquote style, recommendations in callout boxes, dates timeline, disclaimer footer ("AI-generated analysis -- verify with legal counsel")
+- CSV format: one row per finding, columns: Severity, Category, Title, Description, Clause Reference, Clause Text, Recommendation, Negotiation Position, Status (active/resolved), User Note
+- If category filter is active, export only filtered findings (with a note indicating the filter)
+- Generation happens entirely client-side; triggers browser download via Blob + URL.createObjectURL
+
+**Technology:**
+- **PDF:** jsPDF (v2.5+) + jspdf-autotable (v3.8+). jsPDF handles document creation, headers, and text. AutoTable handles the findings table layout with automatic pagination and column sizing. Severity colors map to cell background colors matching existing Tailwind palette (red-100 for Critical, amber-100 for High, etc.).
+- **CSV:** Native string concatenation with proper escaping (double-quote fields containing commas/newlines). Blob with `text/csv` MIME type. No library needed.
+
+**Complexity breakdown:**
+- PDF layout + formatting + severity colors: Medium (bulk of work; ~200-300 lines for report builder)
+- CSV generation: Low (~50 lines)
+- Dropdown UI on Export button: Low (existing button, add menu)
+- Filter-aware export: Low (pass current filter state to export function)
+
+### 2. Settings Validation + Save Feedback
+
+**Expected behavior:**
+- Dollar fields (GL Per Occurrence, GL Aggregate, Umbrella, Auto, WC Employer's Liability, Bonding Single/Aggregate, Project Size Min/Max): validate on blur as currency-parseable. Accept formats like "$1,000,000", "1000000", "1M", "$2M". Show red border + "Enter a valid dollar amount" on invalid.
+- Date fields (License Expiry, DIR Expiry): show amber warning if date is in the past ("This date has expired"). Red error if format invalid.
+- License number: format hint placeholder text, no strict validation (formats vary).
+- On successful save: brief green "Saved" text appears next to the section header, auto-fades after 2 seconds via Framer Motion (already available).
+- On save failure (localStorage quota exceeded): amber warning toast using existing Toast component.
+
+**Important design choice:** Validation should be non-blocking -- warn but do not prevent saving. These are reference values, not transactional data. Users might enter approximate amounts or notes. Warning is enough.
+
+**Complexity breakdown:**
+- Validation rules per field type: Low (regex for currency, Date comparison for expiry)
+- Error/warning display UI: Low (inline colored text, border color change on ProfileField)
+- Save feedback animation: Low (Framer Motion AnimatePresence fade, already used throughout app)
+- Auto-format currency display on blur: Low (optional nicety)
+
+### 3. URL-based Routing
+
+**Expected behavior:**
+- URL path maps to ViewState:
+  - `/` or `/dashboard` -> `'dashboard'`
+  - `/upload` -> `'upload'`
+  - `/review/:contractId` -> `'review'` (with activeContractId set)
+  - `/contracts` -> `'contracts'`
+  - `/settings` -> `'settings'`
+- Browser back/forward buttons navigate between views correctly
+- Page refresh preserves current view (URL parsed on mount to derive initial ViewState)
+- Direct URL entry and bookmarks work (requires Vercel SPA rewrite)
+- `navigateTo()` internally calls `history.pushState()` -- no full page reload
+
+**Implementation approach:** Custom `useRouter` hook (~80 lines), not react-router.
+- On mount: parse `window.location.pathname` to derive initial `activeView` and `activeContractId`
+- On `navigateTo(view, contractId?)`: call `history.pushState({}, '', path)` alongside existing state updates
+- Listen for `popstate` event to handle back/forward, updating ViewState accordingly
+- Fallback: if URL contains an unknown path or a contract ID that does not exist in storage, redirect to dashboard
+
+**Vercel config addition:**
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+**Complexity breakdown:**
+- URL-to-ViewState mapping + parsing: Low (simple switch on pathname segments)
+- History API integration (pushState + popstate listener): Low
+- Initial load from URL with validation: Medium (contract ID existence check, graceful fallback)
+- Vercel rewrite config: Low (one line in vercel.json)
+- Refactoring navigateTo to include URL sync: Medium (touches useContractStore hook)
+
+### 4. Re-analyze Contract
+
+**Expected behavior:**
+- "Re-analyze" button on ContractReview page header (next to Export Report and Delete)
+- Button only appears for contracts in "Reviewed" status (not while "Analyzing")
+- Clicking opens a dialog: "Re-analyze with current company profile? Select the original PDF file to proceed." with a file picker area inside the dialog
+- User selects PDF, confirms, analysis begins
+- Contract status changes to "Analyzing", review page shows AnalysisProgress (existing component)
+- On completion: findings, risk score, bid signal, dates all update in-place; old findings are fully replaced
+- On failure: revert to previous "Reviewed" status with old data intact, show error toast
+
+**Critical constraint:** Original PDF is not stored. The File object from the initial upload is garbage-collected after the analysis promise resolves. localStorage cannot store PDFs (size). The user MUST re-select the file from disk. This is unavoidable without adding server-side file storage (out of scope).
+
+**Implementation notes:**
+- Refactor `handleUploadComplete` in App.tsx to accept an optional `existingContractId` parameter. When provided, set existing contract to "Analyzing" and update in-place on completion instead of creating a new entry.
+- Before overwriting, snapshot the current contract data so failure can restore it.
+- The file picker in the re-analyze dialog should be a simple `<input type="file" accept=".pdf">`, not the full UploadZone component.
+
+**Complexity breakdown:**
+- Re-analyze button + confirmation dialog with file picker: Medium
+- Refactoring handleUploadComplete for update mode: Medium (most significant change)
+- Snapshot/rollback on failure: Low (save copy of contract before analysis)
+- Status management during re-analysis: Low (existing "Analyzing" status works)
+
+### 5. Finding Actions (Resolve + Annotate)
+
+**Expected behavior:**
+
+**Resolve:**
+- Each FindingCard gets a subtle action bar at the bottom with a "Mark Resolved" button (checkmark icon)
+- Clicking toggles the finding between `active` and `resolved` states
+- Resolved findings: reduced opacity (opacity-50), green checkmark overlay, subtle strikethrough on title
+- Resolved findings remain in the list (not hidden by default)
+- Optional "Hide resolved" toggle in the filter bar to suppress resolved findings
+- Toggling back to active restores full appearance
+- Risk Summary sidebar shows resolved count: "3 of 7 Critical findings resolved"
+
+**Annotate:**
+- "Add Note" button (pencil icon) in the action bar next to Resolve
+- Clicking expands an inline textarea below the finding card content
+- User types note (max 500 chars), clicks "Save" or presses Ctrl+Enter
+- Saved note displays in a distinct callout (slate-50 background, "Your Note" header) below the finding
+- Notes can be edited (click to re-open textarea) or deleted (X button on note)
+- Notes persist immediately to localStorage via updateContract
+
+**Type changes to Finding interface:**
+```typescript
+// Add to Finding interface in src/types/contract.ts
+status?: 'active' | 'resolved';   // undefined treated as 'active' for backward compat
+userNote?: string;                  // user annotation, max 500 chars
+resolvedAt?: string;                // ISO date string when resolved
+```
+
+**Backward compatibility:** Existing contracts with findings that lack `status` or `userNote` fields work without migration. The UI treats `undefined` status as `'active'` and absent `userNote` as no note. No data migration step needed.
+
+**Persistence approach:** When a finding action occurs, update the contract's findings array and call `updateContract(contractId, { findings: updatedFindings })`. This uses the existing `persistAndSet` path in useContractStore which writes to localStorage.
+
+**Complexity breakdown:**
+- Finding type extension: Low (3 optional fields)
+- Resolve toggle UI + visual treatment: Medium (opacity, checkmark, strikethrough, color changes)
+- Annotate UI (textarea expand/collapse, save/edit/delete): Medium
+- Contract persistence on finding change: Low (existing updateContract path)
+- "Hide resolved" filter toggle: Low
+- Risk Summary resolved counts: Low
 
 ## Feature Dependencies
 
 ```
-Company Profile UI (Settings)
-  |
-  +-> Insurance Comparison (needs company GL/umbrella/auto/WC limits)
-  |
-  +-> Bonding Capacity Check (needs company bond limit)
-  |
-  +-> False Positive Filtering (needs company capabilities to downgrade)
-  |
-  +-> Bid/No-Bid Signals (needs all company thresholds)
-  |
-  +-> Geographic Reach Check (needs service area definition)
+Settings Validation --> Save Feedback (validation errors need feedback UI patterns)
 
-Knowledge Architecture (module system + per-pass loader)
-  |
-  +-> Per-Pass Selective Loading (infrastructure for all knowledge injection)
-  |
-  +-> CA Regulatory Knowledge
-  |     +-> Lien Law Module -> injected into Lien Rights pass
-  |     +-> Prevailing Wage Module -> injected into Labor Compliance pass
-  |     +-> Title 24 Module -> injected into Scope/Technical passes
-  |     +-> Cal/OSHA Module -> injected into Labor Compliance pass
-  |     +-> CA Contract Law (CC 2782, 8814) -> injected into relevant legal passes
-  |
-  +-> Contract Standards Knowledge
-  |     +-> AIA/ConsensusDocs/EJCDC patterns -> injected into Risk Overview pass
-  |
-  +-> Trade Knowledge
-  |     +-> Division 08 Specs -> injected into Scope of Work pass
-  |     +-> AAMA/ASTM Standards -> injected into Technical Standards / Scope passes
-  |
-  +-> Domain Severity Rules -> post-analysis recalibration (no prompt injection)
+URL Routing (standalone -- no dependencies on other v1.3 features)
 
-Existing 16-Pass Analysis Engine (already built, v1.0)
-  |
-  +-> System prompt augmentation points (knowledge injected here)
-  |
-  +-> Post-analysis processing pipeline
-        +-> False positive filter (compare findings vs company profile)
-        +-> Severity recalibration (apply domain rules)
-        +-> Bid/no-bid synthesis (aggregate signals)
+Finding Actions: Resolve --> Finding Actions: Annotate (share action bar UI component)
+Finding Actions -----------> Export Report (export includes status + userNote columns)
+
+Re-analyze Contract (standalone, but refactors upload handler shared with initial upload)
 ```
+
+**Build order rationale:**
+1. **URL Routing** -- foundational infrastructure. Changes how navigation works throughout the app. Other features (Export, Re-analyze) produce URLs or navigate, so routing should be stable first.
+2. **Settings Validation + Save Feedback** -- small, self-contained, quick win. Builds the validation/feedback patterns reused elsewhere.
+3. **Finding Actions (Resolve + Annotate)** -- extends core Finding data model. Must ship before Export so PDF/CSV can include status and notes.
+4. **Export Report (PDF + CSV)** -- benefits from having resolve/annotate data to include in output. The "complete" export with all fields is better than adding columns later.
+5. **Re-analyze Contract** -- most complex feature, touches the analysis pipeline. Depends on nothing else but benefits from shipping last so the full workflow (resolve findings -> update profile -> re-analyze -> export new report) is testable end-to-end.
 
 ## MVP Recommendation
 
-### Phase 1: Foundation (build first, everything depends on it)
+**Must ship in v1.3 (all five, ordered by priority):**
+1. **URL Routing** -- broken back button and lost-on-refresh are usability bugs disguised as missing features
+2. **Export Report (PDF + CSV)** -- the button already exists and does nothing; this is the most visible gap
+3. **Finding Actions (Resolve + Annotate)** -- transforms static analysis into actionable workflow
+4. **Settings Validation + Save Feedback** -- small effort, prevents silent data corruption in company profile
+5. **Re-analyze Contract** -- completes the review lifecycle (upload -> review -> update profile -> re-analyze)
 
-1. **Knowledge architecture + module system** -- TypeScript interfaces for knowledge modules. Each module declares which passes consume it (`passTargets: string[]`). A loader function takes a pass name and returns the relevant knowledge snippets. This is scaffolding.
-
-2. **Company profile Settings UI** -- Replace the placeholder Settings page. Data entry for: GL limit ($), umbrella limit ($), auto limit ($), WC status (yes/no), bonding capacity ($), C-17 license number, DIR registration (yes/no + number), employee count, typical project size range (min/max $), geographic service area (counties/radius). Persist to localStorage. Load into analysis request payload.
-
-3. **Per-pass selective knowledge loading** -- Modify `api/analyze.ts` pass runner to accept optional knowledge context. Each pass's system prompt gets a `## Domain Knowledge` section appended with relevant module data. Token budget: max ~2K additional tokens per pass.
-
-### Phase 2: Company-Specific Intelligence (highest user value, fastest payoff)
-
-4. **Insurance comparison** -- Post-processing: compare InsuranceCoverageItem[] from insurance pass against company profile limits. Replace `isAboveStandard` guesswork with calculated gaps. Transform findings: "Contract requires $2M GL; your current limit is $1M. Gap: $1M."
-
-5. **Bonding capacity check** -- Post-processing: extract bond requirement from financial findings, compare against company profile. Binary flag.
-
-6. **False positive filtering** -- Post-processing pass over all findings. Rules: if company meets/exceeds requirement, downgrade severity (High->Info). If company has DIR registration and contract requires it, downgrade from Medium->Info.
-
-7. **Bid/no-bid signal aggregation** -- Post-analysis synthesis widget. Weighted scoring: insurance gap (weight 3), bonding gap (weight 5 -- deal-breaker), scope beyond C-17 (weight 4), pay-if-paid present (weight 3), uncapped LD (weight 3), retainage >10% (weight 2). Display as green/yellow/red recommendation.
-
-### Phase 3: CA Regulatory Knowledge (legal precision)
-
-8. **CA lien law module** -- Knowledge injected into Lien Rights pass. Data: preliminary notice 20-day requirement, 90-day recording deadline (30 days after NOC for subs), 90-day foreclosure deadline, unconditional vs conditional waivers (CC 8132-8138), anti-waiver provisions.
-
-9. **Prevailing wage / DIR module** -- Knowledge injected into Labor Compliance pass. Public works detection rules, DIR registration verification, CPR obligations, apprenticeship threshold ($30K+), penalty structure ($200/day/worker underpaid).
-
-10. **CA contract law severity rules** -- Post-processing severity overrides. Pay-if-paid = Critical (void per CC 8814). Broad-form indemnity = Critical (void per CC 2782 for construction). Lien waiver before payment = Critical (void per CC 8122). Contractual limitation on mechanics lien = Critical (unenforceable).
-
-11. **Title 24 + Cal/OSHA modules** -- Lower priority regulatory knowledge. Title 24 climate-zone glazing requirements. Cal/OSHA fall protection thresholds for glazing at height.
-
-### Phase 4: Industry & Trade Knowledge (expertise depth)
-
-12. **Division 08 scope intelligence** -- Inject CSI section knowledge into Scope of Work pass. Flag non-08 scope assigned to glazing sub.
-
-13. **AAMA/ASTM standard validation** -- Reference table of current standards with versions. Flag obsolete or superseded references.
-
-14. **Contract standard recognition** -- Detect AIA A401, ConsensusDocs 750, EJCDC base forms by structural patterns. Flag deviations from standard form defaults.
-
-### Defer
-
-- **Knowledge versioning UI**: Add after modules exist. Simple version strings in Settings.
-- **Contract standard recognition**: Most knowledge-encoding effort. Build after simpler modules prove the architecture.
+**Defer to v1.4 if time-constrained:**
+- Re-analyze Contract is the deferral candidate. Users can work around it by re-uploading the PDF (creates a new contract entry). The real compelling version of re-analyze includes a diff view showing what changed, which is High complexity. Shipping re-analyze without diff is functional but underwhelming.
+- PDF branding (cover page, company name header) can ship as basic PDF first and polish later.
+- Re-analyze Diff is clearly v1.4+.
+- Findings Progress Tracker on Dashboard is a quick add anytime after Finding Actions ships.
 
 ## Complexity Budget
 
-| Feature Group | Effort | Token Impact per Pass | Risk Level |
-|---------------|--------|----------------------|------------|
-| Knowledge architecture + module system | 1-2 days | None (infrastructure) | Low |
-| Company profile Settings UI | 1-2 days | None (client-side) | Low |
-| Per-pass selective loading | 1 day | +500-2000 tokens | Medium -- context limits |
-| Insurance/bonding comparison | 0.5 days | +200 tokens on insurance pass | Low |
-| False positive filter | 1 day | None (post-processing) | Low |
-| Bid/no-bid signals | 1 day | None (post-processing) | Low |
-| CA lien law module | 1 day | +800 tokens on lien pass | Low |
-| Prevailing wage module | 1 day | +600 tokens on labor pass | Low |
-| CA severity rules | 1 day | None (post-processing) | Medium -- must not break scores |
-| Title 24 + Cal/OSHA | 1 day | +400 tokens on relevant passes | Low |
-| Division 08 / AAMA / ASTM | 1-2 days | +500-800 tokens on scope passes | Low |
-| Contract standard recognition | 2-3 days | +1000 tokens on overview pass | Medium-High |
-
-**Total: ~13-17 days**
-
-## Key Design Decisions
-
-### Knowledge as Code, Not Database
-
-Domain knowledge lives as TypeScript objects, not a database or JSON files fetched at runtime.
-
-- Single user, reference data changes quarterly at most
-- Type safety catches knowledge structure errors at compile time
-- No infrastructure overhead (no DB, no embeddings, no similarity search)
-- Version-controlled with the codebase -- git diff shows exactly what changed
-- Modules import directly, zero I/O at runtime
-
-### Two Mechanisms: Prompt Injection vs Post-Processing
-
-| Mechanism | When to Use | Examples | Token Cost |
-|-----------|-------------|----------|------------|
-| Prompt injection | AI needs knowledge during reasoning | CA lien deadlines, Division 08 sections, AAMA standards, prevailing wage triggers | Yes (+500-2K per pass) |
-| Post-processing | Mechanical comparison, no reasoning needed | Insurance gap calculation, severity override for void clauses, bid/no-bid scoring | None |
-
-Use both. Prompt injection for knowledge the AI reasons about. Post-processing for deterministic comparisons.
-
-### Token Budget Constraint
-
-Current system prompts: ~300-500 tokens each. Adding knowledge must stay under 2,000 additional tokens per pass. At 16 passes with selective loading (not all passes get knowledge), total additional tokens: ~8-15K across all passes. Well within Claude's context window and manageable for API cost.
-
-### Settings UI: Company Data Only
-
-The Settings page collects data that changes (insurance renewed annually, bonding capacity changes with revenue, employee count fluctuates). Analysis rules do NOT go in Settings -- they are code. The user updates their company profile; the developer updates domain knowledge.
+| Feature | Effort Estimate | Risk Level | Notes |
+|---------|----------------|------------|-------|
+| URL Routing | 0.5-1 day | Low | Well-understood pattern, clean ViewState mapping |
+| Settings Validation + Save Feedback | 0.5 day | Low | Simple validation rules, existing Toast component |
+| Finding Actions (Resolve + Annotate) | 1-1.5 days | Low-Medium | Type changes + FindingCard UI + persistence |
+| Export Report (PDF + CSV) | 1.5-2 days | Medium | PDF layout is the bulk of work; CSV is trivial |
+| Re-analyze Contract | 1-1.5 days | Medium | Upload handler refactor + file re-selection UX |
+| **Total** | **~5-6.5 days** | | |
 
 ## Sources
 
-- [Document Crunch Platform](https://www.documentcrunch.com/platform) -- competitor feature set, construction-specific AI knowledge base approach
-- [MDPI: Automated Construction Contract Review Framework with LLM + Domain Knowledge](https://www.mdpi.com/2075-5309/15/6/923) -- structured knowledge-integrated RAG approach for construction contracts
-- [CA Mechanics Lien Deadlines](https://cnslien.com/2025/03/19/california-mechanics-lien-deadlines-what-you-need-to-know/) -- 20-day prelim, 90-day recording, 30-day post-NOC for subs
-- [CA DIR Prevailing Wage](https://www.dir.ca.gov/public-works/prevailing-wage.html) -- public works >$1K threshold, CPR requirements, apprenticeship rules
-- [CSLB C-17 Glazing License](https://www.cslb.ca.gov/about_us/library/licensing_classifications/Licensing_Classifications_Detail.aspx?Class=C17) -- license scope definition, $500 threshold
-- [CSLB Bond Requirements](https://www.cslb.ca.gov/contractors/maintain_license/bond_information/bond_requirements.aspx) -- $25K contractor's bond
-- [AIA A401 vs ConsensusDocs 750 Comparison](https://www.sackstierney.com/blog/compare-and-contrast-the-aia-a-401-and-the-consensusdocs-750-forms-of-subcontract/) -- structural differences between standard subcontract forms
-- [CA Title 24 2025 Energy Code](https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards/2025-building-energy-efficiency) -- climate-zone-specific glazing U-factor/SHGC requirements effective Jan 2026
-- [AAMA IPCB-08 Commercial Installation Standard](https://store.fgiaonline.org/AAMA-IPCB-08/) -- commercial building window/door installation practices
-- [Division 08 Entrances, Storefronts & Curtain Walls Spec](https://constructionpublicinfo.ua.edu/wp-content/uploads/Design-Guidelines/Section-III/Division-08-Openings/08-40-00-Entrances-Storefronts-and-Curtain-Walls.pdf) -- CSI section structure for glazing
-- [ConstructConnect Bid/No-Bid Decision Factors](https://www.constructconnect.com/blog/key-factors-consider-bidno-bid-decision-making) -- critical factors: client payment ability, scope clarity, cash flow, labor availability
-- [Cal/OSHA Fall Protection in Construction](https://www.dir.ca.gov/dosh/dosh_publications/Fall-Protection-in-Construction-fs.pdf) -- fall protection requirements for construction
-- [Workyard: California Prevailing Wage Guide 2025](https://www.workyard.com/us-labor-laws/prevailing-wage-california) -- detailed CA prevailing wage rules and penalties
+- ClearContract codebase: ContractReview.tsx (Export button lines 157-164, findings display), FindingCard.tsx (current card layout), useContractStore.ts (navigateTo, persistAndSet), useCompanyProfile.ts (onBlur save pattern), Settings.tsx (ProfileField component), App.tsx (handleUploadComplete, view routing)
+- [jsPDF npm](https://www.npmjs.com/package/jspdf) -- 30K+ GitHub stars, 2.6M weekly downloads, v2.5+
+- [jsPDF-AutoTable GitHub](https://github.com/simonbengtsson/jsPDF-AutoTable) -- table plugin, v3.8+, automatic pagination
+- [React Router v7 SPA docs](https://reactrouter.com/how-to/spa) -- evaluated, rejected (overkill for 5 flat routes)
+- [History API popstate in SPAs](https://www.frontendgeek.com/blogs/understanding-popstate-in-single-page-applications-spas) -- lightweight routing pattern
+- [Lightweight SPA routing without framework](https://namastedev.com/blog/routing-without-a-framework-building-a-minimal-spa-router/) -- pushState + popstate pattern reference
 
 ---
-*Feature research for: v1.1 Domain Intelligence Knowledge System*
-*Researched: 2026-03-08*
-*Supersedes: 2026-03-02 v1.0 feature research (all v1.0 features now shipped)*
+*Feature research for: v1.3 Workflow Completion*
+*Researched: 2026-03-12*
+*Supersedes: 2026-03-08 v1.1 feature research (all v1.1 features now shipped)*

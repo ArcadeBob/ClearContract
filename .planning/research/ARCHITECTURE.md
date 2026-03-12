@@ -1,601 +1,390 @@
 # Architecture Patterns
 
-**Domain:** Knowledge architecture for domain intelligence in existing contract analysis pipeline
-**Researched:** 2026-03-08
-**Confidence:** HIGH (existing codebase fully analyzed, API constraints verified via official docs)
+**Domain:** Feature integration for ClearContract v1.3 (Workflow Completion)
+**Researched:** 2026-03-12
+**Confidence:** HIGH (full codebase analyzed, all integration points verified against source)
 
 ## Current Architecture Summary
 
-The existing system is a React 18 SPA + Vercel serverless function (`api/analyze.ts`, 1537 LOC). The serverless function:
-
-1. Receives a PDF via base64-encoded POST body
-2. Uploads PDF once to Anthropic Files API (upload-once/analyze-many pattern)
-3. Runs 16 analysis passes in parallel via `Promise.allSettled`
-4. Each pass has its own Zod schema, system prompt (~80-150 lines), and user prompt (~1 line)
-5. All passes share the same `fileId` with `cache_control: { type: 'ephemeral' }` on the document block
-6. Results are merged, deduplicated by composite key (clauseReference + category), risk-scored deterministically, and returned as JSON
-
-Key constraints: no database, no persistence, single-user, Vercel serverless with 300s timeout, Claude Sonnet 4.5 with 200K context window and 8192 max output tokens per pass.
-
-The `AnalysisPass` interface is:
-```typescript
-interface AnalysisPass {
-  name: string;
-  systemPrompt: string;
-  userPrompt: string;
-  isOverview: boolean;
-  isLegal?: boolean;
-  isScope?: boolean;
-  schema?: ZodSchema;
-}
-```
-
-System prompts currently live inline in the `ANALYSIS_PASSES` array in `api/analyze.ts`. Each is a multi-line string literal with embedded domain knowledge (e.g., the insurance pass hardcodes "$1M/$2M" CGL limits, the lien rights pass hardcodes "13 states prohibit pay-if-paid").
+The app uses a single `useContractStore` hook (React `useState`) for all contract state, view-based routing via `ViewState` string union, `localStorage` persistence through `contractStorage.ts` and `profileLoader.ts`, and a Vercel serverless function at `api/analyze.ts` for the AI pipeline. Navigation is managed by `navigateTo(view, contractId?)` in App.tsx which sets `activeView` and `activeContractId` state. Company profile is managed separately via `useCompanyProfile` hook with its own localStorage key.
 
 ---
 
-## Recommended Architecture: Knowledge as System Prompt Injection
+## Feature Integration Map
 
-### Design Principle
+### 1. URL-based Routing
 
-Knowledge files are **static TypeScript string exports** that get concatenated into system prompts at analysis time. No vector database, no RAG, no retrieval pipeline. The system prompt for each pass already runs ~100 lines; knowledge injection adds domain-specific reference content that makes Claude's analysis more precise.
+**What changes:** Replace in-memory `ViewState` + `activeContractId` with browser URL as source of truth.
 
-This is the right approach because:
-- The knowledge is stable (regulatory codes, company insurance limits, industry standards) -- not dynamic content requiring real-time retrieval
-- System prompts benefit from prompt caching (10% of input cost on cache hit, 90% savings)
-- The 200K context window provides ample room for knowledge injection per pass
-- Complexity stays low -- no new infrastructure, no database, no retrieval system
-- Single-user, developer-is-the-user: editing a `.ts` file and redeploying is the right UX for updating regulatory knowledge
+**Why build first:** Every other feature benefits from deep links. Export can link to a contract. Re-analyze can preserve URL after completion. Settings gets a bookmarkable URL.
 
-Company profile is the one exception: it is user-editable at runtime via the Settings UI and stored in `localStorage`, flowing to the API in the request body.
+**Approach:** Custom hook using History API `pushState` + `popstate` listener. No library needed -- the app has 5 routes and no nested routing. React Router would add ~15KB gzipped for zero benefit here.
 
-### Component Boundaries
+**URL scheme:**
+
+| Route | ViewState | Notes |
+|-------|-----------|-------|
+| `/` | `dashboard` | Default |
+| `/upload` | `upload` | |
+| `/contracts` | `contracts` | |
+| `/contracts/:id` | `review` | Deep link to specific contract |
+| `/settings` | `settings` | |
+
+**New files:**
+- `src/hooks/useRouter.ts` -- custom hook wrapping `window.history` and `popstate`
+
+**Modified files:**
+- `src/hooks/useContractStore.ts` -- remove `activeView` and `activeContractId` state; the store no longer manages navigation
+- `src/App.tsx` -- consume `useRouter` instead of `activeView`/`activeContractId` from store; derive `activeContract` from URL param + contracts array
+- `src/components/Sidebar.tsx` -- replace `onNavigate` callbacks with `navigate()` calls from router hook
+- All components calling `navigateTo()` -- replace with `navigate()` from router hook (Dashboard, AllContracts, ContractReview onBack)
+
+**Data flow change:**
+
+```
+BEFORE: User clicks -> navigateTo('review', id) -> sets activeView + activeContractId state -> App re-renders
+AFTER:  User clicks -> navigate('/contracts/c-123') -> pushState -> hook reads URL -> App re-renders
+        Browser back -> popstate event -> hook reads URL -> App re-renders
+```
+
+**Component boundary:** The router hook is independent of the contract store. App.tsx becomes the integration point that derives `activeContract` from URL param + `contracts` array.
+
+**Pattern:**
+```typescript
+// src/hooks/useRouter.ts
+interface RouteState {
+  view: ViewState;
+  contractId: string | null;
+}
+
+function useRouter(): {
+  route: RouteState;
+  navigate: (path: string) => void;
+}
+```
+
+The hook parses `window.location.pathname` into a `RouteState`, calls `history.pushState` on navigate, and listens to `popstate` for back/forward. A `parseRoute(pathname: string): RouteState` pure function handles the mapping and can be unit tested trivially.
+
+**Critical integration detail:** The `handleUploadComplete` flow in App.tsx navigates to the review page with a freshly-created ID. This must use `navigate('/contracts/${id}')` instead of `navigateTo('review', id)`. The placeholder contract must be added to state before navigation so the URL-derived lookup finds it. The existing code already does this correctly (addContract before navigateTo), so the migration is a direct replacement.
+
+---
+
+### 2. Finding Actions (Resolve/Annotate)
+
+**What changes:** Findings gain mutable user-state (resolved/active, user notes) persisted alongside the contract.
+
+**Type changes in `src/types/contract.ts`:**
+
+```typescript
+// Add to Finding interface (all optional = backward compatible)
+export interface Finding {
+  // ... existing fields ...
+  resolved?: boolean;        // User marked as addressed
+  annotation?: string;       // User's note/comment
+  resolvedAt?: string;       // ISO timestamp
+}
+```
+
+Adding optional fields to `Finding` is backward-compatible -- existing contracts loaded from localStorage without these fields render as unresolved with no annotation. No migration step needed.
+
+**New files:**
+- `src/components/FindingActions.tsx` -- resolve toggle button + annotation input, rendered inside FindingCard
+
+**Modified files:**
+- `src/types/contract.ts` -- add `resolved`, `annotation`, `resolvedAt` to `Finding`
+- `src/components/FindingCard.tsx` -- render `FindingActions`, apply visual dimming when resolved (e.g., `opacity-50` on the card body)
+- `src/pages/ContractReview.tsx` -- add resolved/active filter toggle in the filter bar; pass `onUpdateFinding` handler down; wire to store
+- `src/hooks/useContractStore.ts` -- add `updateFinding(contractId, findingId, updates)` method
+
+**Data flow:**
+
+```
+User clicks Resolve -> FindingActions calls onResolve(findingId)
+-> ContractReview calls updateFinding(contract.id, findingId, { resolved: true, resolvedAt: now })
+-> useContractStore patches the finding in the contracts array
+-> persistAndSet writes to localStorage
+-> React re-renders with updated finding (dimmed style)
+```
+
+**State management decision:** `updateFinding` belongs in `useContractStore` because findings live inside contracts, and contracts are the persisted unit. A separate finding store would create sync issues (what if a contract is deleted?).
+
+**Pattern for updateFinding:**
+```typescript
+const updateFinding = (contractId: string, findingId: string, updates: Partial<Finding>) => {
+  persistAndSet((prev) =>
+    prev.map((c) =>
+      c.id === contractId
+        ? {
+            ...c,
+            findings: c.findings.map((f) =>
+              f.id === findingId ? { ...f, ...updates } : f
+            ),
+          }
+        : c
+    )
+  );
+};
+```
+
+**Storage impact:** Each annotation adds ~100-500 bytes. With 50+ findings per contract and 10+ contracts, this stays well under the 5MB localStorage limit. Not a concern.
+
+---
+
+### 3. Re-analyze Contract
+
+**What changes:** A "Re-analyze" button on the review page re-runs the analysis pipeline for an existing contract using the current company profile.
+
+**Core problem:** The current `analyzeContract` function requires a `File` object (for base64 encoding). After upload, the original PDF is not stored -- only the extracted findings. Re-analysis requires the original PDF data.
+
+**Approach:** Store the PDF base64 string on the Contract object at upload time, but only in React state (in-memory), NOT in localStorage.
+
+**Type changes:**
+```typescript
+// Add to Contract interface
+export interface Contract {
+  // ... existing fields ...
+  pdfBase64?: string;  // Original PDF for re-analysis (in-memory only)
+}
+```
+
+**Storage concern:** A 3MB PDF = ~4MB base64. localStorage limit is ~5MB total. Storing even one PDF base64 in localStorage would exhaust it.
+
+**Modified persistence layer:**
+```typescript
+// In contractStorage.ts saveContracts()
+// Strip pdfBase64 before persisting
+const stripped = contracts.map(({ pdfBase64, ...rest }) => rest);
+localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(stripped));
+```
+
+**New files:** None -- the re-analyze button lives in ContractReview.tsx header.
+
+**Modified files:**
+- `src/types/contract.ts` -- add optional `pdfBase64` to `Contract`
+- `src/storage/contractStorage.ts` -- strip `pdfBase64` from persistence
+- `src/App.tsx` -- modify `handleUploadComplete` to store `pdfBase64` on the placeholder contract; add `handleReanalyze(contractId)` function
+- `src/pages/ContractReview.tsx` -- add Re-analyze button in header; accept `onReanalyze` prop
+- `src/api/analyzeContract.ts` -- extract `analyzeContractFromBase64(pdfBase64, fileName, companyProfile)` so both upload and re-analyze can call the API without needing a File object
+
+**Data flow:**
+
+```
+User clicks Re-analyze
+-> ContractReview calls onReanalyze(contract.id)
+-> App.tsx reads contract.pdfBase64, sets contract.status = 'Analyzing'
+-> POSTs base64 to /api/analyze with CURRENT company profile
+-> On success: updateContract with new findings, dates, riskScore, status = 'Reviewed'
+-> On failure: toast error, revert status to 'Reviewed' (keep old findings intact)
+```
+
+**Edge case:** If `pdfBase64` is missing (contract loaded from localStorage after refresh), show a disabled "Re-analyze" button with tooltip "Re-upload the PDF to re-analyze" or hide the button entirely. This handles graceful degradation.
+
+**Finding actions interaction:** Re-analyze replaces all findings with fresh AI output, which clears any resolved/annotation state. This is correct behavior -- the user is explicitly requesting a fresh analysis. The UI should confirm this with a dialog: "Re-analyzing will replace all findings and clear any notes. Continue?"
+
+---
+
+### 4. Export Report (PDF/CSV)
+
+**What changes:** "Export Report" button on ContractReview generates a downloadable PDF or CSV file client-side.
+
+**Approach:** Use `jsPDF` + `jspdf-autotable` for PDF generation. Client-side only, no server round-trip. For CSV, plain string construction with Blob download -- no library needed.
+
+**Why jsPDF over @react-pdf/renderer:** The export is a formatted data report (tables, text blocks), not a visual replica of React components. jsPDF with autotable is purpose-built for tabular data reports. @react-pdf/renderer would require building a parallel JSX component tree for PDF layout -- unnecessary complexity for this use case.
+
+**New files:**
+- `src/export/exportPdf.ts` -- takes a `Contract` object, generates PDF using jsPDF, triggers browser download
+- `src/export/exportCsv.ts` -- takes a `Contract` object, generates CSV string, triggers download via Blob URL
+- `src/components/ExportMenu.tsx` -- dropdown on the Export Report button with PDF/CSV options
+
+**Modified files:**
+- `src/pages/ContractReview.tsx` -- replace the stubbed "Export Report" button with `ExportMenu` component
+
+**PDF report structure:**
+1. Header: contract name, client, type, upload date, risk score
+2. Bid signal summary (if present)
+3. Dates/milestones table
+4. Findings grouped by category, each with: severity, title, description, clause quote, recommendation, resolved status
+5. Footer: "Generated by ClearContract" + timestamp + AI disclaimer
+
+**CSV structure:** Flat row per finding: severity, category, title, description, clauseReference, clauseText, recommendation, resolved, annotation.
+
+**Data flow:**
+```
+User clicks Export -> ExportMenu shows PDF/CSV options
+-> User picks PDF -> exportPdf(contract) -> jsPDF builds document -> browser downloads .pdf
+-> User picks CSV -> exportCsv(contract) -> Blob URL -> browser downloads .csv
+```
+
+**New dependencies:**
+```bash
+npm install jspdf jspdf-autotable
+```
+
+Note: jsPDF v2.x bundles its own TypeScript types. `jspdf-autotable` provides types via `@types/jspdf-autotable` or its own declarations -- verify at install time.
+
+**Font handling:** jsPDF ships with Helvetica/Courier/Times only. The app uses Inter, but for the export report Helvetica is appropriate -- this is a professional data report, not a branded marketing piece. Do not attempt to embed custom fonts.
+
+---
+
+### 5. Settings Validation + Save Feedback
+
+**What changes:** Add field-level validation to Settings inputs and show save confirmation feedback.
+
+**Current behavior:** `useCompanyProfile` calls `updateField` on every onChange event, which immediately persists to localStorage via `localStorage.setItem`. There is no validation, no save button, no visual feedback.
+
+**Approach:** Keep the auto-save-on-change pattern (it works well for this use case -- immediate persistence, no "forgot to save" problem) but add:
+1. Field-level validation with visual error states
+2. A subtle "Saved" indicator that appears briefly after valid changes
+
+**Validation rules:**
+
+| Field Pattern | Rule | Example Fields |
+|--------------|------|----------------|
+| Dollar amounts | Must match `$X,XXX` or `$X,XXX,XXX` pattern, or be empty | `glPerOccurrence`, `bondingSingleProject` |
+| Dates | Must be valid date (handled by `type="date"` input) or empty | `contractorLicenseExpiry`, `dirExpiry` |
+| Identifiers | Non-empty string when filled, no format enforcement | `contractorLicenseNumber`, `dirRegistration` |
+| Ranges | Non-empty string, flexible format ("15-25", "20+") | `employeeCount` |
+
+**New files:**
+- `src/utils/profileValidation.ts` -- validation functions: `validateDollarAmount(v)`, `validateDate(v)`, etc. Each returns `{ valid: boolean; error?: string }`
+
+**Modified files:**
+- `src/hooks/useCompanyProfile.ts` -- add validation state tracking; `updateField` runs validation; invalid values update UI state (so user can keep typing) but show error; only valid values persist
+- `src/pages/Settings.tsx` -- `ProfileField` shows error styling (red border + error text) for invalid fields; add a "Saved" indicator in the header that fades after 2s
+
+**Pattern for validation integration:**
+```typescript
+// In useCompanyProfile
+const [errors, setErrors] = useState<Partial<Record<keyof CompanyProfile, string>>>({});
+const [lastSaved, setLastSaved] = useState<number | null>(null);
+
+const updateField = useCallback(
+  <K extends keyof CompanyProfile>(key: K, value: CompanyProfile[K]) => {
+    const validation = validateField(key, value);
+    setErrors(prev => {
+      const next = { ...prev };
+      if (validation.valid) delete next[key]; else next[key] = validation.error;
+      return next;
+    });
+    setProfile(prev => {
+      const next = { ...prev, [key]: value };
+      if (validation.valid) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        setLastSaved(Date.now());
+      }
+      return next;
+    });
+  }, []
+);
+```
+
+**Save feedback approach:** After `updateField` succeeds with a valid value, set `lastSaved` timestamp. Settings header displays "Changes saved" with a green checkmark that fades after 2s via a `useEffect` timeout.
+
+---
+
+## Component Boundaries
 
 | Component | Responsibility | Communicates With |
 |-----------|---------------|-------------------|
-| **Knowledge Files** (`src/knowledge/`) | Static domain knowledge as TypeScript string exports | `buildSystemPrompt()` |
-| **Pass-Knowledge Map** (`src/knowledge/passMap.ts`) | Declares which knowledge files each pass needs | `buildSystemPrompt()` |
-| **Prompt Builder** (`src/knowledge/buildSystemPrompt.ts`) | Assembles final system prompt: base prompt + knowledge + company profile | `runAnalysisPass()` in `api/analyze.ts` |
-| **Company Profile Store** (Settings UI + localStorage) | User-editable company data (insurance, bonding, licenses, thresholds) | Sent to `/api/analyze` in request body |
-| **Company Profile Type** (`src/types/companyProfile.ts`) | TypeScript interface for company data | Settings UI, API handler, prompt builder |
-
-### Data Flow
-
-```
-[Settings UI] --> localStorage.setItem('companyProfile', ...)
-                       |
-                       v
-[analyzeContract.ts] reads localStorage, includes in POST body
-                       |
-                       v
-[api/analyze.ts handler]
-  |
-  +--> const { pdfBase64, fileName, companyProfile } = req.body
-  +--> uploads PDF to Files API (unchanged)
-  +--> for each of 16 passes (in parallel, unchanged):
-  |      |
-  |      +--> passMap.ts: which knowledge keys does this pass need?
-  |      +--> buildSystemPrompt(pass.systemPrompt, pass.name, companyProfile):
-  |      |      = base system prompt (existing, per-pass)
-  |      |      + selected knowledge file content
-  |      |      + formatted company profile section
-  |      |
-  |      +--> runAnalysisPass(client, fileId, { ...pass, systemPrompt: assembledPrompt })
-  |
-  +--> merge, dedup, score, return (unchanged)
-```
+| `useRouter` (new) | URL parsing, navigation, back/forward | App.tsx (provides route state) |
+| `useContractStore` (modified) | Contract CRUD, finding updates, persistence | App.tsx, pages |
+| `useCompanyProfile` (modified) | Profile CRUD with validation, error state | Settings page |
+| `ExportMenu` (new) | PDF/CSV format selection dropdown | ContractReview |
+| `exportPdf` / `exportCsv` (new) | Pure functions: Contract -> file download | Called by ExportMenu |
+| `FindingActions` (new) | Resolve toggle + annotation text input | FindingCard |
+| `profileValidation` (new) | Pure validation functions | useCompanyProfile |
 
 ---
 
-## Knowledge File Structure
-
-### Where Knowledge Files Live: In the Repo
-
-Knowledge lives as TypeScript files in `src/knowledge/`. Not uploaded files, not fetched from an API.
-
-Rationale:
-- **Version controlled** -- changes tracked, reversible, reviewable in PRs
-- **Deployed with the app** -- no external dependency, no runtime fetch, no latency
-- **Type-safe** -- TypeScript exports, IDE autocomplete on knowledge keys
-- **Cacheable by prompt caching** -- stable system prompts get cached by Anthropic
-- **Right UX for sole developer/user** -- edit file, redeploy, done
-
-### File Layout
+## Build Order (Dependency-Driven)
 
 ```
-src/
-  knowledge/
-    index.ts                      # Registry: KnowledgeKey -> string content
-    passMap.ts                    # Pass name -> KnowledgeKey[] mapping
-    buildSystemPrompt.ts          # Assembles final system prompt
+Phase 1: URL-based Routing
+  No dependencies on other features.
+  All other features benefit from deep links.
+  Touches: useContractStore, App.tsx, Sidebar, Dashboard, AllContracts, ContractReview.
+  Risk: Medium -- refactors the navigation system that every component uses.
 
-    company/
-      profile.ts                  # Formatter: CompanyProfile -> prompt section string
-      defaults.ts                 # Default values for Clean Glass Installation Inc.
+Phase 2: Finding Actions (Resolve/Annotate)
+  Benefits from: routing (resolved state accessible via deep link)
+  Touches: contract types, useContractStore, FindingCard, ContractReview.
+  Risk: Low -- additive type changes, new component, contained UI.
 
-    regulatory/
-      ca-lien-law.ts              # CA mechanics lien deadlines, notice requirements
-      ca-prevailing-wage.ts       # DIR registration, certified payroll, apprenticeship
-      ca-title24.ts               # Title 24 energy compliance for glazing
-      ca-osha.ts                  # Cal/OSHA glazing-specific safety requirements
+Phase 3: Settings Validation + Save Feedback
+  Independent of other features.
+  Touches: useCompanyProfile, Settings page only.
+  Risk: Low -- fully isolated, no cross-feature dependencies.
 
-    standards/
-      aia-clauses.ts              # AIA A201/A401 standard clause patterns + red flags
-      consensusdocs-clauses.ts    # ConsensusDocs 750 patterns
-      ejcdc-clauses.ts            # EJCDC patterns
+Phase 4: Re-analyze Contract
+  Depends on: Finding Actions decided (so re-analyze behavior re: clearing resolved state is defined)
+  Touches: contract types, contractStorage, App.tsx, ContractReview, analyzeContract.
+  Risk: Medium -- modifies persistence layer and upload flow.
 
-    trade/
-      aama-standards.ts           # AAMA/WDMA/CSA 101 performance specs
-      division08-specs.ts         # CSI Division 08 scope boundaries
-      glazing-products.ts         # Product types, lead times, installation methods
-
-    rules/
-      severity-overrides.ts       # Domain-specific severity calibration rules
-      false-positive-filters.ts   # Patterns that look risky but are standard for glazing
-      bid-nobid-signals.ts        # Contract terms that signal bid/no-bid decisions
-
-  types/
-    companyProfile.ts             # Interface for company profile data
+Phase 5: Export Report (PDF/CSV)
+  Benefits from: Finding Actions (export includes resolved status + annotations)
+  Touches: ContractReview (button replacement), new export module.
+  New dependency: jspdf + jspdf-autotable.
+  Risk: Low -- purely additive, no existing code modifications beyond button swap.
 ```
 
-### Knowledge File Format
-
-Each knowledge file exports a single named `string` constant. Content is written addressing Claude as the analyst, formatted with markdown headers. Each file stays under **1,500 tokens** (~1,100 words).
-
-```typescript
-// src/knowledge/regulatory/ca-lien-law.ts
-export const CA_LIEN_LAW = `
-## California Mechanics Lien Law Reference
-
-### Preliminary Notice (CA Civil Code 8200-8216)
-- Subcontractors MUST serve preliminary 20-day notice to preserve lien rights
-- Notice must be served within 20 days of first furnishing labor/materials
-- Failure to serve = lien rights limited to work performed in 20 days before notice
-
-### Mechanics Lien Filing Deadlines (CA Civil Code 8412-8414)
-- Direct contractors: 90 days after completion
-- Subcontractors: 90 days after completion OR 30 days after notice of completion
-- If no notice of completion recorded: 90 days from actual completion
-
-### Severity Calibration
-When analyzing lien rights provisions in contracts governed by California law:
-- No-lien clauses are UNENFORCEABLE in CA (Civil Code 8122) = flag as Critical but note unenforceability
-- Unconditional waivers before payment violate CA Civil Code 8132 = flag as Critical
-- Conditional waivers tied to payment are STANDARD and compliant = Low severity
-`;
-```
-
----
-
-## How Passes Select Knowledge: The Pass Map
-
-`passMap.ts` is a static mapping from pass name to arrays of knowledge keys. This is the single source of truth for what knowledge each pass receives.
-
-```typescript
-// src/knowledge/passMap.ts
-export type KnowledgeKey =
-  | 'CA_LIEN_LAW' | 'CA_PREVAILING_WAGE' | 'CA_TITLE24' | 'CA_OSHA'
-  | 'AIA_CLAUSES' | 'CONSENSUSDOCS_CLAUSES' | 'EJCDC_CLAUSES'
-  | 'AAMA_STANDARDS' | 'DIVISION08_SPECS' | 'GLAZING_PRODUCTS'
-  | 'SEVERITY_OVERRIDES' | 'FALSE_POSITIVE_FILTERS' | 'BID_NOBID_SIGNALS';
-
-export const PASS_KNOWLEDGE_MAP: Record<string, KnowledgeKey[]> = {
-  'risk-overview':              ['SEVERITY_OVERRIDES', 'BID_NOBID_SIGNALS', 'FALSE_POSITIVE_FILTERS'],
-  'legal-indemnification':      ['AIA_CLAUSES', 'SEVERITY_OVERRIDES'],
-  'legal-payment-contingency':  ['CA_LIEN_LAW', 'AIA_CLAUSES', 'SEVERITY_OVERRIDES'],
-  'legal-lien-rights':          ['CA_LIEN_LAW', 'SEVERITY_OVERRIDES'],
-  'legal-insurance':            ['SEVERITY_OVERRIDES', 'FALSE_POSITIVE_FILTERS'],
-  'legal-liquidated-damages':   ['SEVERITY_OVERRIDES'],
-  'legal-retainage':            ['SEVERITY_OVERRIDES'],
-  'legal-termination':          ['AIA_CLAUSES', 'SEVERITY_OVERRIDES'],
-  'legal-flow-down':            ['AIA_CLAUSES', 'CONSENSUSDOCS_CLAUSES', 'SEVERITY_OVERRIDES'],
-  'legal-no-damage-delay':      ['SEVERITY_OVERRIDES'],
-  'legal-dispute-resolution':   ['SEVERITY_OVERRIDES'],
-  'legal-change-order':         ['AIA_CLAUSES', 'SEVERITY_OVERRIDES'],
-  'scope-of-work':              ['AAMA_STANDARDS', 'DIVISION08_SPECS', 'GLAZING_PRODUCTS', 'FALSE_POSITIVE_FILTERS'],
-  'dates-deadlines':            ['CA_PREVAILING_WAGE', 'SEVERITY_OVERRIDES'],
-  'verbiage-analysis':          ['FALSE_POSITIVE_FILTERS', 'SEVERITY_OVERRIDES'],
-  'labor-compliance':           ['CA_PREVAILING_WAGE', 'CA_OSHA', 'CA_TITLE24', 'SEVERITY_OVERRIDES'],
-};
-```
-
-**Design rationale for selective loading:** Each pass has a focused purpose. Loading all knowledge into every pass wastes tokens (and money at $3/MTok input) and dilutes Claude's attention. The pass map ensures each pass gets only relevant reference data. Most passes get 1-2 knowledge files; the heaviest (`scope-of-work`, `labor-compliance`) get 4.
-
----
-
-## Token Budget Management
-
-### The Math
-
-| Component | Tokens (approx) | Notes |
-|-----------|-----------------|-------|
-| Base system prompt per pass | 400-800 | Current prompts, varies by pass |
-| Knowledge injection per pass | 500-2,000 | Depends on pass map; most get 1-2 files |
-| Company profile section | 200-400 | Formatted from profile data |
-| **Total system prompt per pass** | **1,100-3,200** | Well under limits |
-| PDF document (via Files API) | 5,000-50,000 | Contract size varies; cached via Files API |
-| Output budget per pass | 8,192 | `MAX_TOKENS_PER_PASS` constant |
-| **Total per pass** | **~15,000-60,000** | Safely under 200K context window |
-
-### Token Budget Rules
-
-1. **Each knowledge file MUST stay under 1,500 tokens** (~1,100 words). If a domain needs more content, split into multiple files and assign only the relevant one to each pass.
-
-2. **No pass should receive more than 4 knowledge files.** 4 files x 1,500 tokens = 6,000 tokens max knowledge injection. Combined with base prompt (~800) and company profile (~400), total system prompt stays under ~7,200 tokens. This is conservative -- the 200K context can handle much more, but focused prompts produce better results.
-
-3. **Company profile is always injected** into every pass (it is short and universally relevant). Knowledge files are selectively injected per pass map.
-
-4. **Monitor via logging.** Add a token count estimate to the existing `console.log` in `runAnalysisPass` so you can spot budget creep during development:
-   ```typescript
-   const estimatedTokens = Math.ceil(finalSystemPrompt.length / 4);
-   console.log(`[analyze] Pass ${pass.name}: ~${estimatedTokens} system prompt tokens, ${knowledgeKeys.length} knowledge files`);
-   ```
-
-### Prompt Caching Impact
-
-Anthropic's prompt caching charges 10% of input cost on cache hits. The cache follows the hierarchy: tools -> system -> messages.
-
-**Current caching:** The PDF document is cached via `cache_control: { type: 'ephemeral' }` on the document content block. All 16 parallel passes share this cache within the 5-minute TTL.
-
-**With knowledge injection:** System prompts will now vary more across passes (different knowledge content). This means system prompt caching is per-pass (same prompt benefits on retry or re-analysis). The document itself remains cached across all passes regardless. Since the document (5K-50K tokens) is the expensive part and the system prompt (1K-3K tokens) is small, the caching story remains favorable.
-
-**Cost estimate per analysis:**
-- 16 passes x ~25K avg input tokens = ~400K input tokens = ~$1.20 at $3/MTok
-- With document caching (15 cache hits of ~25K): ~$1.20 drops to ~$0.45
-- Knowledge injection adds ~2K tokens/pass = ~32K total = ~$0.10 extra
-- **Net cost per analysis: ~$0.55** (knowledge adds roughly $0.10, or ~22%)
-
----
-
-## Company Profile: Settings UI to Analysis
-
-### Data Model
-
-```typescript
-// src/types/companyProfile.ts
-export interface CompanyProfile {
-  // Identity
-  companyName: string;              // "Clean Glass Installation Inc."
-  contractorLicense: string;        // "CA CSLB #123456"
-  dirRegistration: string;          // "DIR #1000012345"
-
-  // Insurance
-  cglLimit: string;                 // "$1M/$2M"
-  umbrellaLimit: string;            // "$5M"
-  autoLimit: string;                // "$1M CSL"
-  workersComp: string;              // "Statutory"
-  installationFloater: string;      // "$500K"
-
-  // Bonding
-  bondingCapacity: string;          // "$2M single / $5M aggregate"
-  bondingSurety: string;            // "Travelers"
-
-  // Capabilities
-  maxProjectValue: string;          // "$3M"
-  maxCrewSize: string;              // "12"
-  serviceArea: string;              // "Southern California"
-  specialties: string[];            // ["Curtain wall", "Storefronts", "Skylights"]
-
-  // Bid/No-Bid Thresholds
-  maxRetainagePercent: number;      // 10
-  maxLdPerDay: string;              // "$1,000"
-  requiresMutualIndemnification: boolean;
-  rejectsBroadFormIndemnity: boolean;
-  maxPaymentTermDays: number;       // 45
-}
-```
-
-### Data Flow Detail
-
-```
-Settings.tsx
-  |
-  +--> useState<CompanyProfile>(loadFromLocalStorage() || DEFAULT_PROFILE)
-  +--> onSave: localStorage.setItem('companyProfile', JSON.stringify(profile))
-  |
-  v
-src/api/analyzeContract.ts
-  |
-  +--> const profileJson = localStorage.getItem('companyProfile')
-  +--> const companyProfile = profileJson ? JSON.parse(profileJson) : undefined
-  +--> POST /api/analyze { pdfBase64, fileName, companyProfile }
-  |
-  v
-api/analyze.ts handler
-  |
-  +--> const { pdfBase64, fileName, companyProfile } = req.body
-  +--> // companyProfile is optional; falls back to defaults if missing
-  +--> passes companyProfile to buildSystemPrompt() for each pass
-```
-
-### Why localStorage (Not a Database)
-
-- Single user, single device -- localStorage is sufficient persistence
-- No authentication needed -- no user identity to associate with
-- Data is small (<2KB)
-- Acceptable UX: profile persists across page refreshes but not across devices
-- Matches the existing architecture's "no persistence" philosophy for contracts
-- If browser data is cleared, defaults (Clean Glass Installation Inc. values) kick in
-
-### How Company Profile Appears in System Prompts
-
-```typescript
-// src/knowledge/company/profile.ts
-import type { CompanyProfile } from '../../types/companyProfile';
-
-export function formatCompanyProfile(profile: CompanyProfile): string {
-  return `
-## Company Context: ${profile.companyName}
-
-### Current Insurance Coverage
-- CGL: ${profile.cglLimit}
-- Umbrella: ${profile.umbrellaLimit}
-- Auto: ${profile.autoLimit}
-- Workers Comp: ${profile.workersComp}
-- Installation Floater: ${profile.installationFloater}
-
-### Bonding Capacity
-- ${profile.bondingCapacity} (Surety: ${profile.bondingSurety})
-
-### Licensing
-- Contractor License: ${profile.contractorLicense}
-- DIR Registration: ${profile.dirRegistration}
-
-### Capabilities
-- Max Project Value: ${profile.maxProjectValue}
-- Service Area: ${profile.serviceArea}
-- Specialties: ${profile.specialties.join(', ')}
-
-### Bid/No-Bid Thresholds -- USE THESE TO CALIBRATE SEVERITY
-- If contract requires insurance above company coverage limits, flag as High
-- If retainage exceeds ${profile.maxRetainagePercent}%, flag as High
-- If LD rate exceeds ${profile.maxLdPerDay}/day relative to typical glazing subcontract values, flag as Critical
-- If payment terms exceed ${profile.maxPaymentTermDays} days, flag as High
-- ${profile.rejectsBroadFormIndemnity ? 'Company REJECTS broad-form indemnification -- flag as Critical with bid/no-bid warning' : ''}
-- ${profile.requiresMutualIndemnification ? 'Company REQUIRES mutual indemnification -- flag one-sided indemnity as High' : ''}
-- If contract scope includes work outside company specialties, flag as Medium capability gap
-`;
-}
-```
-
----
-
-## Prompt Assembly: The buildSystemPrompt Function
-
-```typescript
-// src/knowledge/buildSystemPrompt.ts
-import { PASS_KNOWLEDGE_MAP, type KnowledgeKey } from './passMap';
-import { KNOWLEDGE_REGISTRY } from './index';
-import { formatCompanyProfile } from './company/profile';
-import { DEFAULT_COMPANY_PROFILE } from './company/defaults';
-import type { CompanyProfile } from '../types/companyProfile';
-
-export function buildSystemPrompt(
-  basePrompt: string,
-  passName: string,
-  companyProfile?: CompanyProfile,
-): string {
-  const profile = companyProfile || DEFAULT_COMPANY_PROFILE;
-  const knowledgeKeys = PASS_KNOWLEDGE_MAP[passName] || [];
-
-  const knowledgeSections = knowledgeKeys
-    .map((key: KnowledgeKey) => KNOWLEDGE_REGISTRY[key])
-    .filter(Boolean)
-    .join('\n\n');
-
-  const profileSection = formatCompanyProfile(profile);
-
-  // Order: base prompt (task definition) -> domain knowledge -> company context
-  // Task definition first so Claude knows what it is doing before reading reference material
-  return [
-    basePrompt,
-    knowledgeSections ? `\n\n# Domain Knowledge Reference\n\n${knowledgeSections}` : '',
-    `\n\n# Company Context\n\n${profileSection}`,
-  ].join('');
-}
-```
-
-### Knowledge Registry
-
-```typescript
-// src/knowledge/index.ts
-import type { KnowledgeKey } from './passMap';
-import { CA_LIEN_LAW } from './regulatory/ca-lien-law';
-import { CA_PREVAILING_WAGE } from './regulatory/ca-prevailing-wage';
-// ... all imports
-
-export const KNOWLEDGE_REGISTRY: Record<KnowledgeKey, string> = {
-  CA_LIEN_LAW,
-  CA_PREVAILING_WAGE,
-  CA_TITLE24,
-  CA_OSHA,
-  AIA_CLAUSES,
-  CONSENSUSDOCS_CLAUSES,
-  EJCDC_CLAUSES,
-  AAMA_STANDARDS,
-  DIVISION08_SPECS,
-  GLAZING_PRODUCTS,
-  SEVERITY_OVERRIDES,
-  FALSE_POSITIVE_FILTERS,
-  BID_NOBID_SIGNALS,
-};
-```
-
----
-
-## Knowledge File Reuse Strategy
-
-### Principle 1: Separate Reference Data from Severity Rules
-
-**Reference data** (lien deadlines, AAMA spec numbers, AIA clause patterns) is reusable across passes that need the same domain knowledge. Example: `CA_LIEN_LAW` is used by both `legal-payment-contingency` and `legal-lien-rights`.
-
-**Severity rules** are centralized in `severity-overrides.ts` and injected into 14 of 16 passes. This single file contains company-specific severity calibration that supplements the base prompt's generic severity rules.
-
-### Principle 2: Granular Files, Not Monoliths
-
-Wrong: One `california-law.ts` file with 5,000 tokens covering all CA regulations.
-Right: Four files (`ca-lien-law.ts`, `ca-prevailing-wage.ts`, `ca-title24.ts`, `ca-osha.ts`) each under 1,500 tokens, assigned only to passes that need them.
-
-This matters because the `labor-compliance` pass needs prevailing wage + OSHA + Title 24 but NOT lien law. The `legal-lien-rights` pass needs lien law but NOT prevailing wage. Granularity enables precise selection.
-
-### Principle 3: Knowledge is Additive, Not Replacement
-
-Knowledge content is injected as **additional sections** in the system prompt. It does not replace the base prompt -- it augments it. The base prompt defines the pass's task, output format, and severity rules. Knowledge provides reference data that makes analysis more precise and reduces false positives.
-
----
-
-## Integration Points: New vs Modified Files
-
-### New Files to Create
-
-| File | Purpose | Approx Size |
-|------|---------|-------------|
-| `src/types/companyProfile.ts` | CompanyProfile TypeScript interface | ~50 lines |
-| `src/knowledge/index.ts` | Registry mapping KnowledgeKey -> content string | ~30 lines |
-| `src/knowledge/passMap.ts` | Pass name -> KnowledgeKey[] mapping | ~40 lines |
-| `src/knowledge/buildSystemPrompt.ts` | Prompt assembly function | ~30 lines |
-| `src/knowledge/company/profile.ts` | Profile -> prompt section formatter | ~40 lines |
-| `src/knowledge/company/defaults.ts` | Default CompanyProfile for Clean Glass | ~30 lines |
-| `src/knowledge/regulatory/*.ts` | 4 CA regulatory knowledge files | ~80 lines each |
-| `src/knowledge/standards/*.ts` | 3 contract standard pattern files | ~80 lines each |
-| `src/knowledge/trade/*.ts` | 3 trade knowledge files | ~80 lines each |
-| `src/knowledge/rules/*.ts` | 3 rule files (severity, false positives, bid signals) | ~60 lines each |
-
-**Total new files: ~19 files**
-
-### Existing Files to Modify
-
-| File | Change | Lines Changed | Risk |
-|------|--------|--------------|------|
-| `api/analyze.ts` | (1) Import `buildSystemPrompt`. (2) Accept optional `companyProfile` from `req.body`. (3) In `runAnalysisPass`, call `buildSystemPrompt(pass.systemPrompt, pass.name, companyProfile)` to get final prompt. | ~15 lines | Low -- isolated changes, no logic restructuring |
-| `src/api/analyzeContract.ts` | Read `companyProfile` from localStorage and include in POST body. | ~5 lines | Low -- additive only |
-| `src/pages/Settings.tsx` | Replace placeholder sections with company profile form. Save/load localStorage. | Major rewrite | Medium -- UI-only, no pipeline impact |
-
-### Files NOT Changed
-
-- **Schema files** (`src/schemas/*.ts`) -- knowledge injection happens in system prompts, not in output schemas. The structured output format stays identical.
-- **Type file** (`src/types/contract.ts`) -- Finding type already supports all needed fields (severity, category, legalMeta, scopeMeta, etc.)
-- **Store hook** (`src/hooks/useContractStore.ts`) -- company profile lives in localStorage, not in contract store
-- **Other page components** -- no UI changes outside Settings
-- **`vercel.json`** -- no deployment config changes
-- **Merge/dedup logic** in `api/analyze.ts` -- completely unaffected
-
----
-
-## Build Order
-
-The build order respects dependency chains and minimizes risk by keeping the existing pipeline working throughout.
-
-### Phase 1: Foundation (all new files, zero existing changes)
-
-**Goal:** Create the knowledge infrastructure. Everything compiles, nothing in existing code changes yet.
-
-1. `src/types/companyProfile.ts` -- define the interface
-2. `src/knowledge/company/defaults.ts` -- hardcode Clean Glass Installation values
-3. `src/knowledge/company/profile.ts` -- formatter function
-4. `src/knowledge/rules/severity-overrides.ts` -- most universally-used knowledge file
-5. `src/knowledge/rules/false-positive-filters.ts`
-6. `src/knowledge/rules/bid-nobid-signals.ts`
-7. `src/knowledge/index.ts` -- registry (import all, export as Record)
-8. `src/knowledge/passMap.ts` -- mapping (start with rules-only entries)
-9. `src/knowledge/buildSystemPrompt.ts` -- assembler function
-
-**Verification:** `buildSystemPrompt(someBasePrompt, 'risk-overview')` returns the base prompt with severity overrides, bid/no-bid signals, false positive filters, and default company profile appended. Can be tested with a simple script.
-
-### Phase 2: Pipeline Integration (3 files modified, minimal changes)
-
-**Goal:** Wire knowledge into the existing pipeline. The analysis should still work identically but now with domain knowledge injected.
-
-1. Modify `api/analyze.ts`:
-   - Import `buildSystemPrompt` from `../src/knowledge/buildSystemPrompt`
-   - Accept optional `companyProfile` from `req.body` (with validation)
-   - In the `runAnalysisPass` call, replace `pass.systemPrompt` with `buildSystemPrompt(pass.systemPrompt, pass.name, companyProfile)`
-2. Modify `src/api/analyzeContract.ts`:
-   - Read `companyProfile` from localStorage
-   - Include in POST body alongside `pdfBase64` and `fileName`
-
-**Verification:** Upload a contract. Compare findings before/after. Knowledge-enhanced analysis should show: severity calibrated against company thresholds (e.g., LD flagged as Critical when exceeding company max), CA-specific enforceability notes where relevant.
-
-### Phase 3: Domain Knowledge Content (new files only, expand pass map)
-
-**Goal:** Write the substantive domain content files and assign them to passes.
-
-1. `src/knowledge/regulatory/ca-lien-law.ts`
-2. `src/knowledge/regulatory/ca-prevailing-wage.ts`
-3. `src/knowledge/regulatory/ca-title24.ts`
-4. `src/knowledge/regulatory/ca-osha.ts`
-5. `src/knowledge/standards/aia-clauses.ts`
-6. `src/knowledge/standards/consensusdocs-clauses.ts`
-7. `src/knowledge/standards/ejcdc-clauses.ts`
-8. `src/knowledge/trade/aama-standards.ts`
-9. `src/knowledge/trade/division08-specs.ts`
-10. `src/knowledge/trade/glazing-products.ts`
-11. Update `src/knowledge/index.ts` -- register all new files
-12. Update `src/knowledge/passMap.ts` -- assign files to all 16 passes per the mapping above
-
-**Verification:** Upload contracts of different types. CA lien rights pass should cite actual Civil Code section numbers. AIA contract findings should reference specific A201 articles. Scope pass should recognize Division 08 boundaries.
-
-### Phase 4: Settings UI (Settings.tsx rewrite)
-
-**Goal:** Make company profile editable by the user.
-
-1. Rewrite `src/pages/Settings.tsx`:
-   - Replace "Review Playbooks" placeholder with Company Profile form sections (Identity, Insurance, Bonding, Capabilities, Thresholds)
-   - Keep AI Engine info section (update to show knowledge file count)
-   - Remove fake Procore/BuildOps/Document Crunch integrations section
-   - Add save/load/reset buttons
-   - Load from localStorage on mount, save on submit
-2. Optional: Add a visual indicator on Dashboard when default profile is active ("Configure your company profile in Settings for more accurate analysis")
-
-**Verification:** Edit company profile (change max retainage to 5%), save, upload a contract with 10% retainage. Verify retainage finding now flags as High (above threshold) instead of the default Low severity.
+**Phase ordering rationale:**
+- Routing first because it refactors the navigation system that every other feature touches. Building features on the old `navigateTo` system and then migrating to URL routing doubles the work.
+- Finding Actions second because both Re-analyze and Export depend on knowing the final shape of the Finding type (resolved, annotation fields).
+- Settings Validation is fully isolated and slots in as a contained task between heavier features.
+- Re-analyze before Export because the re-analyze flow's impact on finding state must be settled before export can finalize what data it includes.
+- Export last because it is purely additive and benefits from all data being in its final shape.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Dynamic Knowledge Retrieval (RAG/Vector Store)
-**What:** Building a retrieval pipeline with embeddings and vector search.
-**Why bad:** For ~15 static knowledge files totaling ~15K tokens, this adds massive infrastructure complexity (database, embeddings model, retrieval logic), latency (fetch before each pass), and unreliable relevance. The knowledge set is small enough to be fully enumerated.
-**Instead:** Static TypeScript exports with a deterministic pass map.
+### Anti-Pattern 1: Storing PDF base64 in localStorage
+**What:** Saving `pdfBase64` alongside contract data in localStorage.
+**Why bad:** A single 3MB PDF as base64 is ~4MB, which consumes nearly all of localStorage's ~5MB limit. Even one stored PDF would break persistence for all other contracts.
+**Instead:** Keep `pdfBase64` in React state only. Strip it in `saveContracts()`. Accept that re-analyze is session-only.
 
-### Anti-Pattern 2: One Giant Knowledge File Per Pass
-**What:** Creating a single knowledge file per pass containing all relevant domain knowledge.
-**Why bad:** Defeats reuse (CA lien law duplicated across lien rights and payment contingency passes), makes updates error-prone, bloats some passes while under-utilizing others.
-**Instead:** Granular files (~1,000-1,500 tokens each) mapped to multiple passes via `passMap.ts`.
+### Anti-Pattern 2: Adding React Router for 5 flat routes
+**What:** Installing `react-router-dom` (~15KB gzipped) for the routing feature.
+**Why bad:** The app has no nested routes, no route guards, no code splitting, no loader patterns -- none of the features that justify React Router's complexity. It also requires wrapping the app in `<BrowserRouter>` and changes how all navigation works via its own context.
+**Instead:** Custom `useRouter` hook with ~50 lines of code using the History API directly. Matches the app's existing architecture pattern of custom hooks for state management.
 
-### Anti-Pattern 3: Knowledge in Zod Schemas
-**What:** Embedding domain knowledge in schema descriptions or enum values.
-**Why bad:** Schemas define output structure, not input context. Schema descriptions don't benefit from system prompt caching. Mixing concerns makes schemas unwieldy.
-**Instead:** Knowledge in system prompt, schema stays focused on output structure.
+### Anti-Pattern 3: Separate Finding Actions Store
+**What:** Creating a standalone context or store for finding resolved/annotation state, separate from contract data.
+**Why bad:** Findings belong to contracts. Splitting them creates sync issues -- what happens when a contract is deleted? When re-analyzed? Two sources of truth for the same data guarantees bugs.
+**Instead:** Extend `useContractStore` with `updateFinding()` that patches findings within their parent contract.
 
-### Anti-Pattern 4: Inlining Knowledge into Base Prompts
-**What:** Editing the existing system prompts in `ANALYSIS_PASSES` to inline knowledge content directly.
-**Why bad:** Balloons `api/analyze.ts` from 1,537 LOC to 3,000+ LOC. Makes knowledge updates require editing the monolith. Loses the separation between "what to analyze" (base prompt) and "what to know" (knowledge files). Cannot selectively disable knowledge injection for testing.
-**Instead:** `buildSystemPrompt()` composes the final prompt at runtime. Base prompts stay clean. Knowledge is modular and independently editable.
+### Anti-Pattern 4: Server-Side PDF Generation for Export
+**What:** Sending contract data to a Vercel serverless function to generate the PDF report.
+**Why bad:** Adds API latency, function timeout risk, and complexity for a task that is entirely client-side. The contract data is already fully available in the browser. Serverless cold starts could add 2-5s delay for no benefit.
+**Instead:** Client-side jsPDF generation. Zero network calls, instant download.
 
-### Anti-Pattern 5: Server-Side Profile Persistence
-**What:** Adding a database for company profile storage.
-**Why bad:** Unnecessary for single-user on a single device. Adds infrastructure, migration, backup concerns for <2KB of rarely-changing data.
-**Instead:** localStorage on the client, sent in each request body. Server validates but never stores.
+### Anti-Pattern 5: Adding a Save Button to Settings
+**What:** Replacing auto-save with an explicit Save button + dirty state tracking.
+**Why bad:** The current auto-persist pattern eliminates "forgot to save" entirely. Adding a save button requires dirty state detection, unsaved changes warnings on navigation, and a "discard changes?" dialog. All of this complexity for a form that a single user edits once, maybe updates quarterly.
+**Instead:** Keep auto-save on change. Add validation to prevent invalid values from persisting. Show brief "Saved" feedback so the user knows it worked.
 
 ---
 
 ## Scalability Considerations
 
-| Concern | Current (v1.1) | If Knowledge Grows 5x | If Multi-User (Future) |
-|---------|----------------|----------------------|----------------------|
-| Knowledge storage | ~15 files in repo, ~15K tokens total | Still manageable as static files; split by jurisdiction if adding non-CA states | Move to CMS or database |
-| Token budget | ~3K tokens system prompt per pass avg | ~8K tokens; may need to split some passes or trim knowledge | Same approach per-user |
-| Company profile | localStorage, 1 profile | Still fine | Need database + auth |
-| Prompt caching | Document cached across passes, system prompts per-pass | Same -- more knowledge = more input tokens but document caching dominates | Same mechanism |
-| API costs per analysis | ~$0.55 with caching | ~$0.80 with caching | Linear per user per analysis |
+| Concern | Current (1-10 contracts) | At 50 contracts | At 200 contracts |
+|---------|-------------------------|-----------------|------------------|
+| localStorage size | ~50KB per contract (findings JSON) | ~2.5MB, fine | ~10MB, exceeds 5MB limit |
+| URL routing | Trivial | Trivial | Trivial |
+| Finding actions (annotations) | Adds ~5KB per contract | ~250KB extra, fine | ~1MB extra, compounds storage issue |
+| Export PDF generation | <1s | <1s per contract | <1s per contract |
+| Re-analyze (in-memory PDF) | ~4MB per contract in RAM | ~200MB if all retained | Not viable without eviction |
+
+The localStorage limit is the primary scaling concern at 200+ contracts, but the project explicitly scopes out persistence as a non-goal ("Data persistence across sessions" in Out of Scope). At 50 contracts the current architecture holds comfortably.
+
+For re-analyze, in-memory PDF retention should evict oldest PDFs if memory is a concern, but with the single-user context and typical usage (analyzing 1-2 contracts per session), this is not a practical issue.
 
 ---
 
 ## Sources
 
-- [Anthropic Context Windows](https://platform.claude.com/docs/en/build-with-claude/context-windows) -- 200K standard context window for Sonnet 4.5
-- [Anthropic Prompt Caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) -- 90% cost reduction on cache hits, 1,024 token minimum checkpoint, cache hierarchy (tools -> system -> messages)
-- [Anthropic API Pricing](https://platform.claude.com/docs/en/about-claude/pricing) -- $3/M input, $15/M output for Sonnet 4.5; cache read at 10% of input cost
-- [Claude Token-Saving Updates](https://claude.com/blog/token-saving-updates) -- Cache-aware rate limits, simplified caching
-- Existing codebase analysis: `api/analyze.ts` (1,537 LOC, 16 passes, Files API upload-once pattern), `src/pages/Settings.tsx` (placeholder UI), `src/types/contract.ts` (Finding interface with legalMeta/scopeMeta), `src/hooks/useContractStore.ts` (in-memory state, no persistence)
+- Codebase analysis: `useContractStore.ts`, `App.tsx`, `ContractReview.tsx`, `contract.ts`, `analyzeContract.ts`, `contractStorage.ts`, `useCompanyProfile.ts`, `Settings.tsx`, `FindingCard.tsx`, `Sidebar.tsx`, `profileLoader.ts`
+- [MDN History API pushState](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState) -- browser history manipulation API
+- [jsPDF GitHub](https://github.com/parallax/jsPDF) -- 30K+ stars, 2.6M weekly downloads, client-side PDF generation
+- [Lightweight React routing patterns](https://medium.com/front-end-weekly/routing-in-react-without-react-router-36d16e2baa23) -- custom routing with History API
+- [PDF library comparison 2025](https://dev.to/ansonch/6-open-source-pdf-generation-and-modification-libraries-every-react-dev-should-know-in-2025-13g0) -- jsPDF vs @react-pdf/renderer vs pdfmake
