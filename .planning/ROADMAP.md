@@ -5,7 +5,7 @@
 - **v1.0 Enhanced Analysis Release** -- Phases 1-6 (shipped 2026-03-06)
 - **v1.1 Domain Intelligence** -- Phases 7-10 (shipped 2026-03-10)
 - **v1.2 UX Foundations** -- Phases 11-14 (shipped 2026-03-12)
-- **v1.3 Workflow Completion** -- Phases 15-19 (in progress)
+- **v1.3 Workflow Completion** -- Phases 15-21 (in progress)
 
 ## Phases
 
@@ -56,6 +56,8 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [x] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback (completed 2026-03-13)
 - [x] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback (completed 2026-03-13)
 - [x] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters (completed 2026-03-13)
+- [ ] **Phase 20: Fix All Contracts Navigation** - Fix useRouter to support contracts view navigation and URL parsing [GAP CLOSURE]
+- [ ] **Phase 21: Fix Filtered CSV Export** - Pass visible findings to CSV export so filters are respected [GAP CLOSURE]
 
 ## Phase Details
 
@@ -122,6 +124,30 @@ Plans:
 Plans:
 - [ ] 19-01-PLAN.md — CSV export utility and button wiring in ContractReview
 
+### Phase 20: Fix All Contracts Navigation
+**Goal**: Fix useRouter so the All Contracts view is reachable via navigation, back/forward, and URL refresh
+**Depends on**: Phase 15
+**Requirements**: ROUTE-01, ROUTE-02
+**Gap Closure:** Closes gaps from v1.3 audit
+**Success Criteria** (what must be TRUE):
+  1. User clicks "All Contracts" in sidebar and lands on the All Contracts page (not dashboard)
+  2. User navigates to a contract review, clicks browser back, and can reach the contracts list
+  3. User navigates to `/contracts` URL directly and sees the All Contracts page
+  4. User refreshes while on All Contracts page and stays on All Contracts
+Plans:
+- [ ] 20-01-PLAN.md — Add contracts case in navigateTo and /contracts path in parseUrl
+
+### Phase 21: Fix Filtered CSV Export
+**Goal**: CSV export respects the active hideResolved and selectedCategory filters instead of exporting all findings
+**Depends on**: Phase 19, Phase 16
+**Requirements**: EXPORT-02
+**Gap Closure:** Closes gaps from v1.3 audit
+**Success Criteria** (what must be TRUE):
+  1. User hides resolved findings, exports CSV, and the CSV contains only unresolved findings
+  2. User filters by category, exports CSV, and the CSV contains only findings matching that category
+Plans:
+- [ ] 21-01-PLAN.md — Update exportContractCsv to accept findings array, pass visibleFindings from ContractReview
+
 ## Progress
 
 **Execution Order:**
@@ -148,3 +174,5 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 17. Settings Validation | 1/1 | Complete    | 2026-03-13 | - |
 | 18. Re-analyze Contract | 1/1 | Complete    | 2026-03-13 | - |
 | 19. Export Report | 1/1 | Complete    | 2026-03-13 | - |
+| 20. Fix All Contracts Navigation | v1.3 | 0/1 | Pending | - |
+| 21. Fix Filtered CSV Export | v1.3 | 0/1 | Pending | - |

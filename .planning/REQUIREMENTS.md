@@ -9,15 +9,15 @@ Requirements for Workflow Completion milestone. Each maps to roadmap phases.
 
 ### Routing
 
-- [x] **ROUTE-01**: User can navigate with browser back/forward buttons between views
-- [x] **ROUTE-02**: User can refresh the page and stay on the current view
+- [ ] **ROUTE-01**: User can navigate with browser back/forward buttons between views
+- [ ] **ROUTE-02**: User can refresh the page and stay on the current view
 - [x] **ROUTE-03**: User can bookmark or share a URL that deep links to a specific contract review
 - [x] **ROUTE-04**: User sees dashboard when navigating to an unknown URL or non-existent contract
 
 ### Export
 
 - [x] **EXPORT-01**: User can export contract findings as a CSV file from the review page
-- [x] **EXPORT-02**: User's CSV export respects active category/severity filters
+- [ ] **EXPORT-02**: User's CSV export respects active category/severity filters
 
 ### Finding Actions
 
@@ -75,12 +75,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROUTE-01 | Phase 15 | Complete |
-| ROUTE-02 | Phase 15 | Complete |
+| ROUTE-01 | Phase 20 | Pending |
+| ROUTE-02 | Phase 20 | Pending |
 | ROUTE-03 | Phase 15 | Complete |
 | ROUTE-04 | Phase 15 | Complete |
 | EXPORT-01 | Phase 19 | Complete |
-| EXPORT-02 | Phase 19 | Complete |
+| EXPORT-02 | Phase 21 | Pending |
 | FIND-01 | Phase 16 | Complete |
 | FIND-02 | Phase 16 | Complete |
 | FIND-03 | Phase 16 | Complete |
@@ -94,7 +94,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 - v1.3 requirements: 16 total
-- Mapped to phases: 16
+- Satisfied: 13
+- Pending (gap closure): 3 (ROUTE-01, ROUTE-02, EXPORT-02)
 - Unmapped: 0
 
 ---
