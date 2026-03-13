@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
   message: string;
   confirmLabel?: string;
+  confirmClassName?: string;
+  icon?: 'warning' | 'info';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -15,6 +17,8 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel = 'Delete',
+  confirmClassName,
+  icon = 'warning',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -39,7 +43,11 @@ export function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col items-center text-center">
-          <AlertTriangle className="w-10 h-10 text-red-500 mb-3" />
+          {icon === 'info' ? (
+            <RefreshCw className="w-10 h-10 text-blue-500 mb-3" />
+          ) : (
+            <AlertTriangle className="w-10 h-10 text-red-500 mb-3" />
+          )}
           <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
           <p className="text-sm text-slate-500 mt-2">{message}</p>
         </div>
@@ -52,7 +60,7 @@ export function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+            className={confirmClassName || "px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"}
           >
             {confirmLabel}
           </button>

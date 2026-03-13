@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
 
 export interface ToastData {
-  type: 'error' | 'warning' | 'info';
+  type: 'error' | 'warning' | 'info' | 'success';
   message: string;
   onRetry?: () => void;
   onDismiss: () => void;
@@ -24,6 +24,11 @@ const styleMap = {
     container: 'bg-blue-50 border-blue-200 text-blue-800',
     button: 'bg-blue-100 hover:bg-blue-200 text-blue-700',
     Icon: Info,
+  },
+  success: {
+    container: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    button: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700',
+    Icon: CheckCircle2,
   },
 };
 
