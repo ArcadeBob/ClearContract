@@ -50,7 +50,11 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(No active requirements -- planning next milestone)
+Building toward v1.4 Production Readiness:
+- [ ] Tech debt cleanup and UX quick wins (Phase 1: Polish & Trust)
+- [ ] Analysis pipeline quality improvements (Phase 2: Analysis Quality)
+- [ ] Actionable output features — PDF report, action priority, negotiation tools (Phase 3: Actionable Output)
+- [ ] Cross-contract intelligence and portfolio features (Phase 4: Portfolio Intelligence)
 
 ### Out of Scope
 

@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: Workflow Completion
-status: complete
-stopped_at: Milestone v1.3 archived
+milestone: v1.4
+milestone_name: Production Readiness
+status: planning
+stopped_at: Defining requirements
 last_updated: "2026-03-13"
-last_activity: 2026-03-13 -- v1.3 milestone completed and archived
+last_activity: 2026-03-13 -- Milestone v1.4 started
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone
+**Current focus:** v1.4 Production Readiness
 
 ## Current Position
 
-Milestone: v1.3 Workflow Completion -- SHIPPED 2026-03-13
-All phases complete. Ready for next milestone.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-13 — Milestone v1.4 started
 
-Progress: [##########] 100% of v1.3 (7/7 phases)
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
