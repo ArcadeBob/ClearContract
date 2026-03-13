@@ -21,9 +21,9 @@ Requirements for Workflow Completion milestone. Each maps to roadmap phases.
 
 ### Finding Actions
 
-- [ ] **FIND-01**: User can mark a finding as resolved (toggleable)
-- [ ] **FIND-02**: User can add a text note to any finding
-- [ ] **FIND-03**: User can edit or delete their note on a finding
+- [x] **FIND-01**: User can mark a finding as resolved (toggleable)
+- [x] **FIND-02**: User can add a text note to any finding
+- [x] **FIND-03**: User can edit or delete their note on a finding
 - [ ] **FIND-04**: User can toggle "Hide resolved" to filter resolved findings from view
 - [ ] **FIND-05**: User sees resolved finding counts in the risk summary
 
@@ -81,9 +81,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUTE-04 | Phase 15 | Complete |
 | EXPORT-01 | Phase 19 | Pending |
 | EXPORT-02 | Phase 19 | Pending |
-| FIND-01 | Phase 16 | Pending |
-| FIND-02 | Phase 16 | Pending |
-| FIND-03 | Phase 16 | Pending |
+| FIND-01 | Phase 16 | Complete |
+| FIND-02 | Phase 16 | Complete |
+| FIND-03 | Phase 16 | Complete |
 | FIND-04 | Phase 16 | Pending |
 | FIND-05 | Phase 16 | Pending |
 | SET-01 | Phase 17 | Pending |

@@ -82,7 +82,7 @@ Plans:
   3. User edits an existing note and sees the updated text; user deletes a note and it disappears
   4. User toggles "Hide resolved" and resolved findings disappear from the list; toggling back restores them
   5. User sees a count of resolved findings in the risk summary section (e.g., "5 of 12 findings resolved")
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 16-01-PLAN.md — Extend Finding type, add store methods, build FindingCard resolve/notes UI
 - [ ] 16-02-PLAN.md — Wire into ContractReview: hide-resolved toggle, resolved counts, empty state
@@ -138,7 +138,7 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 13. Upload Error Feedback | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
-| 16. Finding Actions | v1.3 | 0/2 | Not started | - |
+| 16. Finding Actions | 1/2 | In Progress|  | - |
 | 17. Settings Validation | v1.3 | 0/? | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |

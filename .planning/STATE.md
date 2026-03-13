@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Phase 16 context gathered
-last_updated: "2026-03-13T00:40:42.064Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-13T00:59:32.530Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Recent decisions affecting v1.3:
 - Finding schema extends with optional resolved/annotation fields (nullish coalescing for migration)
 - [Phase 15]: Used custom History API hook instead of wouter -- zero deps, only 3 routes
 - [Phase 15]: Upload view transient (no URL) per user decision from research
+- [Phase 16]: Resolve/note fields optional with nullish coalescing for backward compat
 
 ### Pending Todos
 
@@ -67,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:40:42.061Z
-Stopped at: Phase 16 context gathered
+Last session: 2026-03-13T00:59:32.528Z
+Stopped at: Completed 16-01-PLAN.md
 Resume with: /gsd:plan-phase 15
