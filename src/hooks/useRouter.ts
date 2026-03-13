@@ -7,6 +7,9 @@ interface RouterState {
 }
 
 function parseUrl(pathname: string): RouterState {
+  if (pathname === '/contracts') {
+    return { view: 'contracts', contractId: null };
+  }
   if (pathname.startsWith('/contracts/')) {
     const id = pathname.slice('/contracts/'.length);
     return { view: 'review', contractId: id };
@@ -47,6 +50,9 @@ export function useRouter() {
       } else if (view === 'settings') {
         newState = { view: 'settings', contractId: null };
         window.history.pushState(null, '', '/settings');
+      } else if (view === 'contracts') {
+        newState = { view: 'contracts', contractId: null };
+        window.history.pushState(null, '', '/contracts');
       } else {
         newState = { view: 'dashboard', contractId: null };
         window.history.pushState(null, '', '/');
