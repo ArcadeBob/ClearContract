@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Phase 20 context gathered
-last_updated: "2026-03-13T03:55:25.951Z"
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-03-13T04:05:49.413Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 6
+  total_plans: 7
+  completed_plans: 7
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Recent decisions affecting v1.3:
 - [Phase 18]: Snapshot rollback uses structuredClone for deep copy of contract state
 - [Phase 18]: Network error retry reuses same file from closure rather than re-opening file picker
 - [Phase 19-export-report]: No new dependencies for CSV export -- plain string manipulation and Blob API
+- [Phase 20]: Exact-match /contracts before startsWith /contracts/ in parseUrl for correct routing
 
 ### Pending Todos
 
@@ -73,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T03:55:25.948Z
-Stopped at: Phase 20 context gathered
+Last session: 2026-03-13T04:05:49.410Z
+Stopped at: Completed 20-01-PLAN.md
 Resume with: /gsd:plan-phase 15
