@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.3 Workflow Completion (Shipped: 2026-03-13)
+
+**Phases:** 15-21 (8 plans)
+**Timeline:** 1 day (2026-03-13)
+**Code:** 13 files changed, 851 insertions, 79 deletions (7,461 LOC TypeScript total)
+**Requirements:** 16/16 satisfied
+**Audit:** GAPS_FOUND → closed by Phase 20 + 21
+
+**Key accomplishments:**
+- URL-based routing with History API — browser back/forward, refresh, deep links, bookmarkable URLs
+- Finding actions — resolve toggle, note CRUD (add/edit/delete), hide-resolved filter, resolved counts in risk summary
+- Settings validation — inline errors with onBlur validation, auto-formatting, save confirmation feedback
+- Re-analyze contract — PDF re-selection, confirmation dialog, loading overlay, failure rollback with error toast
+- CSV export — RFC 4180 compliant, filter-aware (respects hideResolved and category filters), UTF-8 BOM for Excel
+- Gap closures — All Contracts navigation fix (Phase 20) and filtered CSV export fix (Phase 21) from milestone audit
+
+**Tech debt carried forward:**
+- Dead code: updateField in useCompanyProfile.ts (replaced by saveField)
+- Pre-existing TS6133 warning in CoverageComparisonTab.tsx:171
+- Nyquist validation missing for phases 16-19
+- Human UAT (live API + real contract) not yet performed
+- vercel.json maxDuration: 300 may require Vercel Pro plan
+
+---
+
 ## v1.1 Domain Intelligence (Shipped: 2026-03-10)
 
 **Phases:** 7-10 (8 plans, 17 tasks)

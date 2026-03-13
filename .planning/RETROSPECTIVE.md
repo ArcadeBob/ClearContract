@@ -93,14 +93,69 @@
 
 ---
 
+## Milestone: v1.3 -- Workflow Completion
+
+**Shipped:** 2026-03-13
+**Phases:** 7 | **Plans:** 8
+**Timeline:** 1 day (2026-03-13)
+
+### What Was Built
+- URL-based routing with History API — browser back/forward, refresh, deep links, bookmarkable URLs
+- Finding actions — resolve toggle, note CRUD (add/edit/delete), hide-resolved filter, resolved counts
+- Settings validation — inline errors with onBlur validation, auto-formatting, save confirmation feedback
+- Re-analyze contract — PDF re-selection, confirmation dialog, loading overlay, failure rollback with error toast
+- CSV export — RFC 4180 compliant, filter-aware, UTF-8 BOM for Excel compatibility
+- Two gap closure phases from milestone audit (All Contracts navigation, filtered CSV export)
+
+### What Worked
+- Single-session execution for all 7 phases -- highest velocity milestone yet
+- Milestone audit identified 2 cross-phase integration gaps that were fixed before shipping
+- Gap closure phases (20, 21) were minimal and surgical -- exact fixes for exact problems
+- visibleFindings pattern (filter at data level) made CSV export filtering trivial once wired correctly
+- structuredClone for rollback provided safe deep copy without custom serialization
+
+### What Was Inefficient
+- STATE.md progress tracking fell behind (showed 0% despite all phases complete)
+- ROADMAP.md plan checkboxes not updated to [x] on completion (recurring issue from v1.0/v1.1)
+- Nyquist validation skipped for phases 16-19 (recurring deprioritization)
+- Audit status reported as gaps_found but gaps were closed by subsequent phases -- no mechanism to update audit status
+
+### Patterns Established
+- Custom History API hook pattern: parseUrl + navigateTo + popstate listener (~80 lines, zero deps)
+- Optional fields with nullish coalescing for backward-compatible schema migration
+- Filter-at-data-level pattern: single visibleFindings array feeds all downstream consumers
+- structuredClone rollback pattern for destructive operations with recovery
+- ExportOptions parameter pattern for progressive enhancement of existing utilities
+
+### Key Lessons
+- Cross-phase integration testing (milestone audit) catches bugs that per-phase verification misses
+- Three flat routes don't need a router library -- custom History API hook is simpler and more maintainable
+- Backward-compatible schema changes (optional fields + nullish coalescing) avoid migration complexity entirely
+- Gap closure phases are consistently lightweight and effective -- the audit-then-fix pattern works well
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution
+- Sessions: 1 session
+- Notable: All 8 plans (including 2 gap closures) completed in a single session -- fastest milestone by far
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 |
-|--------|------|------|
-| Phases | 6 | 4 |
-| Plans | 13 | 8 |
-| Avg plan duration | ~4min | ~4min |
-| Requirements | 22/22 | 23/23 |
-| Audit status | tech_debt | tech_debt |
-| LOC | ~5,000 | ~4,238 |
-| Execution time | ~10hr | ~34min |
+| Metric | v1.0 | v1.1 | v1.3 |
+|--------|------|------|------|
+| Phases | 6 | 4 | 7 |
+| Plans | 13 | 8 | 8 |
+| Avg plan duration | ~4min | ~4min | ~2min |
+| Requirements | 22/22 | 23/23 | 16/16 |
+| Audit status | tech_debt | tech_debt | gaps_found→closed |
+| LOC | ~5,000 | ~4,238 | ~7,461 |
+| Sessions | ~10 | ~6 | 1 |
+
+### Top Lessons (Verified Across Milestones)
+
+1. Schema-first with required fields produces better AI output (v1.0, v1.1)
+2. Gap closure phases are lightweight and effective for cross-phase integration fixes (v1.0, v1.3)
+3. ROADMAP.md plan checkboxes consistently fall out of sync -- needs automation (v1.0, v1.1, v1.3)
+4. Nyquist validation consistently deprioritized -- either automate or remove from process (v1.1, v1.3)
+5. Execution velocity improves with each milestone as patterns mature (45min→4min→2min per plan)

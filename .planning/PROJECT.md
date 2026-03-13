@@ -38,27 +38,30 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Division 08 scope classification flagging non-glazing work -- v1.1
 - ✓ ASTM/AAMA/FGIA standards validation with obsolescence detection -- v1.1
 - ✓ Contract standard form detection (AIA A401, ConsensusDocs 750, EJCDC) with deviation flagging -- v1.1
+- ✓ localStorage persistence for contracts across sessions -- v1.2
+- ✓ Contract deletion with confirmation dialog -- v1.2
+- ✓ Upload error feedback with toast notifications and inline file rejections -- v1.2
+- ✓ Dashboard and DateTimeline empty states -- v1.2
+- ✓ URL-based routing with History API (back/forward, refresh, deep links) -- v1.3
+- ✓ Finding actions: resolve toggle, note CRUD, hide-resolved filter, resolved counts -- v1.3
+- ✓ Settings inline validation with onBlur persistence and save feedback -- v1.3
+- ✓ Re-analyze contract with PDF re-selection, confirmation dialog, and failure rollback -- v1.3
+- ✓ CSV export of findings with filter awareness (hideResolved, category) -- v1.3
 
 ### Active
 
-- [ ] Export contract analysis as PDF or CSV report
-- [ ] Settings fields validated with save confirmation feedback
-- [ ] URL-based routing with deep links and browser back/forward support
-- [ ] Re-analyze contract after company profile changes
-- [ ] Finding actions: resolve and annotate findings during review
+(No active requirements -- planning next milestone)
 
 ### Out of Scope
 
 - Multi-user/team features -- sole user, not needed now
 - User authentication -- single-user context
-- Data persistence across sessions -- acceptable for now
 - Mobile app -- web-only
 - Real-time collaboration -- sole user
 - Automated redlining / markup -- legal liability risk
 - Multi-document comparison -- single contract focus
 - Playbook / template customization -- AI prompt IS the playbook
 - Real-time chat with contract -- comprehensive upfront analysis suffices
-- Contract storage / database -- no persistence needed
 - Procore / PM integration -- export report, user attaches to PM
 - Multi-language support -- US glazing contracts are in English
 - RAG / vector database -- knowledge base under 50K tokens; TypeScript modules simpler and type-safe
@@ -68,15 +71,18 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ## Context
 
-Shipped v1.1 with ~4,238 LOC TypeScript across client, server, and knowledge modules.
+Shipped v1.3 with ~7,461 LOC TypeScript across client, server, and knowledge modules.
 Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK.
 Deployed on Vercel with serverless function (api/analyze.ts).
 16 analysis passes run in parallel via Files API upload-once/analyze-many pattern.
 11 knowledge modules across 3 domains (regulatory, trade, standards) injected per-pass via prompt builder.
 Company profile with localStorage persistence drives insurance/bonding comparison and bid/no-bid signals.
 All structured outputs via Zod v3 schemas converted to JSON Schema.
+Contracts persist in localStorage with full CRUD. URL-based routing via custom History API hook.
+Finding workflow: resolve/annotate findings, hide resolved, filter-aware CSV export.
+Settings validation with onBlur auto-formatting and save feedback. Re-analyze with rollback on failure.
 
-Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, scope-of-work pass at max capacity (4/4 modules), human UAT pending, vercel.json maxDuration may need Pro plan.
+Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, scope-of-work pass at max capacity (4/4 modules), dead updateField in useCompanyProfile.ts, human UAT pending, vercel.json maxDuration may need Pro plan.
 
 ## Constraints
 
@@ -110,17 +116,14 @@ Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, sc
 | Deterministic bid signal (5 weighted factors) | Reproducible scoring: Bonding/Insurance 0.25, Scope 0.20, Payment/Retainage 0.15 | ✓ Good -- consistent signals |
 | Severity guard runs after risk score computation | Display-only upgrade, no risk score inflation | ✓ Good -- accurate scoring preserved |
 | $refStrategy: 'none' for zodToJsonSchema | Anthropic API doesn't support $ref in structured output | ✓ Good -- eliminated runtime errors |
-
-## Current Milestone: v1.3 Workflow Completion
-
-**Goal:** Complete stubbed features, add routing, and enable the full contract review workflow with export, re-analysis, and finding actions.
-
-**Target features:**
-- Export Report (PDF/CSV)
-- Settings Validation + Save Feedback
-- URL-based Routing
-- Re-analyze Contract
-- Finding Actions (Resolve/Annotate)
+| Custom History API hook (not wouter/React Router) | Only 3 flat routes; zero deps, ~80 lines | ✓ Good -- simple, no overhead |
+| Upload view transient (no URL) | Upload is a modal action, not a bookmarkable destination | ✓ Good -- clean URL semantics |
+| Optional resolved/note fields with nullish coalescing | Backward compat with existing localStorage contracts | ✓ Good -- zero migration needed |
+| Filter at data level (visibleFindings) | Single filtered array feeds both view modes and CSV export | ✓ Good -- consistent filtering |
+| onBlur validation with revert | Validates on field exit, reverts invalid input to last good value | ✓ Good -- prevents bad data |
+| structuredClone for re-analyze rollback | Deep copy of contract state before re-analysis attempt | ✓ Good -- safe rollback |
+| CSV with UTF-8 BOM | Excel opens CSV correctly without import wizard | ✓ Good -- user-friendly |
+| Exact-match before prefix in URL parsing | /contracts before /contracts/:id prevents false matches | ✓ Good -- correct routing |
 
 ---
-*Last updated: 2026-03-12 after v1.3 milestone start*
+*Last updated: 2026-03-13 after v1.3 milestone*
