@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Phase 21 context gathered
-last_updated: "2026-03-13T04:21:16.844Z"
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-03-13T04:35:19.951Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Recent decisions affecting v1.3:
 - [Phase 18]: Network error retry reuses same file from closure rather than re-opening file picker
 - [Phase 19-export-report]: No new dependencies for CSV export -- plain string manipulation and Blob API
 - [Phase 20]: Exact-match /contracts before startsWith /contracts/ in parseUrl for correct routing
+- [Phase 21]: Total Findings always reflects full unfiltered count for audit trail
 
 ### Pending Todos
 
@@ -74,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T04:21:16.842Z
-Stopped at: Phase 21 context gathered
+Last session: 2026-03-13T04:35:19.949Z
+Stopped at: Completed 21-01-PLAN.md
 Resume with: /gsd:plan-phase 15

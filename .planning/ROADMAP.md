@@ -57,7 +57,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [x] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback (completed 2026-03-13)
 - [x] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters (completed 2026-03-13)
 - [x] **Phase 20: Fix All Contracts Navigation** - Fix useRouter to support contracts view navigation and URL parsing [GAP CLOSURE] (completed 2026-03-13)
-- [ ] **Phase 21: Fix Filtered CSV Export** - Pass visible findings to CSV export so filters are respected [GAP CLOSURE]
+- [x] **Phase 21: Fix Filtered CSV Export** - Pass visible findings to CSV export so filters are respected [GAP CLOSURE] (completed 2026-03-13)
 
 ## Phase Details
 
@@ -175,4 +175,4 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 18. Re-analyze Contract | 1/1 | Complete    | 2026-03-13 | - |
 | 19. Export Report | 1/1 | Complete    | 2026-03-13 | - |
 | 20. Fix All Contracts Navigation | 1/1 | Complete    | 2026-03-13 | - |
-| 21. Fix Filtered CSV Export | v1.3 | 0/1 | Pending | - |
+| 21. Fix Filtered CSV Export | 1/1 | Complete   | 2026-03-13 | - |

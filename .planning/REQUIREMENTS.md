@@ -17,7 +17,7 @@ Requirements for Workflow Completion milestone. Each maps to roadmap phases.
 ### Export
 
 - [x] **EXPORT-01**: User can export contract findings as a CSV file from the review page
-- [ ] **EXPORT-02**: User's CSV export respects active category/severity filters
+- [x] **EXPORT-02**: User's CSV export respects active category/severity filters
 
 ### Finding Actions
 
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUTE-03 | Phase 15 | Complete |
 | ROUTE-04 | Phase 15 | Complete |
 | EXPORT-01 | Phase 19 | Complete |
-| EXPORT-02 | Phase 21 | Pending |
+| EXPORT-02 | Phase 21 | Complete |
 | FIND-01 | Phase 16 | Complete |
 | FIND-02 | Phase 16 | Complete |
 | FIND-03 | Phase 16 | Complete |
