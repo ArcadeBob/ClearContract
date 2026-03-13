@@ -1,4 +1,9 @@
-import { Contract, Severity } from '../types/contract';
+import { Contract, Finding, Severity } from '../types/contract';
+
+interface ExportOptions {
+  findings?: Finding[];
+  filterDescriptions?: string[];
+}
 
 const SEVERITY_ORDER: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -24,7 +29,9 @@ export function sanitizeFilename(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function exportContractCsv(contract: Contract): string {
+export function exportContractCsv(contract: Contract, options?: ExportOptions): string {
+  const findings = options?.findings ?? contract.findings;
+  const filterDescriptions = options?.filterDescriptions ?? [];
   const lines: string[] = [];
 
   // Metadata header rows
@@ -36,6 +43,10 @@ export function exportContractCsv(contract: Contract): string {
   }
   lines.push(csvRow(['Analysis Date', contract.uploadDate]));
   lines.push(csvRow(['Total Findings', String(contract.findings.length)]));
+  if (filterDescriptions.length > 0) {
+    lines.push(csvRow(['Exported Findings', String(findings.length)]));
+    lines.push(csvRow(['Filters Applied', filterDescriptions.join(', ')]));
+  }
 
   // Blank row separator
   lines.push('');
@@ -54,7 +65,7 @@ export function exportContractCsv(contract: Contract): string {
   ]));
 
   // Finding data rows sorted by severity
-  const sortedFindings = [...contract.findings].sort(
+  const sortedFindings = [...findings].sort(
     (a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
   );
 
