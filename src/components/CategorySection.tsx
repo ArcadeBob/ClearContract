@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Category, Finding, Severity } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { FindingCard } from './FindingCard';
-import { AlertTriangle, ChevronDown } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronDown } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { categoryIcons } from '../utils/categoryIcons';
 
@@ -40,6 +40,9 @@ export function CategorySection({
     {} as Record<string, number>
   );
 
+  const resolvedInCategory = findings.filter((f) => f.resolved).length;
+  const allResolved = resolvedInCategory > 0 && resolvedInCategory === findings.length;
+
   return (
     <div id={`category-${category.replace(/\s+/g, '-').toLowerCase()}`}>
       <button
@@ -54,6 +57,14 @@ export function CategorySection({
           <span className="text-xs text-slate-500">
             ({findings.length} {findings.length === 1 ? 'finding' : 'findings'})
           </span>
+          {resolvedInCategory > 0 && (
+            <span className="text-xs text-emerald-600">
+              ({resolvedInCategory} of {findings.length} resolved)
+            </span>
+          )}
+          {allResolved && (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          )}
         </div>
 
         <div className="flex items-center gap-3">

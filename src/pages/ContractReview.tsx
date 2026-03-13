@@ -14,6 +14,7 @@ import {
   Download,
   Share2,
   CheckCircle,
+  CheckCircle2,
   LayoutGrid,
   List,
   Shield,
@@ -69,6 +70,24 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const HIDE_RESOLVED_KEY = 'clearcontract:hide-resolved';
+  const [hideResolved, setHideResolved] = useState(() => {
+    try {
+      return localStorage.getItem(HIDE_RESOLVED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleHideResolved = () => {
+    setHideResolved((prev) => {
+      const next = !prev;
+      try { localStorage.setItem(HIDE_RESOLVED_KEY, String(next)); } catch {}
+      return next;
+    });
+  };
+
   const { profile } = useCompanyProfile();
 
   // Check if core profile fields that affect analysis are empty
@@ -97,15 +116,24 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
     }
   }, [selectedCategory, viewMode]);
 
+  // Resolved counts (use ALL findings, not filtered)
+  const totalFindings = contract.findings.length;
+  const resolvedCount = contract.findings.filter((f) => f.resolved).length;
+
+  // Apply hide-resolved filter at the data level before both rendering paths
+  const visibleFindings = hideResolved
+    ? contract.findings.filter((f) => !f.resolved)
+    : contract.findings;
+
   // Categories that have findings (deterministic order)
   const categoriesWithFindings = CATEGORY_ORDER.filter((cat) =>
-    contract.findings.some((f) => f.category === cat)
+    visibleFindings.some((f) => f.category === cat)
   );
 
   // Category-grouped findings sorted by max severity then count
   const groupedFindings = CATEGORY_ORDER.map((category) => ({
     category,
-    findings: contract.findings
+    findings: visibleFindings
       .filter((f) => f.category === category)
       .sort((a, b) => severityRank[a.severity] - severityRank[b.severity]),
   }))
@@ -122,7 +150,7 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
     });
 
   // Flat severity-sorted findings for by-severity mode
-  const flatFindings = [...contract.findings].sort(
+  const flatFindings = [...visibleFindings].sort(
     (a, b) => severityRank[a.severity] - severityRank[b.severity]
   );
 
@@ -206,6 +234,10 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">
                   Analysis Findings
+                  <span className="text-sm font-normal text-slate-500 ml-2">
+                    {totalFindings} {totalFindings === 1 ? 'finding' : 'findings'}
+                    {resolvedCount > 0 && ` (${resolvedCount} resolved)`}
+                  </span>
                 </h2>
                 <div className="flex items-center gap-4">
                   <div className="flex space-x-2">
@@ -259,6 +291,15 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                     Coverage
                   </button>
                 </div>
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hideResolved}
+                    onChange={toggleHideResolved}
+                    className="rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                  />
+                  Hide resolved
+                </label>
               </div>
 
               {viewMode === 'by-category' && (
@@ -284,7 +325,15 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                       onUpdateNote={onUpdateNote}
                     />
                   ))}
-                  {groupedFindings.length === 0 && <EmptyFindings />}
+                  {groupedFindings.length === 0 && totalFindings > 0 && hideResolved ? (
+                    <div className="text-center py-12 bg-white rounded-lg border border-slate-200 border-dashed">
+                      <CheckCircle2 className="w-12 h-12 text-emerald-200 mx-auto mb-3" />
+                      <p className="text-slate-500 font-medium">All findings resolved</p>
+                      <p className="text-sm text-slate-400 mt-1">Uncheck &quot;Hide resolved&quot; to view them</p>
+                    </div>
+                  ) : groupedFindings.length === 0 ? (
+                    <EmptyFindings />
+                  ) : null}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -299,7 +348,15 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                       />
                     ))}
                   </AnimatePresence>
-                  {flatFindings.length === 0 && <EmptyFindings />}
+                  {flatFindings.length === 0 && totalFindings > 0 && hideResolved ? (
+                    <div className="text-center py-12 bg-white rounded-lg border border-slate-200 border-dashed">
+                      <CheckCircle2 className="w-12 h-12 text-emerald-200 mx-auto mb-3" />
+                      <p className="text-slate-500 font-medium">All findings resolved</p>
+                      <p className="text-sm text-slate-400 mt-1">Uncheck &quot;Hide resolved&quot; to view them</p>
+                    </div>
+                  ) : flatFindings.length === 0 ? (
+                    <EmptyFindings />
+                  ) : null}
                 </div>
               )}
             </div>
@@ -333,6 +390,14 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                     }
                   )}
                 </div>
+                {resolvedCount > 0 && (
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                    <span className="text-sm text-slate-600">Resolved</span>
+                    <span className="text-sm font-medium text-emerald-600">
+                      {resolvedCount} of {totalFindings}
+                    </span>
+                  </div>
+                )}
                 <div className="mt-6 pt-6 border-t border-slate-100">
                   <p className="text-xs text-slate-400 leading-relaxed">
                     This analysis is generated by AI based on standard glazing
