@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Contract, Category, Severity } from '../types/contract';
 import { FindingCard } from '../components/FindingCard';
 import { CategoryFilter } from '../components/CategoryFilter';
@@ -20,6 +20,8 @@ import {
   Shield,
   X,
   Trash2,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AnimatePresence } from 'framer-motion';
@@ -61,15 +63,31 @@ interface ContractReviewProps {
   onDelete?: (id: string) => void;
   onToggleResolved?: (findingId: string) => void;
   onUpdateNote?: (findingId: string, note: string | undefined) => void;
+  onReanalyze?: (file: File) => void;
+  isReanalyzing?: boolean;
 }
 
-export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing }: ContractReviewProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
     'All'
   );
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleConfirmReanalyze = () => {
+    setShowReanalyzeConfirm(false);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ''; // Reset so same file can be re-selected
+    onReanalyze?.(file);
+  };
 
   const HIDE_RESOLVED_KEY = 'clearcontract:hide-resolved';
   const [hideResolved, setHideResolved] = useState(() => {
@@ -188,6 +206,18 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <Share2 className="w-4 h-4" />
             <span>Share</span>
           </button>
+          <button
+            onClick={() => setShowReanalyzeConfirm(true)}
+            disabled={isReanalyzing}
+            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isReanalyzing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            <span>Re-analyze</span>
+          </button>
           <button className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium">
             <Download className="w-4 h-4" />
             <span>Export Report</span>
@@ -203,6 +233,23 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
           }}
           onCancel={() => setShowConfirm(false)}
         />
+        <ConfirmDialog
+          isOpen={showReanalyzeConfirm}
+          title="Re-analyze Contract"
+          message="Re-analyzing will replace all current findings, including any resolved status and notes you've added. Select a PDF to continue."
+          confirmLabel="Select PDF"
+          confirmClassName="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+          icon="info"
+          onConfirm={handleConfirmReanalyze}
+          onCancel={() => setShowReanalyzeConfirm(false)}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf"
+          className="hidden"
+          onChange={handleFileSelected}
+        />
       </header>
 
       {/* Main Content */}
@@ -212,6 +259,16 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <AnalysisProgress isLoading />
           </div>
         ) : (
+          <>
+          {isReanalyzing && (
+            <div className="max-w-7xl mx-auto mb-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                <span className="text-sm font-medium text-blue-800">Re-analyzing contract...</span>
+              </div>
+            </div>
+          )}
+          <div className={isReanalyzing ? 'opacity-50 pointer-events-none' : ''}>
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Findings */}
             <div className="lg:col-span-2 space-y-6">
@@ -408,6 +465,8 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
               </div>
             </div>
           </div>
+          </div>
+          </>
         )}
       </div>
     </div>

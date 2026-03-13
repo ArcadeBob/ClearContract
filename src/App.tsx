@@ -25,6 +25,7 @@ export function App() {
   const { activeView, activeContractId, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const [toast, setToast] = useState<ToastData | null>(null);
+  const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
 
   const handleDeleteContract = (id: string) => {
     const isDeletingActive = activeContract?.id === id;
@@ -106,6 +107,65 @@ export function App() {
         }
       });
   };
+
+  const handleReanalyze = (contractId: string, file: File) => {
+    const contract = contracts.find(c => c.id === contractId);
+    if (!contract) return;
+
+    // Snapshot for rollback (REANA-03)
+    const snapshot = structuredClone(contract);
+
+    setReanalyzingId(contractId);
+
+    analyzeContract(file)
+      .then((result) => {
+        updateContract(contractId, {
+          status: 'Reviewed',
+          name: file.name.replace(/\.pdf$/i, ''),
+          client: result.client,
+          type: result.contractType,
+          riskScore: result.riskScore,
+          bidSignal: result.bidSignal,
+          findings: result.findings,
+          dates: result.dates,
+          passResults: result.passResults,
+          uploadDate: new Date().toISOString().split('T')[0],
+        });
+        setToast({
+          type: 'success',
+          message: 'Analysis complete \u2014 findings updated.',
+          onDismiss: () => setToast(null),
+        });
+      })
+      .catch((err) => {
+        // Restore previous state completely (REANA-03)
+        updateContract(contractId, snapshot);
+
+        if (isNetworkError(err)) {
+          setToast({
+            type: 'error',
+            message: 'Connection failed. Your previous findings are unchanged.',
+            onRetry: () => {
+              setToast(null);
+              handleReanalyze(contractId, file);
+            },
+            onDismiss: () => setToast(null),
+          });
+        } else {
+          setToast({
+            type: 'error',
+            message: err instanceof Error
+              ? `Analysis failed: ${err.message}. Your previous findings are unchanged.`
+              : 'Analysis failed. Your previous findings are unchanged.',
+            onDismiss: () => setToast(null),
+          });
+        }
+      })
+      .finally(() => {
+        setReanalyzingId(null);
+      });
+  };
+
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
@@ -125,6 +185,8 @@ export function App() {
             onDelete={handleDeleteContract}
             onToggleResolved={(findingId) => toggleFindingResolved(activeContract.id, findingId)}
             onUpdateNote={(findingId, note) => updateFindingNote(activeContract.id, findingId, note)}
+            onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
+            isReanalyzing={reanalyzingId === activeContract.id}
           />
         );
 
