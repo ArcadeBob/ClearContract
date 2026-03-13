@@ -55,7 +55,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [x] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary (completed 2026-03-13)
 - [x] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback (completed 2026-03-13)
 - [x] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback (completed 2026-03-13)
-- [ ] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters
+- [x] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters (completed 2026-03-13)
 
 ## Phase Details
 
@@ -118,7 +118,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User clicks an export button on the contract review page and downloads a CSV file containing all findings with severity, category, clause text, and explanation
   2. User applies category or severity filters, exports, and the CSV contains only the filtered findings
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 19-01-PLAN.md — CSV export utility and button wiring in ContractReview
 
@@ -147,4 +147,4 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
 | 17. Settings Validation | 1/1 | Complete    | 2026-03-13 | - |
 | 18. Re-analyze Contract | 1/1 | Complete    | 2026-03-13 | - |
-| 19. Export Report | v1.3 | 0/? | Not started | - |
+| 19. Export Report | 1/1 | Complete   | 2026-03-13 | - |
