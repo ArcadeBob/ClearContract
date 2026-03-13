@@ -17,6 +17,8 @@ export function App() {
     addContract,
     updateContract,
     deleteContract,
+    toggleFindingResolved,
+    updateFindingNote,
     storageWarning,
     dismissStorageWarning,
   } = useContractStore();
@@ -121,6 +123,8 @@ export function App() {
             contract={activeContract}
             onBack={() => navigateTo('dashboard')}
             onDelete={handleDeleteContract}
+            onToggleResolved={(findingId) => toggleFindingResolved(activeContract.id, findingId)}
+            onUpdateNote={(findingId, note) => updateFindingNote(activeContract.id, findingId, note)}
           />
         );
 

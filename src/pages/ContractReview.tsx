@@ -58,9 +58,11 @@ interface ContractReviewProps {
   contract: Contract;
   onBack: () => void;
   onDelete?: (id: string) => void;
+  onToggleResolved?: (findingId: string) => void;
+  onUpdateNote?: (findingId: string, note: string | undefined) => void;
 }
 
-export function ContractReview({ contract, onBack, onDelete }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote }: ContractReviewProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
     'All'
   );
@@ -278,6 +280,8 @@ export function ContractReview({ contract, onBack, onDelete }: ContractReviewPro
                       category={category}
                       findings={findings}
                       defaultExpanded={true}
+                      onToggleResolved={onToggleResolved}
+                      onUpdateNote={onUpdateNote}
                     />
                   ))}
                   {groupedFindings.length === 0 && <EmptyFindings />}
@@ -290,6 +294,8 @@ export function ContractReview({ contract, onBack, onDelete }: ContractReviewPro
                         key={finding.id}
                         finding={finding}
                         index={index}
+                        onToggleResolved={onToggleResolved}
+                        onUpdateNote={onUpdateNote}
                       />
                     ))}
                   </AnimatePresence>
