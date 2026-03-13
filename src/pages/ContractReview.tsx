@@ -9,6 +9,7 @@ import { AnalysisProgress } from '../components/AnalysisProgress';
 import { BidSignalWidget } from '../components/BidSignalWidget';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
 import {
   ChevronLeft,
   Download,
@@ -65,9 +66,10 @@ interface ContractReviewProps {
   onUpdateNote?: (findingId: string, note: string | undefined) => void;
   onReanalyze?: (file: File) => void;
   isReanalyzing?: boolean;
+  onShowToast?: (toast: { type: 'success' | 'error'; message: string }) => void;
 }
 
-export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onShowToast }: ContractReviewProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
     'All'
   );
@@ -218,9 +220,18 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             )}
             <span>Re-analyze</span>
           </button>
-          <button className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium">
+          <button
+            onClick={() => {
+              const csv = exportContractCsv(contract);
+              const filename = `${sanitizeFilename(contract.name)}_${new Date().toISOString().slice(0, 10)}.csv`;
+              downloadCsv(csv, filename);
+              onShowToast?.({ type: 'success', message: 'CSV exported' });
+            }}
+            disabled={isReanalyzing || contract.findings.length === 0}
+            className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Download className="w-4 h-4" />
-            <span>Export Report</span>
+            <span>Export CSV</span>
           </button>
         </div>
         <ConfirmDialog

@@ -187,6 +187,7 @@ export function App() {
             onUpdateNote={(findingId, note) => updateFindingNote(activeContract.id, findingId, note)}
             onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
             isReanalyzing={reanalyzingId === activeContract.id}
+            onShowToast={({ type, message }) => setToast({ type, message, onDismiss: () => setToast(null) })}
           />
         );
 
