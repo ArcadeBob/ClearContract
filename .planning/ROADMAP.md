@@ -54,7 +54,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 - [x] **Phase 15: URL-based Routing** - Browser navigation, deep links, bookmarkable URLs, refresh persistence (completed 2026-03-13)
 - [x] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary (completed 2026-03-13)
 - [x] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback (completed 2026-03-13)
-- [ ] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback
+- [x] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback (completed 2026-03-13)
 - [ ] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters
 
 ## Phase Details
@@ -107,7 +107,7 @@ Plans:
   1. User clicks a re-analyze button on the contract review page and is prompted to re-select the PDF file
   2. User selects the PDF and analysis runs, replacing the previous findings and scores with fresh results
   3. If re-analysis fails (network error, API error), the previous analysis remains intact and the user sees an error message
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 18-01-PLAN.md — Extend Toast/ConfirmDialog, add re-analyze button, confirmation dialog, file picker, overlay, rollback handler
 
@@ -144,5 +144,5 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
 | 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
 | 17. Settings Validation | 1/1 | Complete    | 2026-03-13 | - |
-| 18. Re-analyze Contract | v1.3 | 0/1 | Not started | - |
+| 18. Re-analyze Contract | 1/1 | Complete   | 2026-03-13 | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |

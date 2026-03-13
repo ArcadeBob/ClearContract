@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Phase 18 context gathered
-last_updated: "2026-03-13T02:31:51.144Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-13T02:44:46.878Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 5
   percent: 0
 ---
 
@@ -56,6 +56,8 @@ Recent decisions affecting v1.3:
 - [Phase 16]: Resolve/note fields optional with nullish coalescing for backward compat
 - [Phase 16]: Filter at data level (visibleFindings) before both view mode paths diverge
 - [Phase 17]: Error clears on any keystroke for responsive UX
+- [Phase 18]: Snapshot rollback uses structuredClone for deep copy of contract state
+- [Phase 18]: Network error retry reuses same file from closure rather than re-opening file picker
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T02:31:51.142Z
-Stopped at: Phase 18 context gathered
+Last session: 2026-03-13T02:44:46.875Z
+Stopped at: Completed 18-01-PLAN.md
 Resume with: /gsd:plan-phase 15

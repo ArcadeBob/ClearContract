@@ -34,9 +34,9 @@ Requirements for Workflow Completion milestone. Each maps to roadmap phases.
 
 ### Re-analyze
 
-- [ ] **REANA-01**: User can trigger re-analysis of a contract from the review page
-- [ ] **REANA-02**: User must re-select the PDF file to start re-analysis
-- [ ] **REANA-03**: User's previous analysis is preserved if re-analysis fails
+- [x] **REANA-01**: User can trigger re-analysis of a contract from the review page
+- [x] **REANA-02**: User must re-select the PDF file to start re-analysis
+- [x] **REANA-03**: User's previous analysis is preserved if re-analysis fails
 
 ## Future Requirements
 
@@ -88,9 +88,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIND-05 | Phase 16 | Complete |
 | SET-01 | Phase 17 | Complete |
 | SET-02 | Phase 17 | Complete |
-| REANA-01 | Phase 18 | Pending |
-| REANA-02 | Phase 18 | Pending |
-| REANA-03 | Phase 18 | Pending |
+| REANA-01 | Phase 18 | Complete |
+| REANA-02 | Phase 18 | Complete |
+| REANA-03 | Phase 18 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 16 total
