@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-03-13T00:59:32.530Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-03-13T01:03:53.182Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Recent decisions affecting v1.3:
 - [Phase 15]: Used custom History API hook instead of wouter -- zero deps, only 3 routes
 - [Phase 15]: Upload view transient (no URL) per user decision from research
 - [Phase 16]: Resolve/note fields optional with nullish coalescing for backward compat
+- [Phase 16]: Filter at data level (visibleFindings) before both view mode paths diverge
 
 ### Pending Todos
 
@@ -68,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:59:32.528Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-03-13T01:03:53.180Z
+Stopped at: Completed 16-02-PLAN.md
 Resume with: /gsd:plan-phase 15

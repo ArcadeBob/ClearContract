@@ -52,7 +52,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 **Milestone Goal:** Complete stubbed features, add routing, and enable the full contract review workflow with export, re-analysis, and finding actions.
 
 - [x] **Phase 15: URL-based Routing** - Browser navigation, deep links, bookmarkable URLs, refresh persistence (completed 2026-03-13)
-- [ ] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary
+- [x] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary (completed 2026-03-13)
 - [ ] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback
 - [ ] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback
 - [ ] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters
@@ -82,7 +82,7 @@ Plans:
   3. User edits an existing note and sees the updated text; user deletes a note and it disappears
   4. User toggles "Hide resolved" and resolved findings disappear from the list; toggling back restores them
   5. User sees a count of resolved findings in the risk summary section (e.g., "5 of 12 findings resolved")
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — Extend Finding type, add store methods, build FindingCard resolve/notes UI
 - [ ] 16-02-PLAN.md — Wire into ContractReview: hide-resolved toggle, resolved counts, empty state
@@ -138,7 +138,7 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 13. Upload Error Feedback | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
-| 16. Finding Actions | 1/2 | In Progress|  | - |
+| 16. Finding Actions | 2/2 | Complete   | 2026-03-13 | - |
 | 17. Settings Validation | v1.3 | 0/? | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |
