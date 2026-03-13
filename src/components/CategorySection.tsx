@@ -18,12 +18,16 @@ interface CategorySectionProps {
   category: Category;
   findings: Finding[];
   defaultExpanded?: boolean;
+  onToggleResolved?: (findingId: string) => void;
+  onUpdateNote?: (findingId: string, note: string | undefined) => void;
 }
 
 export function CategorySection({
   category,
   findings,
   defaultExpanded = true,
+  onToggleResolved,
+  onUpdateNote,
 }: CategorySectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const Icon = categoryIcons[category] || AlertTriangle;
@@ -75,7 +79,7 @@ export function CategorySection({
         <div className="space-y-4 ml-2 mb-6">
           <AnimatePresence mode="popLayout">
             {findings.map((finding, index) => (
-              <FindingCard key={finding.id} finding={finding} index={index} />
+              <FindingCard key={finding.id} finding={finding} index={index} onToggleResolved={onToggleResolved} onUpdateNote={onUpdateNote} />
             ))}
           </AnimatePresence>
         </div>
