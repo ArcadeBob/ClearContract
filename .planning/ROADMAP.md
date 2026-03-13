@@ -138,7 +138,7 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 13. Upload Error Feedback | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
-| 16. Finding Actions | 2/2 | Complete   | 2026-03-13 | - |
+| 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
 | 17. Settings Validation | v1.3 | 0/? | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |
