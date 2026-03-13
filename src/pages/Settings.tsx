@@ -1,30 +1,115 @@
-import { Shield, Scale, ShieldCheck, HardHat } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Shield, Scale, ShieldCheck, HardHat, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { validateField, type FieldType } from '../utils/settingsValidation';
 import type { CompanyProfile } from '../knowledge/types';
 
 function ProfileField({
   label,
   value,
-  onChange,
+  onSave,
   type = 'text',
+  fieldType,
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onSave: (v: string) => void;
   type?: string;
+  fieldType?: FieldType;
 }) {
+  const [localValue, setLocalValue] = useState(value);
+  const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [showSaved, setShowSaved] = useState(false);
+  const focusedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Sync localValue when value prop changes externally (but not while focused)
+  useEffect(() => {
+    if (!focusedRef.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+    setError(null);
+  }, []);
+
+  const handleFocus = useCallback(() => {
+    focusedRef.current = true;
+    setError(null);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    focusedRef.current = false;
+
+    const result = validateField(localValue, fieldType || 'text');
+
+    if (!result.valid) {
+      setError(result.error || null);
+      setLocalValue(value); // revert to last saved
+      return;
+    }
+
+    setError(null);
+    setWarning(result.warning || null);
+
+    const finalValue = result.formatted || localValue;
+    setLocalValue(finalValue);
+
+    if (finalValue !== value) {
+      onSave(finalValue);
+      setShowSaved(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setShowSaved(false), 2000);
+    }
+  }, [localValue, value, fieldType, onSave]);
+
+  const borderClasses = error
+    ? 'border-red-300 focus:ring-red-500'
+    : 'border-slate-200 focus:ring-blue-500';
+
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
-        {label}
-      </label>
+      <div className="flex items-center gap-2 mb-1">
+        <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
+          {label}
+        </label>
+        <AnimatePresence>
+          {showSaved && (
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="inline-flex items-center gap-1 text-xs text-emerald-600"
+            >
+              <Check className="w-3 h-3" />
+              Saved
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
       <input
         type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        value={localValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        className={`w-full px-3 py-2 border rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent ${borderClasses}`}
       />
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {!error && warning && (
+        <p className="mt-1 text-xs text-amber-500">{warning}</p>
+      )}
     </div>
   );
 }
@@ -35,11 +120,16 @@ interface CardSection {
   icon: React.ComponentType<{ className?: string }>;
   iconBg: string;
   iconColor: string;
-  fields: { label: string; key: keyof CompanyProfile; type?: string }[];
+  fields: {
+    label: string;
+    key: keyof CompanyProfile;
+    type?: string;
+    fieldType?: FieldType;
+  }[];
 }
 
 export function Settings() {
-  const { profile, updateField } = useCompanyProfile();
+  const { profile, saveField } = useCompanyProfile();
 
   const cards: CardSection[] = [
     {
@@ -50,12 +140,28 @@ export function Settings() {
       iconBg: 'bg-blue-50',
       iconColor: 'text-blue-600',
       fields: [
-        { label: 'GL Per Occurrence', key: 'glPerOccurrence' },
-        { label: 'GL Aggregate', key: 'glAggregate' },
-        { label: 'Umbrella / Excess', key: 'umbrellaLimit' },
-        { label: 'Auto Combined Single Limit', key: 'autoLimit' },
+        {
+          label: 'GL Per Occurrence',
+          key: 'glPerOccurrence',
+          fieldType: 'dollar',
+        },
+        { label: 'GL Aggregate', key: 'glAggregate', fieldType: 'dollar' },
+        {
+          label: 'Umbrella / Excess',
+          key: 'umbrellaLimit',
+          fieldType: 'dollar',
+        },
+        {
+          label: 'Auto Combined Single Limit',
+          key: 'autoLimit',
+          fieldType: 'dollar',
+        },
         { label: 'WC Statutory State', key: 'wcStatutoryState' },
-        { label: "WC Employer's Liability", key: 'wcEmployerLiability' },
+        {
+          label: "WC Employer's Liability",
+          key: 'wcEmployerLiability',
+          fieldType: 'dollar',
+        },
       ],
     },
     {
@@ -65,8 +171,16 @@ export function Settings() {
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
       fields: [
-        { label: 'Single Project Limit', key: 'bondingSingleProject' },
-        { label: 'Aggregate Limit', key: 'bondingAggregate' },
+        {
+          label: 'Single Project Limit',
+          key: 'bondingSingleProject',
+          fieldType: 'dollar',
+        },
+        {
+          label: 'Aggregate Limit',
+          key: 'bondingAggregate',
+          fieldType: 'dollar',
+        },
       ],
     },
     {
@@ -82,9 +196,10 @@ export function Settings() {
           label: 'License Expiry',
           key: 'contractorLicenseExpiry',
           type: 'date',
+          fieldType: 'date',
         },
         { label: 'DIR Registration', key: 'dirRegistration' },
-        { label: 'DIR Expiry', key: 'dirExpiry', type: 'date' },
+        { label: 'DIR Expiry', key: 'dirExpiry', type: 'date', fieldType: 'date' },
         { label: 'SBE Cert ID', key: 'sbeCertId' },
         { label: 'SBE Issuer', key: 'sbeCertIssuer' },
         { label: 'LAUSD Vendor / SAP#', key: 'lausdVendorNumber' },
@@ -97,10 +212,22 @@ export function Settings() {
       iconBg: 'bg-purple-50',
       iconColor: 'text-purple-600',
       fields: [
-        { label: 'Employee Count', key: 'employeeCount' },
+        {
+          label: 'Employee Count',
+          key: 'employeeCount',
+          fieldType: 'employeeCount',
+        },
         { label: 'Service Area', key: 'serviceArea' },
-        { label: 'Typical Project Min', key: 'typicalProjectSizeMin' },
-        { label: 'Typical Project Max', key: 'typicalProjectSizeMax' },
+        {
+          label: 'Typical Project Min',
+          key: 'typicalProjectSizeMin',
+          fieldType: 'dollar',
+        },
+        {
+          label: 'Typical Project Max',
+          key: 'typicalProjectSizeMax',
+          fieldType: 'dollar',
+        },
       ],
     },
   ];
@@ -146,8 +273,9 @@ export function Settings() {
                         key={field.key}
                         label={field.label}
                         value={profile[field.key]}
-                        onChange={(v) => updateField(field.key, v)}
+                        onSave={(v) => saveField(field.key, v)}
                         type={field.type}
+                        fieldType={field.fieldType}
                       />
                     ))}
                   </div>
