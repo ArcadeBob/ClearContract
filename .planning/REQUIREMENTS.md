@@ -96,8 +96,8 @@ None deferred -- all agent-identified features scoped into v1.4.
 **Coverage:**
 - v1.4 requirements: 26 total
 - Mapped to phases: 26
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 after roadmap creation*
