@@ -107,7 +107,9 @@ Plans:
   1. User clicks a re-analyze button on the contract review page and is prompted to re-select the PDF file
   2. User selects the PDF and analysis runs, replacing the previous findings and scores with fresh results
   3. If re-analysis fails (network error, API error), the previous analysis remains intact and the user sees an error message
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 18-01-PLAN.md — Extend Toast/ConfirmDialog, add re-analyze button, confirmation dialog, file picker, overlay, rollback handler
 
 ### Phase 19: Export Report
 **Goal**: Users can download their contract analysis as a CSV file to share or archive outside the app
@@ -142,5 +144,5 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
 | 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
 | 17. Settings Validation | 1/1 | Complete    | 2026-03-13 | - |
-| 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
+| 18. Re-analyze Contract | v1.3 | 0/1 | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |
