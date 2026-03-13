@@ -53,7 +53,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
 - [x] **Phase 15: URL-based Routing** - Browser navigation, deep links, bookmarkable URLs, refresh persistence (completed 2026-03-13)
 - [x] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary (completed 2026-03-13)
-- [ ] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback
+- [x] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback (completed 2026-03-13)
 - [ ] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback
 - [ ] **Phase 19: Export Report** - CSV export of findings from review page, respecting active filters
 
@@ -95,7 +95,7 @@ Plans:
   1. User enters an invalid dollar amount (e.g., "abc" or "-500") in a Settings field and sees an inline error message below that field
   2. User corrects the invalid field and the error message disappears
   3. User sees a brief "Saved" indicator after a Settings field value persists to localStorage
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 17-01-PLAN.md — Validation utility, enhanced ProfileField with onBlur persistence, error/warning display, saved indicator
 
@@ -141,6 +141,6 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
 | 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
-| 17. Settings Validation | v1.3 | 0/1 | Not started | - |
+| 17. Settings Validation | 1/1 | Complete   | 2026-03-13 | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |

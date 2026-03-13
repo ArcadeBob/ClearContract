@@ -29,8 +29,8 @@ Requirements for Workflow Completion milestone. Each maps to roadmap phases.
 
 ### Settings
 
-- [ ] **SET-01**: User sees inline validation errors on invalid dollar amounts or dates in Settings
-- [ ] **SET-02**: User sees "Saved" feedback after Settings fields persist successfully
+- [x] **SET-01**: User sees inline validation errors on invalid dollar amounts or dates in Settings
+- [x] **SET-02**: User sees "Saved" feedback after Settings fields persist successfully
 
 ### Re-analyze
 
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIND-03 | Phase 16 | Complete |
 | FIND-04 | Phase 16 | Complete |
 | FIND-05 | Phase 16 | Complete |
-| SET-01 | Phase 17 | Pending |
-| SET-02 | Phase 17 | Pending |
+| SET-01 | Phase 17 | Complete |
+| SET-02 | Phase 17 | Complete |
 | REANA-01 | Phase 18 | Pending |
 | REANA-02 | Phase 18 | Pending |
 | REANA-03 | Phase 18 | Pending |
