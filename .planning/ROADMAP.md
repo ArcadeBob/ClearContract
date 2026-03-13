@@ -118,7 +118,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User clicks an export button on the contract review page and downloads a CSV file containing all findings with severity, category, clause text, and explanation
   2. User applies category or severity filters, exports, and the CSV contains only the filtered findings
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 19-01-PLAN.md — CSV export utility and button wiring in ContractReview
 
 ## Progress
 
