@@ -51,7 +51,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
 **Milestone Goal:** Complete stubbed features, add routing, and enable the full contract review workflow with export, re-analysis, and finding actions.
 
-- [ ] **Phase 15: URL-based Routing** - Browser navigation, deep links, bookmarkable URLs, refresh persistence
+- [x] **Phase 15: URL-based Routing** - Browser navigation, deep links, bookmarkable URLs, refresh persistence (completed 2026-03-13)
 - [ ] **Phase 16: Finding Actions** - Resolve findings, annotate with notes, hide resolved, resolved counts in summary
 - [ ] **Phase 17: Settings Validation** - Inline validation errors on Settings fields with save confirmation feedback
 - [ ] **Phase 18: Re-analyze Contract** - Re-trigger analysis from review page with PDF re-selection and failure rollback
@@ -68,7 +68,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. User refreshes the page while viewing a contract review and the same contract review reloads
   3. User pastes a contract review URL into a new browser tab and lands on that contract's review page
   4. User navigates to a non-existent URL (e.g., `/contracts/bad-id`) and sees the dashboard instead of a blank screen
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 15-01-PLAN.md — Create useRouter hook, wire into App.tsx, update vercel.json for SPA routing
 
@@ -134,7 +134,7 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 12. Contract Management | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 13. Upload Error Feedback | v1.2 | 2/2 | Complete | 2026-03-12 |
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
-| 15. URL-based Routing | v1.3 | 0/1 | Planning | - |
+| 15. URL-based Routing | 1/1 | Complete   | 2026-03-13 | - |
 | 16. Finding Actions | v1.3 | 0/? | Not started | - |
 | 17. Settings Validation | v1.3 | 0/? | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |

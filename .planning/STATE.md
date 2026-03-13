@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Workflow Completion
 status: planning
-stopped_at: Phase 15 context gathered
-last_updated: "2026-03-12T22:55:38.601Z"
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-03-13T00:11:53.036Z"
 last_activity: 2026-03-12 -- v1.3 roadmap created
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
   percent: 0
 ---
 
@@ -51,6 +51,8 @@ Recent decisions affecting v1.3:
 - CSV-only export for v1.3; PDF export deferred to v1.4+
 - Re-analyze requires PDF re-selection (no localStorage PDF storage)
 - Finding schema extends with optional resolved/annotation fields (nullish coalescing for migration)
+- [Phase 15]: Used custom History API hook instead of wouter -- zero deps, only 3 routes
+- [Phase 15]: Upload view transient (no URL) per user decision from research
 
 ### Pending Todos
 
@@ -65,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-12T22:55:38.599Z
-Stopped at: Phase 15 context gathered
+Last session: 2026-03-13T00:11:53.034Z
+Stopped at: Completed 15-01-PLAN.md
 Resume with: /gsd:plan-phase 15
