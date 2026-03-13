@@ -222,7 +222,16 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
           </button>
           <button
             onClick={() => {
-              const csv = exportContractCsv(contract);
+              const exportFindings = selectedCategory === 'All'
+                ? visibleFindings
+                : visibleFindings.filter(f => f.category === selectedCategory);
+              const filterDescriptions: string[] = [];
+              if (selectedCategory !== 'All') filterDescriptions.push(`Category: ${selectedCategory}`);
+              if (hideResolved) filterDescriptions.push('Hide Resolved: Yes');
+              const csv = exportContractCsv(contract, {
+                findings: exportFindings,
+                filterDescriptions,
+              });
               const filename = `${sanitizeFilename(contract.name)}_${new Date().toISOString().slice(0, 10)}.csv`;
               downloadCsv(csv, filename);
               onShowToast?.({ type: 'success', message: 'CSV exported' });
