@@ -37,6 +37,36 @@ export function useContractStore() {
     persistAndSet((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const toggleFindingResolved = (contractId: string, findingId: string) => {
+    persistAndSet((prev) =>
+      prev.map((c) =>
+        c.id === contractId
+          ? {
+              ...c,
+              findings: c.findings.map((f) =>
+                f.id === findingId ? { ...f, resolved: !f.resolved } : f
+              ),
+            }
+          : c
+      )
+    );
+  };
+
+  const updateFindingNote = (contractId: string, findingId: string, note: string | undefined) => {
+    persistAndSet((prev) =>
+      prev.map((c) =>
+        c.id === contractId
+          ? {
+              ...c,
+              findings: c.findings.map((f) =>
+                f.id === findingId ? { ...f, note } : f
+              ),
+            }
+          : c
+      )
+    );
+  };
+
   const dismissStorageWarning = () => setStorageWarning(null);
 
   return {
@@ -46,6 +76,8 @@ export function useContractStore() {
     addContract,
     updateContract,
     deleteContract,
+    toggleFindingResolved,
+    updateFindingNote,
     storageWarning,
     dismissStorageWarning,
   };

@@ -143,6 +143,8 @@ export interface Finding {
   sourcePass?: string;
   negotiationPosition?: string;
   downgradedFrom?: Severity;
+  resolved?: boolean;
+  note?: string;
 }
 
 export type BidSignalLevel = 'bid' | 'caution' | 'no-bid';
