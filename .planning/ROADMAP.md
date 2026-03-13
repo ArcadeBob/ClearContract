@@ -95,7 +95,9 @@ Plans:
   1. User enters an invalid dollar amount (e.g., "abc" or "-500") in a Settings field and sees an inline error message below that field
   2. User corrects the invalid field and the error message disappears
   3. User sees a brief "Saved" indicator after a Settings field value persists to localStorage
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 17-01-PLAN.md — Validation utility, enhanced ProfileField with onBlur persistence, error/warning display, saved indicator
 
 ### Phase 18: Re-analyze Contract
 **Goal**: Users can re-run AI analysis on a contract after updating their company profile, with safe rollback if it fails
@@ -139,6 +141,6 @@ Phases execute in numeric order: 15 -> 16 -> 17 -> 18 -> 19
 | 14. Empty States and Dashboard Polish | v1.2 | 1/1 | Complete | 2026-03-12 |
 | 15. URL-based Routing | 1/1 | Complete    | 2026-03-13 | - |
 | 16. Finding Actions | 2/2 | Complete    | 2026-03-13 | - |
-| 17. Settings Validation | v1.3 | 0/? | Not started | - |
+| 17. Settings Validation | v1.3 | 0/1 | Not started | - |
 | 18. Re-analyze Contract | v1.3 | 0/? | Not started | - |
 | 19. Export Report | v1.3 | 0/? | Not started | - |
