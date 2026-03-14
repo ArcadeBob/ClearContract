@@ -9,12 +9,12 @@ Requirements for Production Readiness milestone. Each maps to roadmap phases.
 
 ### Tech Debt
 
-- [ ] **DEBT-01**: Duplicate BidSignal types consolidated to single import
-- [ ] **DEBT-02**: useContractStore calls loadContracts() once instead of twice
-- [ ] **DEBT-03**: merge.ts uses Zod-typed results instead of `as` casts on Record<string, unknown>
-- [ ] **DEBT-04**: Dead updateField removed from useCompanyProfile
-- [ ] **DEBT-05**: ContractDateSchema extracted to shared module instead of 3 copies
-- [ ] **DEBT-06**: useRouter replaceState/pushState asymmetry fixed for consistent back-button behavior
+- [x] **DEBT-01**: Duplicate BidSignal types consolidated to single import
+- [x] **DEBT-02**: useContractStore calls loadContracts() once instead of twice
+- [x] **DEBT-03**: merge.ts uses Zod-typed results instead of `as` casts on Record<string, unknown>
+- [x] **DEBT-04**: Dead updateField removed from useCompanyProfile
+- [x] **DEBT-05**: ContractDateSchema extracted to shared module instead of 3 copies
+- [x] **DEBT-06**: useRouter replaceState/pushState asymmetry fixed for consistent back-button behavior
 
 ### UX Quick Wins
 
@@ -66,12 +66,12 @@ None deferred -- all agent-identified features scoped into v1.4.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEBT-01 | Phase 22 | Pending |
-| DEBT-02 | Phase 22 | Pending |
-| DEBT-03 | Phase 22 | Pending |
-| DEBT-04 | Phase 22 | Pending |
-| DEBT-05 | Phase 22 | Pending |
-| DEBT-06 | Phase 22 | Pending |
+| DEBT-01 | Phase 22 | Complete |
+| DEBT-02 | Phase 22 | Complete |
+| DEBT-03 | Phase 22 | Complete |
+| DEBT-04 | Phase 22 | Complete |
+| DEBT-05 | Phase 22 | Complete |
+| DEBT-06 | Phase 22 | Complete |
 | UX-01 | Phase 22 | Pending |
 | UX-02 | Phase 22 | Pending |
 | UX-03 | Phase 22 | Pending |
