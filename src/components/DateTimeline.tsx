@@ -1,5 +1,29 @@
 import { ContractDate } from '../types/contract';
 import { Calendar, Flag, AlertCircle, Clock } from 'lucide-react';
+
+function getDateUrgency(dateStr: string): { label: string; colorClass: string; isPast: boolean } {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr);
+  target.setHours(0, 0, 0, 0);
+  const diffMs = target.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / 86400000);
+
+  if (diffDays < 0) {
+    return { label: `${Math.abs(diffDays)}d ago`, colorClass: 'text-slate-400', isPast: true };
+  }
+  if (diffDays === 0) {
+    return { label: 'Today', colorClass: 'text-red-600', isPast: false };
+  }
+  if (diffDays <= 7) {
+    return { label: `${diffDays}d away`, colorClass: 'text-red-600', isPast: false };
+  }
+  if (diffDays <= 30) {
+    return { label: `${diffDays}d away`, colorClass: 'text-amber-600', isPast: false };
+  }
+  return { label: `${diffDays}d away`, colorClass: 'text-emerald-600', isPast: false };
+}
+
 interface DateTimelineProps {
   dates: ContractDate[];
 }
@@ -58,12 +82,13 @@ export function DateTimeline({ dates }: DateTimelineProps) {
       <div className="relative">
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-100" />
         <div className="space-y-6">
-          {sortedDates.map((date) => {
+          {sortedDates.map((date, index) => {
             const Icon = getIcon(date.type);
             const colorClass = getColor(date.type);
+            const urgency = getDateUrgency(date.date);
             return (
               <div
-                key={`${date.label}-${date.date}`}
+                key={`${date.label}-${date.date}-${index}`}
                 className="relative flex items-center"
               >
                 <div
@@ -76,9 +101,14 @@ export function DateTimeline({ dates }: DateTimelineProps) {
                     <h4 className="text-sm font-medium text-slate-900">
                       {date.label}
                     </h4>
-                    <span className="text-xs font-mono text-slate-500">
-                      {date.date}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium ${urgency.colorClass}`}>
+                        {urgency.label}
+                      </span>
+                      <span className={`text-xs font-mono text-slate-500${urgency.isPast ? ' line-through' : ''}`}>
+                        {date.date}
+                      </span>
+                    </div>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">{date.type}</p>
                 </div>
