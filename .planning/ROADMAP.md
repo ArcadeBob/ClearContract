@@ -117,11 +117,11 @@ Plans:
   2. Every finding displays an action priority label -- pre-bid, pre-sign, or monitor -- so the user knows when to act on each item (OUT-02)
   3. Bid signal widget shows each of the 5 weighted factors with individual scores and the overall traffic light result (OUT-03)
   4. User can open a negotiation checklist view that collects all findings with negotiation positions into a single actionable list (OUT-04)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 24-01: TBD
-- [ ] 24-02: TBD
+- [ ] 24-01-PLAN.md -- Action priority pipeline + bid signal reason text (OUT-02, OUT-03)
+- [ ] 24-02-PLAN.md -- PDF report generation + negotiation checklist tab (OUT-01, OUT-04)
 
 ### Phase 25: Portfolio Intelligence
 **Goal**: Users gain insights across their stored contracts and can manage findings across re-analysis cycles
@@ -164,6 +164,6 @@ Plans:
 | 20. Fix All Contracts Navigation | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
-| 23. Analysis Quality | 3/3 | Complete    | 2026-03-14 | - |
-| 24. Actionable Output | v1.4 | 0/? | Not started | - |
+| 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
+| 24. Actionable Output | v1.4 | 0/2 | Not started | - |
 | 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
