@@ -18,11 +18,11 @@ Requirements for Production Readiness milestone. Each maps to roadmap phases.
 
 ### UX Quick Wins
 
-- [ ] **UX-01**: User can rename a contract inline from the review page
-- [ ] **UX-02**: Dashboard and contract cards show open vs resolved finding counts
+- [x] **UX-01**: User can rename a contract inline from the review page
+- [x] **UX-02**: Dashboard and contract cards show open vs resolved finding counts
 - [ ] **UX-03**: Date timeline shows urgency indicators (days until/past, color-coded)
 - [ ] **UX-04**: Bid signal expanded to show factor breakdown
-- [ ] **UX-05**: Dashboard compliance card replaced with data-driven content (upcoming deadlines)
+- [x] **UX-05**: Dashboard compliance card replaced with data-driven content (upcoming deadlines)
 - [ ] **UX-06**: Upload page has back/cancel button; re-analyze failure navigates to review (not upload)
 
 ### Analysis Pipeline
@@ -72,11 +72,11 @@ None deferred -- all agent-identified features scoped into v1.4.
 | DEBT-04 | Phase 22 | Complete |
 | DEBT-05 | Phase 22 | Complete |
 | DEBT-06 | Phase 22 | Complete |
-| UX-01 | Phase 22 | Pending |
-| UX-02 | Phase 22 | Pending |
+| UX-01 | Phase 22 | Complete |
+| UX-02 | Phase 22 | Complete |
 | UX-03 | Phase 22 | Pending |
 | UX-04 | Phase 22 | Pending |
-| UX-05 | Phase 22 | Pending |
+| UX-05 | Phase 22 | Complete |
 | UX-06 | Phase 22 | Pending |
 | PIPE-01 | Phase 23 | Pending |
 | PIPE-02 | Phase 23 | Pending |
