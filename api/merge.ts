@@ -1,6 +1,6 @@
 import type { PassResult, RiskOverviewResult, MergedAnalysisResult, FindingResult } from '../src/schemas/analysis';
 import type { LegalMeta, ScopeMeta } from '../src/types/contract';
-import { computeRiskScore, applySeverityGuard } from './scoring';
+import { computeRiskScore, applySeverityGuard, type ScoreBreakdown } from './scoring';
 
 export interface AnalysisPassInfo {
   name: string;
@@ -358,7 +358,7 @@ export function mergePassResults(
   const deduplicatedFindings = Array.from(byTitle.values());
 
   // Compute risk score BEFORE severity guard (uses original severities)
-  const riskScore = computeRiskScore(deduplicatedFindings);
+  const scoreResult = computeRiskScore(deduplicatedFindings);
 
   // Apply CA void-by-law severity guard AFTER risk score (display-only upgrade)
   for (const finding of deduplicatedFindings) {
@@ -368,7 +368,8 @@ export function mergePassResults(
   return {
     client,
     contractType,
-    riskScore,
+    riskScore: scoreResult.score,
+    scoreBreakdown: scoreResult.categories,
     findings: deduplicatedFindings as MergedAnalysisResult['findings'],
     dates: allDates,
     passResults,

@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { z } from 'zod';
+
+// 2A: Allow larger base64-encoded PDFs through Vercel body parser
+export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
 import Anthropic from '@anthropic-ai/sdk';
-import { toFile } from '@anthropic-ai/sdk';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import {
   PassResultSchema,
@@ -9,7 +12,6 @@ import {
 import type {
   PassResult,
   RiskOverviewResult,
-  MergedAnalysisResult,
 } from '../src/schemas/analysis';
 import {
   IndemnificationPassResultSchema,
@@ -30,34 +32,55 @@ import {
   VerbiagePassResultSchema,
   LaborCompliancePassResultSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
-import type { LegalMeta, ScopeMeta } from '../src/types/contract';
 import type { CompanyProfile } from '../src/knowledge/types';
 import { composeSystemPrompt } from '../src/knowledge/index';
+import { validateAllModulesRegistered } from '../src/knowledge/registry';
 import { computeBidSignal } from '../src/utils/bidSignal';
-import { extractText } from 'unpdf';
 import '../src/knowledge/regulatory/index';
 import '../src/knowledge/trade/index';
 import '../src/knowledge/standards/index';
 import { fetch as undiciFetch, Agent } from 'undici';
+import { preparePdfForAnalysis } from './pdf';
+import { mergePassResults } from './merge';
+import type { AnalysisPassInfo } from './merge';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
+// 2B: Zod schema for server-side validation of companyProfile
+const CompanyProfileSchema = z.object({
+  glPerOccurrence: z.string().max(50),
+  glAggregate: z.string().max(50),
+  umbrellaLimit: z.string().max(50),
+  autoLimit: z.string().max(50),
+  wcStatutoryState: z.string().max(50),
+  wcEmployerLiability: z.string().max(50),
+  bondingSingleProject: z.string().max(50),
+  bondingAggregate: z.string().max(50),
+  contractorLicenseType: z.string().max(50),
+  contractorLicenseNumber: z.string().max(50),
+  contractorLicenseExpiry: z.string().max(50),
+  dirRegistration: z.string().max(50),
+  dirExpiry: z.string().max(50),
+  sbeCertId: z.string().max(50),
+  sbeCertIssuer: z.string().max(50),
+  lausdVendorNumber: z.string().max(50),
+  employeeCount: z.string().max(50),
+  serviceArea: z.string().max(100),
+  typicalProjectSizeMin: z.string().max(50),
+  typicalProjectSizeMax: z.string().max(50),
+}).partial();
+
+// 2C: Sanitize user-controlled filenames
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._\- ]/g, '_').slice(0, 200) || 'contract.pdf';
+}
+
 const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 8192;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-const PAGE_COUNT_THRESHOLD = 100;
-
-// Severity weights for deterministic risk score computation
-const SEVERITY_WEIGHTS: Record<string, number> = {
-  Critical: 25,
-  High: 15,
-  Medium: 8,
-  Low: 3,
-  Info: 0,
-};
 
 // Passes that receive company profile for comparison instructions
 const PASSES_RECEIVING_PROFILE = new Set([
@@ -972,63 +995,6 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 ];
 
 // ---------------------------------------------------------------------------
-// PDF preparation — upload to Files API with fallback to text extraction
-// ---------------------------------------------------------------------------
-
-async function preparePdfForAnalysis(
-  pdfBuffer: Buffer,
-  fileName: string,
-  client: Anthropic
-): Promise<{ fileId: string; usedFallback: boolean }> {
-  // Rough page count estimate: count "/Type /Page" or "/Type/Page" markers.
-  // This is a heuristic — exact count is not critical, just need to know
-  // whether the PDF is over ~100 pages.
-  const pdfString = pdfBuffer.toString('latin1');
-  const pageMatches = pdfString.match(/\/Type\s*\/Page[^s]/g);
-  const estimatedPages = pageMatches ? pageMatches.length : 0;
-
-  if (estimatedPages <= PAGE_COUNT_THRESHOLD) {
-    // Try native PDF upload first
-    try {
-      const file = await client.beta.files.upload({
-        file: await toFile(pdfBuffer, fileName || 'contract.pdf', {
-          type: 'application/pdf',
-        }),
-        betas: BETAS,
-      });
-      return { fileId: file.id, usedFallback: false };
-    } catch (uploadError) {
-      console.error(
-        'Native PDF upload failed, falling back to text extraction:',
-        uploadError instanceof Error ? uploadError.message : uploadError
-      );
-      // Fall through to text extraction
-    }
-  }
-
-  // Fallback: extract text with unpdf and upload as .txt
-  const { text } = await extractText(new Uint8Array(pdfBuffer), {
-    mergePages: true,
-  });
-  const textContent = Array.isArray(text) ? text.join('\n') : String(text);
-
-  if (textContent.trim().length < 100) {
-    throw new Error(
-      'Could not extract sufficient text from this PDF. It may be a scanned/image-based document.'
-    );
-  }
-
-  const textBuffer = Buffer.from(textContent, 'utf-8');
-  const textFileName = (fileName || 'contract').replace(/\.pdf$/i, '') + '.txt';
-
-  const file = await client.beta.files.upload({
-    file: await toFile(textBuffer, textFileName, { type: 'text/plain' }),
-    betas: BETAS,
-  });
-  return { fileId: file.id, usedFallback: true };
-}
-
-// ---------------------------------------------------------------------------
 // Run a single analysis pass
 // ---------------------------------------------------------------------------
 
@@ -1099,463 +1065,17 @@ async function runAnalysisPass(
   return { passName: pass.name, result: parsed };
 }
 
-// ---------------------------------------------------------------------------
-// Deterministic risk score computation
-// ---------------------------------------------------------------------------
 
-function computeRiskScore(findings: Array<{ severity: string }>): number {
-  const rawScore = findings.reduce((sum, f) => {
-    return sum + (SEVERITY_WEIGHTS[f.severity] || 0);
-  }, 0);
-  return Math.min(100, Math.max(0, rawScore));
-}
 
-// ---------------------------------------------------------------------------
-// CA void-by-law severity guard (post-processing)
-// Silently upgrades findings referencing void-by-law statutes to Critical.
-// Risk score uses original severity (display-only upgrade).
-// ---------------------------------------------------------------------------
 
-const VOID_BY_LAW_PATTERNS = [
-  /\bCC\s*8814\b/i,
-  /\bCC\s*2782\b/i,
-  /\bCC\s*8122\b/i,
-  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?8814\b/i,
-  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?2782\b/i,
-  /\bCivil\s+Code\s*(?:(?:Section|Sec\.?|[Ss])\s*)?8122\b/i,
-];
 
-function applySeverityGuard(finding: UnifiedFinding): void {
-  if (finding.severity === 'Critical') return;
-  const textToScan = [finding.clauseText, finding.explanation]
-    .filter(Boolean)
-    .join(' ');
-  const hasVoidStatute = VOID_BY_LAW_PATTERNS.some((re) => re.test(textToScan));
-  if (hasVoidStatute) {
-    finding.severity = 'Critical';
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Convert legal pass findings to unified Finding shape with legalMeta
-// ---------------------------------------------------------------------------
-
-interface UnifiedFinding {
-  severity: string;
-  category: string;
-  title: string;
-  description: string;
-  recommendation: string;
-  clauseReference: string;
-  clauseText?: string;
-  explanation?: string;
-  crossReferences?: string[];
-  legalMeta?: LegalMeta;
-  scopeMeta?: ScopeMeta;
-  sourcePass?: string;
-  negotiationPosition?: string;
-  downgradedFrom?: string;
-}
-
-function buildBaseFinding(
-  finding: Record<string, unknown>,
-  passName: string
-): UnifiedFinding {
-  return {
-    severity: finding.severity as string,
-    category: finding.category as string,
-    title: finding.title as string,
-    description: finding.description as string,
-    recommendation: finding.recommendation as string,
-    clauseReference: finding.clauseReference as string,
-    clauseText: finding.clauseText as string,
-    explanation: finding.explanation as string,
-    crossReferences: finding.crossReferences as string[],
-    sourcePass: passName,
-    negotiationPosition: finding.negotiationPosition as string,
-    downgradedFrom: finding.downgradedFrom as string | undefined,
-  };
-}
-
-function convertLegalFinding(
-  finding: Record<string, unknown>,
-  passName: string
-): UnifiedFinding {
-  const base = buildBaseFinding(finding, passName);
-
-  // Pack type-specific metadata into legalMeta
-  switch (passName) {
-    case 'legal-indemnification':
-      base.legalMeta = {
-        clauseType: 'indemnification',
-        riskType: finding.riskType as 'limited' | 'intermediate' | 'broad',
-        hasInsuranceGap: finding.hasInsuranceGap as boolean,
-      };
-      break;
-    case 'legal-payment-contingency':
-      base.legalMeta = {
-        clauseType: 'payment-contingency',
-        paymentType: finding.paymentType as 'pay-if-paid' | 'pay-when-paid',
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-liquidated-damages':
-      base.legalMeta = {
-        clauseType: 'liquidated-damages',
-        amountOrRate: finding.amountOrRate as string,
-        capStatus: finding.capStatus as 'capped' | 'uncapped',
-        proportionalityAssessment: finding.proportionalityAssessment as string,
-      };
-      break;
-    case 'legal-retainage':
-      base.legalMeta = {
-        clauseType: 'retainage',
-        percentage: finding.percentage as string,
-        releaseCondition: finding.releaseCondition as string,
-        tiedTo: finding.tiedTo as
-          | 'sub-work'
-          | 'project-completion'
-          | 'unspecified',
-      };
-      break;
-    case 'legal-insurance':
-      base.legalMeta = {
-        clauseType: 'insurance',
-        coverageItems: finding.coverageItems as Array<{
-          coverageType: string;
-          requiredLimit: string;
-          isAboveStandard: boolean;
-        }>,
-        endorsements: finding.endorsements as Array<{
-          endorsementType: string;
-          isNonStandard: boolean;
-        }>,
-        certificateHolder: finding.certificateHolder as string,
-      };
-      break;
-    case 'legal-termination':
-      base.legalMeta = {
-        clauseType: 'termination',
-        terminationType: finding.terminationType as string,
-        noticePeriod: finding.noticePeriod as string,
-        compensation: finding.compensation as string,
-        curePeriod: finding.curePeriod as string,
-      };
-      break;
-    case 'legal-flow-down':
-      base.legalMeta = {
-        clauseType: 'flow-down',
-        flowDownScope: finding.flowDownScope as string,
-        problematicObligations: finding.problematicObligations as string[],
-        primeContractAvailable: finding.primeContractAvailable as boolean,
-      };
-      break;
-    case 'legal-no-damage-delay':
-      base.legalMeta = {
-        clauseType: 'no-damage-delay',
-        waiverScope: finding.waiverScope as string,
-        exceptions: finding.exceptions as string[],
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-lien-rights':
-      base.legalMeta = {
-        clauseType: 'lien-rights',
-        waiverType: finding.waiverType as string,
-        lienFilingDeadline: finding.lienFilingDeadline as string,
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-dispute-resolution':
-      base.legalMeta = {
-        clauseType: 'dispute-resolution',
-        mechanism: finding.mechanism as string,
-        venue: finding.venue as string,
-        feeShifting: finding.feeShifting as string,
-        mediationRequired: finding.mediationRequired as boolean,
-      };
-      break;
-    case 'legal-change-order':
-      base.legalMeta = {
-        clauseType: 'change-order',
-        changeType: finding.changeType as string,
-        noticeRequired: finding.noticeRequired as string,
-        pricingMechanism: finding.pricingMechanism as string,
-        proceedPending: finding.proceedPending as boolean,
-      };
-      break;
-  }
-
-  return base;
-}
-
-// ---------------------------------------------------------------------------
-// Convert scope pass findings to unified Finding shape with scopeMeta
-// ---------------------------------------------------------------------------
-
-function convertScopeFinding(
-  finding: Record<string, unknown>,
-  passName: string
-): UnifiedFinding {
-  const base = buildBaseFinding(finding, passName);
-
-  switch (passName) {
-    case 'scope-of-work':
-      base.scopeMeta = {
-        passType: 'scope-of-work',
-        scopeItemType: finding.scopeItemType as string,
-        specificationReference: finding.specificationReference as string,
-        affectedTrade: finding.affectedTrade as string,
-      };
-      break;
-    case 'dates-deadlines':
-      base.scopeMeta = {
-        passType: 'dates-deadlines',
-        periodType: finding.periodType as string,
-        duration: finding.duration as string,
-        triggerEvent: finding.triggerEvent as string,
-      };
-      break;
-    case 'verbiage-analysis':
-      base.scopeMeta = {
-        passType: 'verbiage',
-        issueType: finding.issueType as string,
-        affectedParty: finding.affectedParty as string,
-        suggestedClarification: finding.suggestedClarification as string,
-      };
-      break;
-    case 'labor-compliance':
-      base.scopeMeta = {
-        passType: 'labor-compliance',
-        requirementType: finding.requirementType as string,
-        responsibleParty: finding.responsibleParty as string,
-        contactInfo: finding.contactInfo as string,
-        deadline: finding.deadline as string,
-        checklistItems: (
-          (finding.checklistItems as Array<Record<string, unknown>>) || []
-        ).map((item) => ({
-          item: item.item as string,
-          deadline: item.deadline as string,
-          responsibleParty: item.responsibleParty as string,
-          contactInfo: item.contactInfo as string,
-          status: item.status as 'required' | 'conditional' | 'recommended',
-        })),
-      };
-      break;
-  }
-
-  return base;
-}
-
-// ---------------------------------------------------------------------------
-// Merge results from all passes
-// ---------------------------------------------------------------------------
-
-function mergePassResults(
-  results: PromiseSettledResult<{
-    passName: string;
-    result: PassResult | RiskOverviewResult;
-  }>[],
-  passes: AnalysisPass[]
-): MergedAnalysisResult {
-  const allFindings: UnifiedFinding[] = [];
-  const allDates: Array<PassResult['dates'][number]> = [];
-  const passResults: MergedAnalysisResult['passResults'] = [];
-
-  let client = 'Unknown Client';
-  let contractType: MergedAnalysisResult['contractType'] = 'Subcontract';
-
-  const severityRank: Record<string, number> = {
-    Critical: 5,
-    High: 4,
-    Medium: 3,
-    Low: 2,
-    Info: 1,
-  };
-
-  for (let i = 0; i < results.length; i++) {
-    const settled = results[i];
-    const passName = passes[i].name;
-
-    if (settled.status === 'fulfilled') {
-      const { result } = settled.value;
-      allDates.push(...result.dates);
-      passResults.push({ passName, status: 'success' });
-
-      // Extract client/contractType from risk-overview pass
-      if (passes[i].isOverview && 'client' in result) {
-        const overview = result as RiskOverviewResult;
-        client = overview.client || client;
-        contractType = overview.contractType || contractType;
-      }
-
-      // Convert findings: legal passes get convertLegalFinding, scope passes get convertScopeFinding, others get tagged with sourcePass
-      if (passes[i].isLegal) {
-        for (const f of result.findings) {
-          allFindings.push(
-            convertLegalFinding(
-              f as unknown as Record<string, unknown>,
-              passName
-            )
-          );
-        }
-      } else if (passes[i].isScope) {
-        for (const f of result.findings) {
-          allFindings.push(
-            convertScopeFinding(
-              f as unknown as Record<string, unknown>,
-              passName
-            )
-          );
-        }
-      } else {
-        for (const f of result.findings) {
-          allFindings.push({
-            ...f,
-            sourcePass: passName,
-            negotiationPosition: (f as Record<string, unknown>)
-              .negotiationPosition as string | undefined,
-          });
-        }
-      }
-    } else {
-      const errorMessage =
-        settled.reason instanceof Error
-          ? settled.reason.message
-          : String(settled.reason);
-
-      passResults.push({
-        passName,
-        status: 'failed',
-        error: errorMessage,
-      });
-
-      // Create an error finding so the user sees the failure
-      allFindings.push({
-        severity: 'Critical',
-        category: 'Risk Assessment',
-        title: `Analysis Pass Failed: ${passName}`,
-        description: `The ${passName} analysis pass failed: ${errorMessage}`,
-        recommendation:
-          'Try uploading the contract again. If the problem persists, the contract may have formatting issues that prevent analysis.',
-        clauseReference: 'N/A',
-        sourcePass: passName,
-      });
-    }
-  }
-
-  // --- Enhanced deduplication ---
-  // Helper: detect specialized passes (legal or scope) vs general passes
-  const isSpecializedPass = (sp: string) =>
-    sp.startsWith('legal-') ||
-    [
-      'scope-of-work',
-      'dates-deadlines',
-      'verbiage-analysis',
-      'labor-compliance',
-    ].includes(sp);
-
-  // Phase 1: clauseReference + category composite key dedup
-  // Prefer specialized passes over general passes; among same type, prefer higher severity
-  const byClauseAndCategory = new Map<string, UnifiedFinding>();
-  const noClauseRefFindings: UnifiedFinding[] = [];
-
-  for (const finding of allFindings) {
-    const clauseRef = finding.clauseReference;
-    // Only use composite key for findings with a real clauseReference
-    if (clauseRef && clauseRef !== 'N/A' && clauseRef !== 'Not Found') {
-      const key = `${clauseRef}::${finding.category}`;
-      const existing = byClauseAndCategory.get(key);
-
-      if (!existing) {
-        byClauseAndCategory.set(key, finding);
-      } else {
-        const findingIsSpecialized = isSpecializedPass(
-          finding.sourcePass || ''
-        );
-        const existingIsSpecialized = isSpecializedPass(
-          existing.sourcePass || ''
-        );
-
-        if (findingIsSpecialized && !existingIsSpecialized) {
-          // Specialized pass beats general pass
-          byClauseAndCategory.set(key, finding);
-        } else if (!findingIsSpecialized && existingIsSpecialized) {
-          // Keep the specialized one already stored
-        } else if (
-          (severityRank[finding.severity] || 0) >
-          (severityRank[existing.severity] || 0)
-        ) {
-          // Same pass type: higher severity wins
-          byClauseAndCategory.set(key, finding);
-        }
-      }
-    } else {
-      // Findings without clauseReference go to title-based dedup
-      noClauseRefFindings.push(finding);
-    }
-  }
-
-  // Phase 2: title-based dedup as fallback for findings without clauseReference
-  const byTitle = new Map<string, UnifiedFinding>();
-  // Start with clause-key deduped findings
-  for (const finding of byClauseAndCategory.values()) {
-    const existing = byTitle.get(finding.title);
-    if (
-      !existing ||
-      (severityRank[finding.severity] || 0) >
-        (severityRank[existing.severity] || 0)
-    ) {
-      byTitle.set(finding.title, finding);
-    }
-  }
-  // Add findings that had no clauseReference
-  for (const finding of noClauseRefFindings) {
-    const existing = byTitle.get(finding.title);
-    if (!existing) {
-      byTitle.set(finding.title, finding);
-    } else {
-      const findingIsSpecialized = isSpecializedPass(finding.sourcePass || '');
-      const existingIsSpecialized = isSpecializedPass(
-        existing.sourcePass || ''
-      );
-
-      if (findingIsSpecialized && !existingIsSpecialized) {
-        byTitle.set(finding.title, finding);
-      } else if (!findingIsSpecialized && existingIsSpecialized) {
-        // Keep the specialized one already stored
-      } else if (
-        (severityRank[finding.severity] || 0) >
-        (severityRank[existing.severity] || 0)
-      ) {
-        byTitle.set(finding.title, finding);
-      }
-    }
-  }
-
-  const deduplicatedFindings = Array.from(byTitle.values());
-
-  // Compute risk score BEFORE severity guard (uses original severities)
-  const riskScore = computeRiskScore(deduplicatedFindings);
-
-  // Apply CA void-by-law severity guard AFTER risk score (display-only upgrade)
-  for (const finding of deduplicatedFindings) {
-    applySeverityGuard(finding);
-  }
-
-  return {
-    client,
-    contractType,
-    riskScore,
-    findings: deduplicatedFindings,
-    dates: allDates,
-    passResults,
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
+
+// Validate all knowledge modules are registered at import time
+validateAllModulesRegistered();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
@@ -1585,16 +1105,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let dispatcher: Agent | null = null;
 
   try {
-    const { pdfBase64, fileName, companyProfile } = req.body as {
+    const { pdfBase64, fileName: rawFileName, companyProfile: rawProfile } = req.body as {
       pdfBase64: string;
       fileName?: string;
-      companyProfile?: CompanyProfile;
+      companyProfile?: unknown;
     };
 
     if (!pdfBase64 || typeof pdfBase64 !== 'string') {
       return res
         .status(400)
         .json({ error: 'Missing or invalid pdfBase64 field' });
+    }
+
+    // 2C: Sanitize fileName
+    const fileName = rawFileName ? sanitizeFileName(rawFileName) : 'contract.pdf';
+
+    // 2B: Validate companyProfile if provided
+    let companyProfile: CompanyProfile | undefined;
+    if (rawProfile != null) {
+      const profileResult = CompanyProfileSchema.safeParse(rawProfile);
+      if (!profileResult.success) {
+        return res.status(400).json({
+          error: 'Invalid companyProfile format',
+          details: profileResult.error.flatten().fieldErrors,
+        });
+      }
+      companyProfile = profileResult.data as CompanyProfile;
     }
 
     // Decode and validate size
@@ -1674,9 +1210,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Merge results from all passes
     const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
 
-    // Assign unique IDs to all findings
-    const findingsWithIds = merged.findings.map((f, index) => ({
-      id: `f-${Date.now()}-${index}`,
+    // Assign unique IDs to all findings (use crypto.randomUUID to avoid collisions)
+    const findingsWithIds = merged.findings.map((f) => ({
+      id: `f-${crypto.randomUUID()}`,
       ...f,
     }));
 
@@ -1689,6 +1225,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       client: merged.client,
       contractType: merged.contractType,
       riskScore: merged.riskScore,
+      scoreBreakdown: merged.scoreBreakdown,
       bidSignal,
       findings: findingsWithIds,
       dates: merged.dates,

@@ -9,6 +9,7 @@ export interface AnalysisResult {
     | 'Purchase Order'
     | 'Change Order';
   riskScore: number;
+  scoreBreakdown?: Array<{ name: string; points: number }>;
   bidSignal?: BidSignal;
   findings: Finding[];
   dates: ContractDate[];

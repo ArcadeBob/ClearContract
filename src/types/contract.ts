@@ -1,15 +1,18 @@
-export type Severity = 'Critical' | 'High' | 'Medium' | 'Low' | 'Info';
+export const SEVERITIES = ['Critical', 'High', 'Medium', 'Low', 'Info'] as const;
+export type Severity = (typeof SEVERITIES)[number];
 
-export type Category =
-  | 'Legal Issues'
-  | 'Scope of Work'
-  | 'Contract Compliance'
-  | 'Labor Compliance'
-  | 'Insurance Requirements'
-  | 'Important Dates'
-  | 'Financial Terms'
-  | 'Technical Standards'
-  | 'Risk Assessment';
+export const CATEGORIES = [
+  'Legal Issues',
+  'Scope of Work',
+  'Contract Compliance',
+  'Labor Compliance',
+  'Insurance Requirements',
+  'Important Dates',
+  'Financial Terms',
+  'Technical Standards',
+  'Risk Assessment',
+] as const;
+export type Category = (typeof CATEGORIES)[number];
 
 export interface InsuranceCoverageItem {
   coverageType: string;
@@ -178,6 +181,7 @@ export interface Contract {
   findings: Finding[];
   dates: ContractDate[];
   riskScore: number; // 0-100
+  scoreBreakdown?: Array<{ name: string; points: number }>;
   bidSignal?: BidSignal;
   passResults?: Array<{
     passName: string;

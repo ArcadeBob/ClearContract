@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SEVERITIES, CATEGORIES } from '../types/contract';
 
 /**
  * Zod schemas for the multi-pass contract analysis pipeline.
@@ -11,21 +12,10 @@ import { z } from 'zod';
  * structured outputs does not support them.
  */
 
-// --- Enum values (kept in sync with src/types/contract.ts) ---
+// --- Enum values (derived from single source in types/contract.ts) ---
 
-const SeverityEnum = z.enum(['Critical', 'High', 'Medium', 'Low', 'Info']);
-
-const CategoryEnum = z.enum([
-  'Legal Issues',
-  'Scope of Work',
-  'Contract Compliance',
-  'Labor Compliance',
-  'Insurance Requirements',
-  'Important Dates',
-  'Financial Terms',
-  'Technical Standards',
-  'Risk Assessment',
-]);
+const SeverityEnum = z.enum(SEVERITIES);
+const CategoryEnum = z.enum(CATEGORIES);
 
 const DateTypeEnum = z.enum(['Start', 'Milestone', 'Deadline', 'Expiry']);
 
@@ -83,10 +73,16 @@ const PassStatusSchema = z.object({
 
 // --- Merged result (final response sent to client) ---
 
+const ScoreBreakdownCategorySchema = z.object({
+  name: z.string(),
+  points: z.number(),
+});
+
 export const MergedAnalysisResultSchema = z.object({
   client: z.string(),
   contractType: ContractTypeEnum,
   riskScore: z.number(),
+  scoreBreakdown: z.array(ScoreBreakdownCategorySchema).optional(),
   findings: z.array(FindingSchema),
   dates: z.array(ContractDateSchema),
   passResults: z.array(PassStatusSchema),
