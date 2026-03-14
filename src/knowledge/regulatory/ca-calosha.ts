@@ -38,6 +38,7 @@ export const caCalosha: KnowledgeModule = {
   title: 'Cal/OSHA Safety Requirements for Glazing Work',
   effectiveDate: '2024-01-01',
   reviewByDate: '2027-01-01',
+  expirationDate: '2027-01-01',
   content,
   tokenEstimate: Math.ceil(content.length / 4),
 };

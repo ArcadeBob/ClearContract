@@ -81,6 +81,7 @@ export const contractForms: KnowledgeModule = {
   title: 'Contract Standard Form Detection and Deviation Analysis',
   effectiveDate: '2026-03-01',
   reviewByDate: '2027-03-01',
+  expirationDate: '2028-01-01',
   content,
   tokenEstimate: Math.ceil(content.length / 4),
 };

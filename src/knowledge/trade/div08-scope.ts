@@ -86,6 +86,7 @@ export const div08Scope: KnowledgeModule = {
   title: 'Division 08 Scope Classification for Glazing Subcontractors',
   effectiveDate: '2026-03-01',
   reviewByDate: '2027-03-01',
+  expirationDate: '2028-01-01',
   content,
   tokenEstimate: Math.ceil(content.length / 4),
 };

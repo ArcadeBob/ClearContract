@@ -11,17 +11,17 @@ export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
     'contract-forms',
   ],
   'legal-indemnification': ['ca-lien-law'],
-  'legal-payment-contingency': ['ca-lien-law'],
-  'legal-liquidated-damages': [],
-  'legal-retainage': [],
-  'legal-insurance': [],
+  'legal-payment-contingency': ['ca-lien-law', 'ca-public-works-payment'],
+  'legal-liquidated-damages': ['ca-liquidated-damages'],
+  'legal-retainage': ['ca-public-works-payment'],
+  'legal-insurance': ['ca-insurance-law'],
   'legal-termination': [],
   'legal-flow-down': [],
   'legal-no-damage-delay': [],
   'legal-lien-rights': ['ca-lien-law'],
-  'legal-dispute-resolution': [],
+  'legal-dispute-resolution': ['ca-dispute-resolution'],
   'legal-change-order': [],
-  'verbiage-analysis': [],
+  'verbiage-analysis': ['glazing-sub-protections'],
   'labor-compliance': ['ca-prevailing-wage', 'ca-calosha'],
 };
 
@@ -30,6 +30,22 @@ const moduleStore = new Map<string, KnowledgeModule>();
 export function registerModule(mod: KnowledgeModule): void {
   validateTokenBudget([mod]);
   moduleStore.set(mod.id, mod);
+}
+
+export function validateAllModulesRegistered(): void {
+  const missing: string[] = [];
+  for (const [passName, ids] of Object.entries(PASS_KNOWLEDGE_MAP)) {
+    for (const id of ids) {
+      if (!moduleStore.has(id)) {
+        missing.push(`'${id}' (required by '${passName}')`);
+      }
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Knowledge modules not registered: ${missing.join(', ')}. Ensure all modules are imported before handler runs.`
+    );
+  }
 }
 
 export function getModulesForPass(passName: string): KnowledgeModule[] {

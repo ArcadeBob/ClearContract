@@ -42,6 +42,7 @@ export const caLienLaw: KnowledgeModule = {
   title: 'California Mechanics Lien Law and Void-by-Law Clauses',
   effectiveDate: '2024-01-01',
   reviewByDate: '2027-01-01',
+  expirationDate: '2027-01-01',
   content,
   tokenEstimate: Math.ceil(content.length / 4),
 };

@@ -48,6 +48,7 @@ export const caPrevailingWage: KnowledgeModule = {
   title: 'California Prevailing Wage and DIR Requirements',
   effectiveDate: '2024-01-01',
   reviewByDate: '2026-07-01',
+  expirationDate: '2027-01-01',
   content,
   tokenEstimate: Math.ceil(content.length / 4),
 };

@@ -4,6 +4,7 @@ export interface KnowledgeModule {
   title: string;
   effectiveDate: string;
   reviewByDate: string;
+  expirationDate: string;
   content: string;
   tokenEstimate: number;
 }
