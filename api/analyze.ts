@@ -42,7 +42,8 @@ import '../src/knowledge/standards/index';
 import { fetch as undiciFetch, Agent } from 'undici';
 import { preparePdfForAnalysis } from './pdf';
 import { mergePassResults } from './merge';
-import type { AnalysisPassInfo } from './merge';
+import type { AnalysisPassInfo, UnifiedFinding } from './merge';
+import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -1086,6 +1087,106 @@ async function runAnalysisPass(
 
 
 // ---------------------------------------------------------------------------
+// Synthesis pass (17th pass — compound risk detection)
+// ---------------------------------------------------------------------------
+
+const SYNTHESIS_SYSTEM_PROMPT = `You are a construction contract risk analyst. You have been given the individual findings from a detailed 16-pass analysis of a glazing subcontract.
+
+Your task is to identify COMPOUND RISKS -- situations where multiple individual findings interact to create amplified risk that is greater than the sum of its parts.
+
+## Compound Risk Patterns to Look For
+
+1. **Cash Flow Squeeze**: Payment contingency (pay-if-paid/pay-when-paid) + high retainage + liquidated damages exposure = sub may be unable to fund ongoing work
+2. **Risk Transfer Stack**: Broad indemnification + insurance gaps + flow-down provisions = sub absorbs disproportionate liability
+3. **Schedule Trap**: Aggressive liquidated damages + no-damage-for-delay clause + short cure period = sub penalized for delays beyond their control
+4. **Scope Creep Exposure**: Scope gaps/ambiguities + restrictive change order procedures + flow-down obligations = sub responsible for undefined work without compensation path
+
+## Rules
+- Only flag compound risks where 2+ findings genuinely interact -- do not restate individual findings
+- Each compound risk should read like an executive summary insight: "These clauses together create [specific problem]"
+- If no compound risks are detected, return an empty findings array
+- Maximum 4 compound risk findings`;
+
+async function runSynthesisPass(
+  client: Anthropic,
+  findings: UnifiedFinding[]
+): Promise<UnifiedFinding[]> {
+  try {
+    // Not enough findings to detect compound risk patterns
+    if (findings.length < 3) {
+      console.log('[analyze] Synthesis pass skipped: fewer than 3 findings');
+      return [];
+    }
+
+    // Build compact summaries to stay within token limits
+    const compactFindings = findings.map((f) => ({
+      title: f.title,
+      severity: f.severity,
+      category: f.category,
+      description: f.description,
+    }));
+
+    const outputFormat = zodToOutputFormat(SynthesisPassResultSchema);
+
+    // Use streaming to avoid HeadersTimeoutError (same pattern as runAnalysisPass)
+    const response = await client.beta.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      betas: BETAS,
+      stream: true,
+      system: SYNTHESIS_SYSTEM_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(compactFindings),
+            },
+          ],
+        },
+      ],
+      output_config: { format: outputFormat },
+    });
+
+    // Collect streamed text chunks into complete response
+    let responseText = '';
+    for await (const event of response) {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type === 'text_delta'
+      ) {
+        responseText += event.delta.text;
+      }
+    }
+
+    if (!responseText.trim()) {
+      console.log('[analyze] Synthesis pass returned empty response');
+      return [];
+    }
+
+    const parsed = SynthesisPassResultSchema.parse(JSON.parse(responseText));
+
+    // Convert synthesis findings to UnifiedFinding format
+    return parsed.findings.map((sf) => ({
+      severity: 'High',
+      category: 'Compound Risk',
+      title: sf.title,
+      description: sf.description,
+      recommendation: sf.recommendation,
+      clauseReference: 'N/A',
+      sourcePass: 'synthesis',
+      isSynthesis: true,
+      crossReferences: sf.constituentFindings,
+    }));
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`[analyze] Synthesis pass failed (non-fatal): ${msg}`);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 
@@ -1224,6 +1325,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Merge results from all passes
     const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
+
+    // Run synthesis pass with deduplicated findings (17th pass)
+    const synthStart = Date.now();
+    const synthFindings = await runSynthesisPass(client!, merged.findings as unknown as UnifiedFinding[]);
+    console.log(`[analyze] Synthesis pass done in ${((Date.now() - synthStart) / 1000).toFixed(1)}s, ${synthFindings.length} compound risks`);
+
+    // Append synthesis findings (excluded from score via Compound Risk category weight 0,
+    // and appended after mergePassResults which already computed the risk score)
+    merged.findings.push(...synthFindings as unknown as typeof merged.findings[number][]);
 
     // Assign unique IDs to all findings (use crypto.randomUUID to avoid collisions)
     const findingsWithIds = merged.findings.map((f) => ({
