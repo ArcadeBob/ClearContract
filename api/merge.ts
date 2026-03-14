@@ -1,6 +1,7 @@
 import type { PassResult, RiskOverviewResult, MergedAnalysisResult, FindingResult } from '../src/schemas/analysis';
 import type { LegalMeta, ScopeMeta } from '../src/types/contract';
 import { computeRiskScore, applySeverityGuard, type ScoreBreakdown } from './scoring';
+import { getAllModules } from '../src/knowledge/registry';
 
 export interface AnalysisPassInfo {
   name: string;
@@ -208,6 +209,27 @@ function convertScopeFinding(
   return base;
 }
 
+function checkModuleStaleness(): UnifiedFinding[] {
+  const now = new Date();
+  const findings: UnifiedFinding[] = [];
+
+  for (const mod of getAllModules()) {
+    if (new Date(mod.expirationDate) < now) {
+      findings.push({
+        severity: 'Info',
+        category: 'Risk Assessment',
+        title: `Knowledge Module Outdated: ${mod.title}`,
+        description: `The ${mod.title} module (effective ${mod.effectiveDate}) expired on ${mod.expirationDate}. Findings derived from this module should be verified against current statutes.`,
+        recommendation: 'Verify findings from this module against current law before relying on them.',
+        clauseReference: 'N/A',
+        sourcePass: 'staleness-check',
+      });
+    }
+  }
+
+  return findings;
+}
+
 export function mergePassResults(
   results: PromiseSettledResult<{
     passName: string;
@@ -356,6 +378,9 @@ export function mergePassResults(
   }
 
   const deduplicatedFindings = Array.from(byTitle.values());
+
+  // Append staleness warnings for expired knowledge modules (Info severity, weight 0)
+  deduplicatedFindings.push(...checkModuleStaleness());
 
   // Compute risk score BEFORE severity guard (uses original severities)
   const scoreResult = computeRiskScore(deduplicatedFindings);

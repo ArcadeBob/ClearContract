@@ -48,6 +48,10 @@ export function validateAllModulesRegistered(): void {
   }
 }
 
+export function getAllModules(): KnowledgeModule[] {
+  return Array.from(moduleStore.values());
+}
+
 export function getModulesForPass(passName: string): KnowledgeModule[] {
   const ids = PASS_KNOWLEDGE_MAP[passName] ?? [];
   return ids.map((id) => {
