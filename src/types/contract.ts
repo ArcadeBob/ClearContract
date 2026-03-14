@@ -11,6 +11,7 @@ export const CATEGORIES = [
   'Financial Terms',
   'Technical Standards',
   'Risk Assessment',
+  'Compound Risk',
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
 
@@ -146,6 +147,7 @@ export interface Finding {
   sourcePass?: string;
   negotiationPosition?: string;
   downgradedFrom?: Severity;
+  isSynthesis?: boolean;
   resolved?: boolean;
   note?: string;
 }

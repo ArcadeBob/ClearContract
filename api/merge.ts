@@ -25,6 +25,7 @@ export interface UnifiedFinding {
   sourcePass?: string;
   negotiationPosition?: string;
   downgradedFrom?: string;
+  isSynthesis?: boolean;
 }
 
 function buildBaseFinding(
