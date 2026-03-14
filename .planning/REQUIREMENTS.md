@@ -28,10 +28,10 @@ Requirements for Production Readiness milestone. Each maps to roadmap phases.
 ### Analysis Pipeline
 
 - [ ] **PIPE-01**: Cross-pass synthesis pass detects compound risks after all 16 passes complete
-- [ ] **PIPE-02**: 3-4 new CA knowledge modules added to currently-empty passes (insurance law, public works payment, dispute statutes)
+- [x] **PIPE-02**: 3-4 new CA knowledge modules added to currently-empty passes (insurance law, public works payment, dispute statutes)
 - [x] **PIPE-03**: Risk score uses category-weighted formula; synthetic error findings excluded from score
 - [x] **PIPE-04**: Verbiage analysis pass refocused on missing standard protections (not overlap with legal passes)
-- [ ] **PIPE-05**: ca-title24 updated to 2025 code cycle; module staleness warning system added
+- [x] **PIPE-05**: ca-title24 updated to 2025 code cycle; module staleness warning system added
 - [x] **PIPE-06**: Bid signal match functions use structured metadata fields instead of fragile text search
 
 ### Actionable Output
@@ -79,10 +79,10 @@ None deferred -- all agent-identified features scoped into v1.4.
 | UX-05 | Phase 22 | Complete |
 | UX-06 | Phase 22 | Complete |
 | PIPE-01 | Phase 23 | Pending |
-| PIPE-02 | Phase 23 | Pending |
+| PIPE-02 | Phase 23 | Complete |
 | PIPE-03 | Phase 23 | Complete |
 | PIPE-04 | Phase 23 | Complete |
-| PIPE-05 | Phase 23 | Pending |
+| PIPE-05 | Phase 23 | Complete |
 | PIPE-06 | Phase 23 | Complete |
 | OUT-01 | Phase 24 | Pending |
 | OUT-02 | Phase 24 | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Production Readiness
 status: completed
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-03-14T18:58:00.000Z"
+stopped_at: Completed 23-01-PLAN.md
+last_updated: "2026-03-14T19:00:24.357Z"
 last_activity: 2026-03-14 -- Completed 23-02 scoring, bid signal, verbiage
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
-  percent: 66
+  completed_plans: 5
+  percent: 67
 ---
 
 # Project State
@@ -53,6 +53,8 @@ Full decision log in PROJECT.md Key Decisions table (31 decisions).
 - [Phase 23]: Two-tier category weights (1.0x legal/financial, 0.75x scope/compliance), Compound Risk at 0 for Plan 03
 - [Phase 23]: matchesBonding uses sourcePass + scopeMeta.requirementType, narrow risk-overview fallback
 - [Phase 23]: RiskScoreDisplay uses CSS group-hover tooltip, no Framer Motion needed
+- [Phase 23]: Set regulatory module expirationDate to 2027-06-01 (18-month horizon); staleness check after dedup before risk score
+- [Phase 23]: Labeled ca-title24 2025 values as MEDIUM CONFIDENCE since exact prescriptive numbers are directional
 
 ### Pending Todos
 
@@ -65,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T18:58:00.000Z
-Stopped at: Completed 23-02-PLAN.md
+Last session: 2026-03-14T19:00:24.355Z
+Stopped at: Completed 23-01-PLAN.md
 Resume with: /gsd:execute-phase 23 (plan 23-03)
