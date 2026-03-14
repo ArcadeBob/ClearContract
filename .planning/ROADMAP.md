@@ -68,7 +68,7 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 **Milestone Goal:** Clean up tech debt, strengthen the analysis pipeline, and deliver actionable output formats and cross-contract intelligence.
 
 - [x] **Phase 22: Polish & Trust** - Eliminate tech debt and deliver UX quick wins that build confidence in the tool (completed 2026-03-14)
-- [ ] **Phase 23: Analysis Quality** - Strengthen the analysis pipeline with cross-pass synthesis, better knowledge, and cleaner scoring
+- [x] **Phase 23: Analysis Quality** - Strengthen the analysis pipeline with cross-pass synthesis, better knowledge, and cleaner scoring (completed 2026-03-14)
 - [ ] **Phase 24: Actionable Output** - Give the user deliverables they can hand to others -- PDF reports, prioritized actions, negotiation checklists
 - [ ] **Phase 25: Portfolio Intelligence** - Enable cross-contract insights, comparison, and smarter re-analysis across stored contracts
 
@@ -164,6 +164,6 @@ Plans:
 | 20. Fix All Contracts Navigation | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
-| 23. Analysis Quality | 2/3 | In Progress|  | - |
+| 23. Analysis Quality | 3/3 | Complete   | 2026-03-14 | - |
 | 24. Actionable Output | v1.4 | 0/? | Not started | - |
 | 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
