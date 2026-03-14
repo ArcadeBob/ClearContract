@@ -1,7 +1,9 @@
 import { z } from 'zod';
+import { SEVERITIES } from '../types/contract';
+import { ContractDateSchema } from './analysis';
 
 /**
- * Zod schemas for the 4 specialized legal analysis passes.
+ * Zod schemas for the specialized legal analysis passes.
  *
  * Each pass has its own schema with clause-type-specific metadata as
  * REQUIRED fields (not optional). This leverages structured outputs
@@ -9,22 +11,9 @@ import { z } from 'zod';
  *
  * IMPORTANT: No .min()/.max()/.minLength()/.maxLength() constraints --
  * structured outputs does not support them (per Phase 1 convention).
- *
- * These schemas are self-contained (do not import from analysis.ts)
- * to avoid cross-dependency issues during structured output compilation.
  */
 
-// --- Local enum values (self-contained for structured output compilation) ---
-
-const SeverityEnum = z.enum(['Critical', 'High', 'Medium', 'Low', 'Info']);
-
-const DateTypeEnum = z.enum(['Start', 'Milestone', 'Deadline', 'Expiry']);
-
-const ContractDateSchema = z.object({
-  label: z.string(),
-  date: z.string(),
-  type: DateTypeEnum,
-});
+const SeverityEnum = z.enum(SEVERITIES);
 
 // ---------------------------------------------------------------------------
 // Indemnification Finding Schema

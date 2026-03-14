@@ -1,19 +1,4 @@
-import type { Finding } from '../types/contract';
-
-export type BidSignalLevel = 'bid' | 'caution' | 'no-bid';
-
-export interface BidFactor {
-  name: string;
-  score: number;
-  weight: number;
-}
-
-export interface BidSignal {
-  level: BidSignalLevel;
-  label: string;
-  score: number;
-  factors: BidFactor[];
-}
+import type { Finding, BidSignal, BidFactor, BidSignalLevel } from '../types/contract';
 
 // Severity penalties subtracted from each factor's starting score of 100
 const SEVERITY_PENALTIES: Record<string, number> = {

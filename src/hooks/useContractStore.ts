@@ -3,12 +3,10 @@ import { Contract } from '../types/contract';
 import { loadContracts, saveContracts } from '../storage/contractStorage';
 
 export function useContractStore() {
-  const [contracts, setContracts] = useState<Contract[]>(() => {
-    const { contracts } = loadContracts();
-    return contracts;
-  });
+  const [{ contracts: initialContracts, migrationWarning }] = useState(() => loadContracts());
+  const [contracts, setContracts] = useState<Contract[]>(initialContracts);
   const [isUploading, setIsUploading] = useState(false);
-  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [storageWarning, setStorageWarning] = useState<string | null>(migrationWarning ?? null);
 
   const persistAndSet = (updater: (prev: Contract[]) => Contract[]) => {
     setContracts((prev) => {
