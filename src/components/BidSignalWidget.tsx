@@ -14,8 +14,8 @@ const colorMap: Record<BidSignal['level'], string> = {
 };
 
 function getBarColor(score: number): string {
-  if (score > 0.7) return 'bg-emerald-500';
-  if (score >= 0.4) return 'bg-amber-500';
+  if (score > 70) return 'bg-emerald-500';
+  if (score >= 40) return 'bg-amber-500';
   return 'bg-red-500';
 }
 
@@ -61,11 +61,11 @@ export function BidSignalWidget({ signal }: BidSignalWidgetProps) {
                   <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${getBarColor(factor.score)}`}
-                      style={{ width: `${Math.round(factor.score * 100)}%` }}
+                      style={{ width: `${Math.round(factor.score)}%` }}
                     />
                   </div>
                   <span className="text-xs font-medium text-slate-700 w-10 text-right">
-                    {Math.round(factor.score * 100)}%
+                    {Math.round(factor.score)}%
                   </span>
                   <span className="text-xs text-slate-400 w-8 text-right">
                     {factor.weight}
