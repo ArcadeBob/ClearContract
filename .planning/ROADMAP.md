@@ -101,11 +101,12 @@ Plans:
   3. Risk score uses category-weighted formula and excludes synthetic error findings from computation; ca-title24 module reflects 2025 code cycle with staleness warning system (PIPE-03, PIPE-05)
   4. Verbiage pass findings focus on missing standard protections without duplicating legal pass output (PIPE-04)
   5. Bid signal match functions query structured metadata fields instead of scanning finding text strings (PIPE-06)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 23-01: TBD
-- [ ] 23-02: TBD
+- [ ] 23-01-PLAN.md -- Knowledge modules, staleness warnings, Title 24 update (PIPE-02, PIPE-05)
+- [ ] 23-02-PLAN.md -- Category-weighted scoring, bid signal fix, verbiage refocus (PIPE-03, PIPE-04, PIPE-06)
+- [ ] 23-03-PLAN.md -- Cross-pass synthesis pass for compound risk detection (PIPE-01)
 
 ### Phase 24: Actionable Output
 **Goal**: Users can produce shareable deliverables and work through findings in priority order
@@ -162,7 +163,7 @@ Plans:
 | 19. Export Report | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 20. Fix All Contracts Navigation | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
-| 22. Polish & Trust | 3/3 | Complete    | 2026-03-14 | - |
-| 23. Analysis Quality | v1.4 | 0/? | Not started | - |
+| 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
+| 23. Analysis Quality | v1.4 | 0/3 | Not started | - |
 | 24. Actionable Output | v1.4 | 0/? | Not started | - |
 | 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
