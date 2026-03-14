@@ -7,6 +7,7 @@ import { DateTimeline } from '../components/DateTimeline';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { AnalysisProgress } from '../components/AnalysisProgress';
 import { BidSignalWidget } from '../components/BidSignalWidget';
+import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
@@ -382,13 +383,12 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                   </span>
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 items-center">
                     <span className="text-sm text-slate-500">Risk Score:</span>
-                    <span
-                      className={`text-sm font-bold ${contract.riskScore > 70 ? 'text-red-600' : contract.riskScore > 40 ? 'text-amber-600' : 'text-emerald-600'}`}
-                    >
-                      {contract.riskScore}/100
-                    </span>
+                    <RiskScoreDisplay
+                      riskScore={contract.riskScore}
+                      scoreBreakdown={contract.scoreBreakdown}
+                    />
                   </div>
                   {contract.bidSignal && (
                     <BidSignalWidget signal={contract.bidSignal} />
