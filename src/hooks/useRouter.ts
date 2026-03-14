@@ -7,6 +7,9 @@ interface RouterState {
 }
 
 function parseUrl(pathname: string): RouterState {
+  if (pathname === '/upload') {
+    return { view: 'upload', contractId: null };
+  }
   if (pathname === '/contracts') {
     return { view: 'contracts', contractId: null };
   }
@@ -38,8 +41,8 @@ export function useRouter() {
       let newState: RouterState;
 
       if (view === 'upload') {
-        // Upload is transient -- no URL change
         newState = { view: 'upload', contractId: null };
+        window.history.pushState(null, '', '/upload');
         setState(newState);
         return;
       }
