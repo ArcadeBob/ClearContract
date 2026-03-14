@@ -13,10 +13,20 @@ const SEVERITY_PENALTIES: Record<string, number> = {
  * Determine whether a finding matches a specific bid factor.
  */
 function matchesBonding(f: Finding): boolean {
-  return (
-    f.title.toLowerCase().includes('bond') ||
-    f.description.toLowerCase().includes('bond')
-  );
+  // Labor compliance pass tags bonding findings via scopeMeta
+  if (f.sourcePass === 'labor-compliance' && f.scopeMeta) {
+    const meta = f.scopeMeta as { requirementType?: string };
+    if (meta.requirementType === 'bonding') return true;
+  }
+  // Risk overview pass may surface bonding via company profile comparison
+  // These are downgraded findings from profile mismatch detection
+  if (f.sourcePass === 'risk-overview' && f.downgradedFrom != null) {
+    // Narrow fallback: only for downgraded findings in relevant categories
+    if (f.category === 'Financial Terms' || f.category === 'Contract Compliance') {
+      return f.title.toLowerCase().includes('bond');
+    }
+  }
+  return false;
 }
 
 function matchesInsurance(f: Finding): boolean {

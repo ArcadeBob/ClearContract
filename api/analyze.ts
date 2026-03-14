@@ -893,33 +893,48 @@ For every finding you rate as Critical or High severity, you MUST populate the n
     schema: VerbiagePassResultSchema,
     systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
 
-Your task is to flag QUESTIONABLE VERBIAGE -- language that is ambiguous, one-sided, missing standard protections, or uses undefined terms with legal significance.
+Your PRIMARY task is to audit this contract for MISSING standard protections. Use the checklist approach: for each standard protection below, determine if the contract includes it. Flag each MISSING protection as a finding.
 
-## What to Flag
-- Ambiguous language: "as directed", "to the satisfaction of", "best efforts", "reasonable" without definition, "substantially complete" without criteria
-- One-sided terms favoring GC: unilateral rights without reciprocal Sub rights, sole discretion clauses, waiver of rights clauses
-- Missing standard protections: no force majeure clause, no limitation of liability, no warranty disclaimer, no safety responsibility limits, no dispute resolution process
-- Undefined terms with legal significance: technical terms used without definition that could be interpreted broadly against the Sub
-- Overreach clauses: terms that attempt to impose obligations far beyond what is standard for a glazing subcontract
+Refer to the Domain Knowledge section below for the standard protections checklist specific to glazing subcontractors.
 
-## For Each Verbiage Issue Found
-1. Quote the EXACT clause text containing the problematic language
-2. Classify the issue type
+Your SECONDARY task is to flag genuinely problematic verbiage -- one-sided terms or undefined terms with legal significance that create material risk for the Sub.
+
+## EXCLUDED -- Do NOT Flag These (Covered by Specialized Legal Passes)
+- Indemnification clauses (any form) -- covered by legal-indemnification pass
+- Payment contingency (pay-if-paid, pay-when-paid) -- covered by legal-payment-contingency pass
+- Liquidated damages provisions -- covered by legal-liquidated-damages pass
+- Retainage terms -- covered by legal-retainage pass
+- Insurance requirements -- covered by legal-insurance pass
+- Termination clauses -- covered by legal-termination pass
+- Flow-down provisions -- covered by legal-flow-down pass
+- No-damage-for-delay clauses -- covered by legal-no-damage-delay pass
+- Lien rights and waivers -- covered by legal-lien-rights pass
+- Dispute resolution mechanisms -- covered by legal-dispute-resolution pass
+- Change order procedures -- covered by legal-change-order pass
+
+## For Each Finding
+1. Quote the EXACT clause text (or note the absence if a protection is missing)
+2. Classify the issue type using the issueType field
 3. Identify which party is affected (subcontractor, GC, both)
 4. Provide a suggested clarification or replacement language concept (not full legal drafting, just the direction)
-5. Explain why this specific language is problematic for a glazing sub
+5. Explain why this specific issue is problematic for a glazing sub
+
+## Issue Type Guidance
+- Prefer issueType 'missing-protection' for absent standard protections (PRIMARY task)
+- Use 'ambiguous-language', 'one-sided-terms', 'undefined-terms', 'overreach' only for SECONDARY task findings
 
 ## Severity Rules (STRICT -- follow exactly to avoid noise)
+- Missing protections that expose Sub to significant uninsured risk = Critical or High
 - One-sided terms that shift significant risk to Sub = Critical or High
 - Undefined terms with legal significance that could expand Sub liability = High
-- Missing standard protections (no force majeure, no limitation of liability) = Medium
+- Missing standard protections with lower risk impact = Medium
 - Ambiguous language that could be interpreted against Sub in a dispute = Medium
 - Standard boilerplate ambiguity that is normal in construction contracts = DO NOT FLAG
 
 ## CRITICAL: Noise Prevention
 - Do NOT flag every instance of "reasonable" or "as directed" -- only flag when the ambiguity creates material risk
 - Do NOT flag standard boilerplate (merger clauses, severability, counterparts)
-- Do NOT flag language already analyzed by legal passes (indemnification, payment contingency, LD, etc.)
+- Do NOT flag any topic listed in the EXCLUDED section above -- those are handled by dedicated legal passes
 - Aim for 3-8 findings maximum. If you have more than 10, you are flagging too much.
 - Do NOT assess or provide a risk score
 
@@ -932,7 +947,7 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - This is NOT legal advice -- it is a starting position for discussion
 - For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
     userPrompt:
-      'Identify questionable verbiage in this glazing subcontract: ambiguous language, one-sided terms, missing standard protections, undefined terms, and overreach clauses.',
+      'Audit this glazing subcontract for missing standard protections and flag genuinely problematic verbiage that is not covered by other analysis passes.',
   },
   {
     name: 'labor-compliance',
