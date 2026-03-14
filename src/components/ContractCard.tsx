@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Contract } from '../types/contract';
-import { FileText, AlertTriangle, Trash2 } from 'lucide-react';
+import { FileText, Trash2, CheckCircle2 } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -81,10 +81,15 @@ export function ContractCard({ contract, onClick, onDelete }: ContractCardProps)
           }`}>
             Risk: {contract.riskScore}/100
           </span>
-          <span className="flex items-center text-xs text-slate-500">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            {contract.findings.length} findings
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+            {contract.findings.filter(f => !f.resolved).length} open
           </span>
+          {contract.findings.filter(f => f.resolved).length > 0 && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 flex items-center">
+              <CheckCircle2 className="w-3 h-3 inline mr-0.5" />
+              {contract.findings.filter(f => f.resolved).length} resolved
+            </span>
+          )}
         </div>
       </div>
 
