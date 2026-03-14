@@ -84,11 +84,12 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
   3. User can rename a contract from the review page and see the new name reflected on dashboard, sidebar, and all contracts list (UX-01)
   4. Dashboard cards, review page, and date timeline show data-driven status -- open/resolved counts, days-until urgency coloring, bid signal factor breakdown, and upcoming deadlines replacing the static compliance card (UX-02, UX-03, UX-04, UX-05)
   5. Upload flow has a back/cancel escape and re-analyze failure returns user to the review page instead of the upload view (UX-06)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 22-01: TBD
-- [ ] 22-02: TBD
+- [ ] 22-01-PLAN.md -- Tech debt cleanup (DEBT-01 through DEBT-06)
+- [ ] 22-02-PLAN.md -- Contract rename, finding counts, upcoming deadlines (UX-01, UX-02, UX-05)
+- [ ] 22-03-PLAN.md -- Timeline urgency, bid signal breakdown, upload escape (UX-03, UX-04, UX-06)
 
 ### Phase 23: Analysis Quality
 **Goal**: The 16-pass analysis pipeline produces more accurate, better-scored, and more comprehensive findings
@@ -161,7 +162,7 @@ Plans:
 | 19. Export Report | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 20. Fix All Contracts Navigation | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
-| 22. Polish & Trust | v1.4 | 0/? | Not started | - |
+| 22. Polish & Trust | v1.4 | 0/3 | Not started | - |
 | 23. Analysis Quality | v1.4 | 0/? | Not started | - |
 | 24. Actionable Output | v1.4 | 0/? | Not started | - |
 | 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
