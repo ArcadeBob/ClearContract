@@ -26,6 +26,7 @@ export function App() {
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const [toast, setToast] = useState<ToastData | null>(null);
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   // 1C: Redirect to dashboard if review view has no active contract (avoids setState during render)
   useEffect(() => {
@@ -65,6 +66,7 @@ export function App() {
       dates: [],
     };
     addContract(placeholder);
+    setAnalyzingId(id);
     navigateTo('review', id);
 
     // Run analysis in background
@@ -85,9 +87,9 @@ export function App() {
         // Remove the failed placeholder instead of leaving a zombie contract
         deleteContract(id);
 
-        // Only navigate away if user is still looking at this contract
+        // Navigate to dashboard (not upload) on initial analysis failure
         if (activeView === 'review' && activeContractId === id) {
-          navigateTo('upload');
+          navigateTo('dashboard');
         }
 
         if (isNetworkError(err)) {
@@ -111,7 +113,17 @@ export function App() {
             onDismiss: () => setToast(null),
           });
         }
+      })
+      .finally(() => {
+        setAnalyzingId(null);
       });
+  };
+
+  const handleCancelAnalysis = () => {
+    if (analyzingId) {
+      deleteContract(analyzingId);
+      setAnalyzingId(null);
+    }
   };
 
   const handleReanalyze = (contractId: string, file: File) => {
@@ -177,7 +189,13 @@ export function App() {
       case 'dashboard':
         return <Dashboard contracts={contracts} onNavigate={navigateTo} />;
       case 'upload':
-        return <ContractUpload onUploadComplete={handleUploadComplete} />;
+        return (
+          <ContractUpload
+            onUploadComplete={handleUploadComplete}
+            isAnalyzing={analyzingId !== null}
+            onCancel={handleCancelAnalysis}
+          />
+        );
       case 'review':
         if (!activeContract) {
           // useEffect above will redirect to dashboard
