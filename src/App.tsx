@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
@@ -26,6 +26,14 @@ export function App() {
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const [toast, setToast] = useState<ToastData | null>(null);
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
+
+  // 1C: Redirect to dashboard if review view has no active contract (avoids setState during render)
+  useEffect(() => {
+    if (activeView === 'review' && !activeContract) {
+      window.history.replaceState(null, '', '/');
+      navigateTo('dashboard');
+    }
+  }, [activeView, activeContract, navigateTo]);
 
   const handleDeleteContract = (id: string) => {
     const isDeletingActive = activeContract?.id === id;
@@ -74,15 +82,13 @@ export function App() {
         });
       })
       .catch((err) => {
-        // Mark the placeholder as failed and navigate back to upload
-        updateContract(id, {
-          status: 'Reviewed',
-          client: 'Error',
-          riskScore: 0,
-          findings: [],
-          dates: [],
-        });
-        navigateTo('upload');
+        // Remove the failed placeholder instead of leaving a zombie contract
+        deleteContract(id);
+
+        // Only navigate away if user is still looking at this contract
+        if (activeView === 'review' && activeContractId === id) {
+          navigateTo('upload');
+        }
 
         if (isNetworkError(err)) {
           setToast({
@@ -174,9 +180,8 @@ export function App() {
         return <ContractUpload onUploadComplete={handleUploadComplete} />;
       case 'review':
         if (!activeContract) {
-          window.history.replaceState(null, '', '/');
-          navigateTo('dashboard');
-          return <Dashboard contracts={contracts} onNavigate={navigateTo} />;
+          // useEffect above will redirect to dashboard
+          return null;
         }
         return (
           <ContractReview
@@ -188,6 +193,7 @@ export function App() {
             onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
             isReanalyzing={reanalyzingId === activeContract.id}
             onShowToast={({ type, message }) => setToast({ type, message, onDismiss: () => setToast(null) })}
+            onRename={(id, name) => updateContract(id, { name })}
           />
         );
 

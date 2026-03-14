@@ -23,6 +23,7 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AnimatePresence } from 'framer-motion';
@@ -67,9 +68,10 @@ interface ContractReviewProps {
   onReanalyze?: (file: File) => void;
   isReanalyzing?: boolean;
   onShowToast?: (toast: { type: 'success' | 'error'; message: string }) => void;
+  onRename?: (id: string, name: string) => void;
 }
 
-export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onShowToast }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onShowToast, onRename }: ContractReviewProps) {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
     'All'
   );
@@ -78,6 +80,36 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
   const [showConfirm, setShowConfirm] = useState(false);
   const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Inline rename state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  const startEditing = () => {
+    setEditValue(contract.name);
+    setIsEditing(true);
+  };
+
+  const commitRename = () => {
+    const trimmed = renameInputRef.current?.value.trim() ?? editValue.trim();
+    if (trimmed && trimmed !== contract.name) {
+      onRename?.(contract.id, trimmed);
+    }
+    setIsEditing(false);
+  };
+
+  const cancelEditing = () => {
+    setEditValue(contract.name);
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }
+  }, [isEditing]);
 
   const handleConfirmReanalyze = () => {
     setShowReanalyzeConfirm(false);
@@ -186,9 +218,27 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">
-              {contract.name}
-            </h1>
+            {isEditing ? (
+              <input
+                ref={renameInputRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitRename();
+                  if (e.key === 'Escape') cancelEditing();
+                }}
+                className="text-xl font-bold text-slate-900 bg-transparent border-b-2 border-blue-500 outline-none w-full"
+              />
+            ) : (
+              <h1
+                className="group/title text-xl font-bold text-slate-900 cursor-pointer flex items-center"
+                onClick={startEditing}
+              >
+                {contract.name}
+                <Pencil className="w-4 h-4 inline ml-2 text-slate-400 opacity-0 group-hover/title:opacity-100 transition-opacity" />
+              </h1>
+            )}
             <div className="flex items-center space-x-2 text-sm text-slate-500">
               <span>{contract.client}</span>
               <span>&bull;</span>
@@ -204,7 +254,11 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <Trash2 className="w-4 h-4" />
             <span>Delete</span>
           </button>
-          <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium">
+          <button
+            disabled
+            title="Coming soon"
+            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-400 text-sm font-medium cursor-not-allowed"
+          >
             <Share2 className="w-4 h-4" />
             <span>Share</span>
           </button>
