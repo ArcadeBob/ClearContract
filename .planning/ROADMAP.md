@@ -146,11 +146,11 @@ Plans:
   2. Existing contracts stored in localStorage before v1.5 load correctly after the Zod/TS reconciliation -- a migration function fills any newly-required fields with safe defaults
   3. The client-side analyzeContract.ts validates the API response with Zod `.safeParse()` before returning it; malformed responses produce a user-visible error instead of silent bad data at render time
   4. merge.ts contains zero `as string` or `as unknown` assertion casts; all type narrowing uses discriminated union checks or type guard functions
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 30-01: TBD
-- [ ] 30-02: TBD
+- [ ] 30-01-PLAN.md — Create canonical Finding/AnalysisResult Zod schemas, reconcile TS types, add localStorage migration
+- [ ] 30-02-PLAN.md — Refactor merge.ts to use Zod-parsed typed data, add client-side response validation
 
 ### Phase 31: Server-side API Modularization
 **Goal**: The 1,510-line api/analyze.ts monolith is decomposed into focused modules while preserving the Vercel entry-point contract
@@ -203,5 +203,5 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
 | 28. Hook Extraction | 2/2 | Complete    | 2026-03-15 | - |
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
-| 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
+| 30. Type Safety Hardening | v1.5 | 0/2 | Not started | - |
 | 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |
