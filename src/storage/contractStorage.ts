@@ -23,7 +23,7 @@ function migrateContracts(contracts: unknown[], fromVersion: number): Contract[]
       }));
       contract.findings = findings;
     }
-    return contract as Contract;
+    return contract as unknown as Contract;
   });
 }
 
