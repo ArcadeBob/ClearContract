@@ -20,13 +20,13 @@ Requirements for code health milestone. Each maps to roadmap phases.
 - [ ] **TYPE-01**: Reconcile Zod schema / TypeScript interface optionality — required fields in schemas match required fields in types
 - [ ] **TYPE-02**: Validate API response on client — add Zod parse to analyzeContract.ts response handling
 - [ ] **TYPE-03**: Replace merge.ts assertion casts with type guards — eliminate 13+ `as string` casts using discriminated union narrowing
-- [ ] **TYPE-04**: Create request validation schema for /api/analyze POST body — typed end-to-end
+- [x] **TYPE-04**: Create request validation schema for /api/analyze POST body — typed end-to-end
 
 ### Pattern Consolidation
 
-- [ ] **PATN-01**: Centralize localStorage access — single storage manager with consistent error handling replaces 4 scattered locations
-- [ ] **PATN-02**: Centralize error handling — shared error classification and formatting utility used by App.tsx, analyze.ts, and storage layer
-- [ ] **PATN-03**: Centralize color/severity mapping — replace ~30 scattered ternary chains with a shared palette map using complete Tailwind class strings
+- [x] **PATN-01**: Centralize localStorage access — single storage manager with consistent error handling replaces 4 scattered locations
+- [x] **PATN-02**: Centralize error handling — shared error classification and formatting utility used by App.tsx, analyze.ts, and storage layer
+- [x] **PATN-03**: Centralize color/severity mapping — replace ~30 scattered ternary chains with a shared palette map using complete Tailwind class strings
 - [ ] **PATN-04**: Extract toast to useToast context — eliminate prop drilling from App.tsx through page components
 
 ### Hook Extraction
@@ -71,10 +71,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PATN-01 | Phase 27 | Pending |
-| PATN-02 | Phase 27 | Pending |
-| PATN-03 | Phase 27 | Pending |
-| TYPE-04 | Phase 27 | Pending |
+| PATN-01 | Phase 27 | Complete |
+| PATN-02 | Phase 27 | Complete |
+| PATN-03 | Phase 27 | Complete |
+| TYPE-04 | Phase 27 | Complete |
 | HOOK-01 | Phase 28 | Pending |
 | HOOK-02 | Phase 28 | Pending |
 | HOOK-03 | Phase 28 | Pending |
