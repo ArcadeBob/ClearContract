@@ -131,27 +131,7 @@ export type ScopeMeta =
       checklistItems: ComplianceChecklistItem[];
     };
 
-export interface Finding {
-  id: string;
-  severity: Severity;
-  category: Category;
-  title: string;
-  description: string;
-  recommendation?: string;
-  clauseReference?: string;
-  clauseText?: string;
-  explanation?: string;
-  crossReferences?: string[];
-  legalMeta?: LegalMeta;
-  scopeMeta?: ScopeMeta;
-  sourcePass?: string;
-  negotiationPosition?: string;
-  downgradedFrom?: Severity;
-  isSynthesis?: boolean;
-  actionPriority?: 'pre-bid' | 'pre-sign' | 'monitor';
-  resolved?: boolean;
-  note?: string;
-}
+export type { MergedFinding as Finding } from '../schemas/finding';
 
 export type BidSignalLevel = 'bid' | 'caution' | 'no-bid';
 

@@ -65,7 +65,7 @@ export function NegotiationChecklist({
   };
 
   for (const f of negotiable) {
-    const key = f.actionPriority ?? 'uncategorized';
+    const key = f.actionPriority;
     (grouped[key] ?? grouped['uncategorized']).push(f);
   }
 

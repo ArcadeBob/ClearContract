@@ -73,15 +73,15 @@ export function exportContractCsv(contract: Contract, options?: ExportOptions): 
   for (const f of sortedFindings) {
     lines.push(csvRow([
       f.severity,
-      f.actionPriority ?? '',
+      f.actionPriority,
       f.category,
-      f.clauseReference ?? '',
+      f.clauseReference,
       f.clauseText ?? '',
       f.explanation ?? '',
-      f.recommendation ?? '',
-      f.negotiationPosition ?? '',
-      f.resolved ?? false,
-      f.note ?? '',
+      f.recommendation,
+      f.negotiationPosition,
+      f.resolved,
+      f.note,
     ]));
   }
 

@@ -1,8 +1,31 @@
 import { Contract } from '../types/contract';
 import { MOCK_CONTRACTS } from '../data/mockContracts';
-import { load, save, loadRaw, saveRaw, remove } from './storageManager';
+import { load, save, loadRaw, saveRaw } from './storageManager';
 
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
+
+/**
+ * Migrate contracts from older schema versions to current.
+ * Fills in newly-required fields with safe defaults.
+ */
+function migrateContracts(contracts: unknown[], fromVersion: number): Contract[] {
+  return contracts.map(c => {
+    const contract = { ...(c as Record<string, unknown>) };
+    if (fromVersion < 2) {
+      const findings = ((contract.findings as Array<Record<string, unknown>>) || []).map(f => ({
+        ...f,
+        resolved: f.resolved ?? false,
+        note: f.note ?? '',
+        recommendation: f.recommendation ?? '',
+        clauseReference: f.clauseReference ?? 'N/A',
+        negotiationPosition: f.negotiationPosition ?? '',
+        actionPriority: f.actionPriority ?? 'monitor',
+      }));
+      contract.findings = findings;
+    }
+    return contract as Contract;
+  });
+}
 
 /**
  * Load contracts from localStorage.
@@ -20,23 +43,18 @@ export function loadContracts(): {
     const storedVersion = versionResult.data;
     const version = storedVersion ? parseInt(storedVersion, 10) : 0;
 
-    if (version > 0 && version < CURRENT_SCHEMA_VERSION) {
-      // Future: run migrations here based on version number.
-      // For now, clear stale data with a warning.
-      remove('clearcontract:contracts');
-      saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));
-      return {
-        contracts: [],
-        fromStorage: true,
-        migrationWarning: 'Storage format updated. Previous contracts were cleared.',
-      };
-    }
-
     const contractsResult = load('clearcontract:contracts');
 
     if (contractsResult.ok && contractsResult.data) {
       const parsed = contractsResult.data;
       if (Array.isArray(parsed)) {
+        // Migrate if needed (handles both unversioned v0 and older versioned data)
+        if (version < CURRENT_SCHEMA_VERSION) {
+          const migrated = migrateContracts(parsed, version);
+          saveContracts(migrated);
+          saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));
+          return { contracts: migrated, fromStorage: true };
+        }
         // Ensure version is set for existing data
         if (!storedVersion) {
           saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));

@@ -20,7 +20,7 @@ interface FindingCardProps {
 
 export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: FindingCardProps) {
   const { isEditing: isEditingNote, editValue: editText, setEditValue: setEditText, startEditing, commitEdit, cancelEdit } = useInlineEdit({
-    initialValue: finding.note ?? '',
+    initialValue: finding.note,
     validate: (v) => v.trim(),
     onSave: (text) => onUpdateNote?.(finding.id, text),
   });

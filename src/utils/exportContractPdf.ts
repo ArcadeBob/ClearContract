@@ -124,8 +124,8 @@ export function exportContractPdf(contract: Contract): void {
       return [
         titleCell,
         f.severity,
-        f.actionPriority ?? '-',
-        f.recommendation ?? '',
+        f.actionPriority,
+        f.recommendation,
       ];
     });
 
@@ -194,7 +194,7 @@ export function exportContractPdf(contract: Contract): void {
     const negData = negotiationFindings.map((f) => [
       f.title,
       f.severity,
-      f.negotiationPosition ?? '',
+      f.negotiationPosition,
     ]);
 
     autoTable(doc, {

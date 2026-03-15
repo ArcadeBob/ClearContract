@@ -26,6 +26,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         recommendation:
           'Negotiate to limit indemnification to extent of negligence.',
         clauseReference: 'Section 8.2',
+        negotiationPosition: 'Request mutual indemnification limited to each party\'s negligence',
+        actionPriority: 'pre-sign',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-2',
@@ -37,6 +41,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         recommendation:
           'Add specific reference to AAMA 501.1 to avoid scope gaps.',
         clauseReference: 'Exhibit C - Specs',
+        negotiationPosition: 'Request explicit AAMA 501.1 inclusion in specifications',
+        actionPriority: 'pre-bid',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-3',
@@ -48,6 +56,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         recommendation:
           'Insert mandatory prevailing wage language to ensure compliance.',
         clauseReference: 'General Conditions',
+        negotiationPosition: 'Require prevailing wage clause insertion before execution',
+        actionPriority: 'pre-sign',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-4',
@@ -59,6 +71,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         recommendation:
           'Request reduction to 5% consistent with recent legislation.',
         clauseReference: 'Section 4.1',
+        negotiationPosition: 'Cite state retention cap legislation and request 5% maximum',
+        actionPriority: 'pre-sign',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-5',
@@ -70,6 +86,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         recommendation:
           'Negotiate for Net 30 or "Paid when Paid" with reasonable time limit.',
         clauseReference: 'Section 4.3',
+        negotiationPosition: 'Propose Net 30 payment terms with interest on late payments',
+        actionPriority: 'pre-sign',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-6',
@@ -80,6 +100,10 @@ export const MOCK_CONTRACTS: Contract[] = [
           '$5,000/day LDs with no force majeure exception for material supply delays.',
         recommendation: 'Add exception for supply chain delays beyond control.',
         clauseReference: 'Section 9.5',
+        negotiationPosition: 'Add force majeure carve-out for supply chain disruptions',
+        actionPriority: 'pre-sign',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f1-7',
@@ -90,6 +114,10 @@ export const MOCK_CONTRACTS: Contract[] = [
           'Warranty term listed as 2 years; AAMA standard recommendation is 5 years.',
         recommendation: 'Clarify if 2 years is intended or error.',
         clauseReference: 'Section 12.1',
+        negotiationPosition: 'Request alignment with AAMA 5-year warranty standard',
+        actionPriority: 'monitor',
+        resolved: false,
+        note: '',
       },
     ],
   },
@@ -116,6 +144,10 @@ export const MOCK_CONTRACTS: Contract[] = [
           'Contract requires Pollution Liability which is not standard for glazing scope.',
         recommendation: 'Request waiver for this requirement.',
         clauseReference: 'Exhibit D - Insurance',
+        negotiationPosition: 'Request waiver of pollution liability for glazing scope',
+        actionPriority: 'pre-bid',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f2-2',
@@ -126,6 +158,10 @@ export const MOCK_CONTRACTS: Contract[] = [
           'Drawings show mixed systems but scope description is vague on transition details.',
         recommendation: 'Define exact transition points and responsibility.',
         clauseReference: 'Scope Exhibit A',
+        negotiationPosition: 'Request scope clarification addendum defining transition details',
+        actionPriority: 'pre-bid',
+        resolved: false,
+        note: '',
       },
       {
         id: 'f2-3',
@@ -136,6 +172,10 @@ export const MOCK_CONTRACTS: Contract[] = [
           'Schedule shows 4 weeks for fabrication; standard is 6-8 weeks.',
         recommendation: 'Flag lead time concern immediately.',
         clauseReference: 'Project Schedule',
+        negotiationPosition: 'Request schedule adjustment to 6-8 week fabrication timeline',
+        actionPriority: 'pre-bid',
+        resolved: false,
+        note: '',
       },
     ],
   },
@@ -161,6 +201,10 @@ export const MOCK_CONTRACTS: Contract[] = [
         description: 'FOB Origin terms shift risk of transit damage to buyer.',
         recommendation: 'Request FOB Destination terms.',
         clauseReference: 'Terms & Conditions',
+        negotiationPosition: 'Request FOB Destination to shift transit risk to supplier',
+        actionPriority: 'monitor',
+        resolved: false,
+        note: '',
       },
     ],
   },

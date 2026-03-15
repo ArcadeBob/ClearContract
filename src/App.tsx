@@ -127,7 +127,7 @@ export function App() {
         const oldByKey = new Map<string, Finding>();
         for (const f of contract.findings) {
           if (f.resolved || f.note) {
-            const ref = f.clauseReference ?? '';
+            const ref = f.clauseReference;
             if (ref && ref !== 'N/A' && ref !== 'Not Found') {
               oldByKey.set(`${ref}::${f.category}`, f);
             }
@@ -138,7 +138,7 @@ export function App() {
         let preservedResolved = 0;
         let preservedNotes = 0;
         const mergedFindings = result.findings.map((newFinding: Finding) => {
-          const ref = newFinding.clauseReference ?? '';
+          const ref = newFinding.clauseReference;
           if (ref && ref !== 'N/A' && ref !== 'Not Found') {
             const old = oldByKey.get(`${ref}::${newFinding.category}`);
             if (old) {
