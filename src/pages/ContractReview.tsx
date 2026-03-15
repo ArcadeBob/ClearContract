@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Contract, Category, Severity, SEVERITIES, CATEGORIES } from '../types/contract';
+import { useState, useRef } from 'react';
+import { Contract, Severity, SEVERITIES, CATEGORIES } from '../types/contract';
 import { FindingCard } from '../components/FindingCard';
 import { MultiSelectDropdown } from '../components/MultiSelectDropdown';
 import { CategorySection } from '../components/CategorySection';
@@ -11,7 +11,8 @@ import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { NegotiationChecklist } from '../components/NegotiationChecklist';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
-import { loadRaw, saveRaw } from '../storage/storageManager';
+import { useInlineEdit } from '../hooks/useInlineEdit';
+import { useContractFiltering } from '../hooks/useContractFiltering';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
 import { exportContractPdf } from '../utils/exportContractPdf';
 import {
@@ -44,27 +45,6 @@ function EmptyFindings() {
   );
 }
 
-const CATEGORY_ORDER: Category[] = [
-  'Legal Issues',
-  'Financial Terms',
-  'Insurance Requirements',
-  'Scope of Work',
-  'Contract Compliance',
-  'Labor Compliance',
-  'Important Dates',
-  'Technical Standards',
-  'Risk Assessment',
-  'Compound Risk',
-];
-
-const severityRank: Record<Severity, number> = {
-  Critical: 0,
-  High: 1,
-  Medium: 2,
-  Low: 3,
-  Info: 4,
-};
-
 interface ContractReviewProps {
   contract: Contract;
   onBack: () => void;
@@ -80,45 +60,24 @@ interface ContractReviewProps {
 const ACTION_PRIORITIES = ['pre-bid', 'pre-sign', 'monitor'] as const;
 
 export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onShowToast, onRename }: ContractReviewProps) {
-  const [selectedSeverities, setSelectedSeverities] = useState<Set<Severity>>(() => new Set(SEVERITIES));
-  const [selectedCategories, setSelectedCategories] = useState<Set<Category>>(() => new Set(CATEGORIES));
-  const [selectedPriorities, setSelectedPriorities] = useState<Set<string>>(() => new Set(ACTION_PRIORITIES));
-  const [hasNegotiationOnly, setHasNegotiationOnly] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Inline rename state
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-  const renameInputRef = useRef<HTMLInputElement>(null);
+  // Inline rename via shared hook
+  const { isEditing, editValue, setEditValue, startEditing, commitEdit, onKeyDown: renameKeyDown, inputRef: renameInputRef } = useInlineEdit({
+    initialValue: contract.name,
+    autoFocus: true,
+    validate: (v) => v.trim(),
+    onSave: (name) => onRename?.(contract.id, name),
+  });
 
-  const startEditing = () => {
-    setEditValue(contract.name);
-    setIsEditing(true);
-  };
-
-  const commitRename = () => {
-    const trimmed = renameInputRef.current?.value.trim() ?? editValue.trim();
-    if (trimmed && trimmed !== contract.name) {
-      onRename?.(contract.id, trimmed);
-    }
-    setIsEditing(false);
-  };
-
-  const cancelEditing = () => {
-    setEditValue(contract.name);
-    setIsEditing(false);
-  };
-
-  useEffect(() => {
-    if (isEditing) {
-      renameInputRef.current?.focus();
-      renameInputRef.current?.select();
-    }
-  }, [isEditing]);
+  // Contract filtering, grouping, sorting via shared hook
+  const { filters, toggleFilter, setFilterSet, hideResolved, toggleHideResolved, visibleFindings, groupedFindings, flatFindings } = useContractFiltering({
+    findings: contract.findings,
+  });
 
   const handleConfirmReanalyze = () => {
     setShowReanalyzeConfirm(false);
@@ -130,18 +89,6 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
     if (!file) return;
     e.target.value = ''; // Reset so same file can be re-selected
     onReanalyze?.(file);
-  };
-
-  const [hideResolved, setHideResolved] = useState(() => {
-    return loadRaw('clearcontract:hide-resolved').data === 'true';
-  });
-
-  const toggleHideResolved = () => {
-    setHideResolved((prev) => {
-      const next = !prev;
-      saveRaw('clearcontract:hide-resolved', String(next));
-      return next;
-    });
   };
 
   const { profile } = useCompanyProfile();
@@ -166,47 +113,6 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
   const totalFindings = contract.findings.length;
   const resolvedCount = contract.findings.filter((f) => f.resolved).length;
 
-  // Apply all filters: hideResolved, severity, category, priority, negotiation
-  const visibleFindings = useMemo(() => {
-    let result = contract.findings;
-    if (hideResolved) {
-      result = result.filter((f) => !f.resolved);
-    }
-    if (selectedSeverities.size < SEVERITIES.length) {
-      result = result.filter((f) => selectedSeverities.has(f.severity));
-    }
-    if (selectedCategories.size < CATEGORIES.length) {
-      result = result.filter((f) => selectedCategories.has(f.category));
-    }
-    if (selectedPriorities.size < ACTION_PRIORITIES.length) {
-      result = result.filter((f) => f.actionPriority != null && selectedPriorities.has(f.actionPriority));
-    }
-    if (hasNegotiationOnly) {
-      result = result.filter((f) => !!f.negotiationPosition);
-    }
-    return result;
-  }, [contract.findings, hideResolved, selectedSeverities, selectedCategories, selectedPriorities, hasNegotiationOnly]);
-
-  // Category-grouped findings sorted by max severity then count
-  const groupedFindings = CATEGORY_ORDER.map((category) => ({
-    category,
-    findings: visibleFindings
-      .filter((f) => f.category === category)
-      .sort((a, b) => severityRank[a.severity] - severityRank[b.severity]),
-  }))
-    .filter((group) => group.findings.length > 0)
-    .sort((a, b) => {
-      const aMax = Math.min(...a.findings.map((f) => severityRank[f.severity]));
-      const bMax = Math.min(...b.findings.map((f) => severityRank[f.severity]));
-      if (aMax !== bMax) return aMax - bMax;
-      return b.findings.length - a.findings.length;
-    });
-
-  // Flat severity-sorted findings for by-severity mode
-  const flatFindings = [...visibleFindings].sort(
-    (a, b) => severityRank[a.severity] - severityRank[b.severity]
-  );
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
@@ -224,11 +130,8 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                 ref={renameInputRef}
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                onBlur={commitRename}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') commitRename();
-                  if (e.key === 'Escape') cancelEditing();
-                }}
+                onBlur={commitEdit}
+                onKeyDown={renameKeyDown}
                 className="text-xl font-bold text-slate-900 bg-transparent border-b-2 border-blue-500 outline-none w-full"
               />
             ) : (
@@ -291,16 +194,16 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             onClick={() => {
               const exportFindings = visibleFindings;
               const filterDescriptions: string[] = [];
-              if (selectedSeverities.size < SEVERITIES.length) {
-                filterDescriptions.push(`Severity: ${[...selectedSeverities].join(', ')}`);
+              if (filters.severities.size < SEVERITIES.length) {
+                filterDescriptions.push(`Severity: ${[...filters.severities].join(', ')}`);
               }
-              if (selectedCategories.size < CATEGORIES.length) {
-                filterDescriptions.push(`Category: ${[...selectedCategories].join(', ')}`);
+              if (filters.categories.size < CATEGORIES.length) {
+                filterDescriptions.push(`Category: ${[...filters.categories].join(', ')}`);
               }
-              if (selectedPriorities.size < ACTION_PRIORITIES.length) {
-                filterDescriptions.push(`Priority: ${[...selectedPriorities].join(', ')}`);
+              if (filters.priorities.size < ACTION_PRIORITIES.length) {
+                filterDescriptions.push(`Priority: ${[...filters.priorities].join(', ')}`);
               }
-              if (hasNegotiationOnly) filterDescriptions.push('Has negotiation position');
+              if (filters.negotiationOnly) filterDescriptions.push('Has negotiation position');
               if (hideResolved) filterDescriptions.push('Hiding resolved');
               const csv = exportContractCsv(contract, {
                 findings: exportFindings,
@@ -468,27 +371,27 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                 <MultiSelectDropdown
                   label="Category"
                   options={CATEGORIES}
-                  selected={selectedCategories}
-                  onChange={setSelectedCategories}
+                  selected={filters.categories}
+                  onChange={(s) => setFilterSet('categories', s as Set<string>)}
                 />
                 <MultiSelectDropdown
                   label="Severity"
                   options={SEVERITIES}
-                  selected={selectedSeverities}
-                  onChange={setSelectedSeverities}
+                  selected={filters.severities}
+                  onChange={(s) => setFilterSet('severities', s as Set<string>)}
                   renderOption={(s) => <SeverityBadge severity={s as Severity} />}
                 />
                 <MultiSelectDropdown
                   label="Priority"
                   options={ACTION_PRIORITIES}
-                  selected={selectedPriorities}
-                  onChange={setSelectedPriorities}
+                  selected={filters.priorities}
+                  onChange={(s) => setFilterSet('priorities', s)}
                 />
                 <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none ml-1">
                   <input
                     type="checkbox"
-                    checked={hasNegotiationOnly}
-                    onChange={() => setHasNegotiationOnly(!hasNegotiationOnly)}
+                    checked={filters.negotiationOnly}
+                    onChange={() => toggleFilter('negotiationOnly')}
                     className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                   Has negotiation position

@@ -9,6 +9,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { AlertTriangle, Check, CheckCircle2, Pencil, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { categoryIcons } from '../utils/categoryIcons';
+import { useInlineEdit } from '../hooks/useInlineEdit';
 
 interface FindingCardProps {
   finding: Finding;
@@ -18,30 +19,14 @@ interface FindingCardProps {
 }
 
 export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: FindingCardProps) {
-  const [isEditingNote, setIsEditingNote] = useState(false);
-  const [editText, setEditText] = useState('');
+  const { isEditing: isEditingNote, editValue: editText, setEditValue: setEditText, startEditing, commitEdit, cancelEdit } = useInlineEdit({
+    initialValue: finding.note ?? '',
+    validate: (v) => v.trim(),
+    onSave: (text) => onUpdateNote?.(finding.id, text),
+  });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const Icon = categoryIcons[finding.category] || AlertTriangle;
-
-  const startNewNote = () => {
-    setEditText('');
-    setIsEditingNote(true);
-  };
-
-  const startEdit = () => {
-    setEditText(finding.note ?? '');
-    setIsEditingNote(true);
-  };
-
-  const cancelEdit = () => {
-    setIsEditingNote(false);
-  };
-
-  const saveNote = () => {
-    onUpdateNote?.(finding.id, editText.trim());
-    setIsEditingNote(false);
-  };
 
   return (
     <motion.div
@@ -132,7 +117,7 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold text-violet-700 uppercase tracking-wide">Your Note</p>
             <div className="flex items-center gap-1">
-              <button onClick={startEdit} title="Edit note" className="p-0.5 rounded hover:bg-violet-100 transition-colors">
+              <button onClick={startEditing} title="Edit note" className="p-0.5 rounded hover:bg-violet-100 transition-colors">
                 <Pencil className="w-3.5 h-3.5 text-violet-400 hover:text-violet-600" />
               </button>
               <button onClick={() => setShowDeleteConfirm(true)} title="Delete note" className="p-0.5 rounded hover:bg-violet-100 transition-colors">
@@ -170,7 +155,7 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
 
       {!finding.note && !isEditingNote && (
         <button
-          onClick={startNewNote}
+          onClick={startEditing}
           className="text-sm text-slate-400 hover:text-violet-600 transition-colors mt-2"
         >
           + Add note
@@ -195,7 +180,7 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
               Cancel
             </button>
             <button
-              onClick={saveNote}
+              onClick={commitEdit}
               disabled={!editText.trim()}
               className="px-3 py-1.5 text-sm bg-violet-600 text-white rounded-md hover:bg-violet-700 disabled:opacity-50"
             >
