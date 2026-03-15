@@ -189,23 +189,74 @@
 
 ---
 
+## Milestone: v1.5 -- Code Health
+
+**Shipped:** 2026-03-15
+**Phases:** 6 | **Plans:** 12 | **Commits:** 55
+**Timeline:** 2 days (2026-03-14 -> 2026-03-15)
+
+### What Was Built
+- Centralized localStorage access (storageManager), error handling (classifyError), and severity palette into shared utilities
+- Extracted 3 reusable hooks: useInlineEdit, useContractFiltering, useFieldValidation
+- Decomposed god components: LegalMetaBadge (11 subcomponents), ScopeMetaBadge (4), ContractReview (ReviewHeader + FilterToolbar + RiskSummary)
+- Created ToastProvider context with useToast hook — eliminated prop drilling
+- Hardened type safety: Zod as single source of truth for Finding type, client-side response validation, zero assertion casts in merge.ts
+- Modularized 1,478-line api/analyze.ts into api/passes.ts + slim handler (~443 lines)
+- Closed all tsc --noEmit errors across codebase via Phase 32 gap closure
+
+### What Worked
+- Incremental extraction approach (not wholesale rewrite) produced zero regressions without a test framework
+- Phase ordering was correct: utilities first, then hooks, then components, then types, then server -- each phase built on the previous
+- Server modularization last was the right call -- Phase 32 gap closure caught a type error that would have compounded on the server
+- Milestone audit with re-audit after gap closure provided full confidence in requirements coverage
+- Record<DiscriminantType, FC> dispatcher pattern for MetaBadge decomposition was clean and type-safe
+
+### What Was Inefficient
+- SUMMARY.md files lacked one_liner frontmatter (recurring issue from v1.4) -- automated extraction returned null for all 12 plans
+- Nyquist validation remained not compliant across all 6 phases -- this is now 5 milestones of consistent deprioritization
+- Phase 30 verification initially marked as gaps_found, requiring Phase 32 gap closure -- the Zod reconciliation should have caught the TS2322 in the same phase
+- Some phases (27, 28) had CONTEXT.md sessions that added overhead with limited value for refactoring work
+
+### Patterns Established
+- StorageResult<T> wrapper pattern: typed ok/data/error/quotaExceeded for storage operations
+- z.infer single-source-of-truth pattern: TypeScript types derived from Zod schemas, not duplicated
+- Directory-module decomposition pattern: barrel-exported index.tsx dispatcher with focused subcomponents
+- ToastProvider + useToast context pattern: centralized toast behavior with 3s auto-dismiss
+- localStorage migration pattern: fill newly-required fields with safe defaults inline
+
+### Key Lessons
+- Refactoring without tests is viable when using incremental extraction with per-phase TypeScript compilation verification
+- Zod as single source of truth for types eliminates an entire class of optionality drift bugs
+- God component decomposition is most effective when hooks are extracted first (Phase 28 before 29 was essential)
+- The audit-then-fix pattern works for refactoring milestones too, not just feature milestones
+- 1,478 lines -> ~443 lines for a core API handler shows how much complexity was in configuration vs. logic
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution
+- Sessions: ~3 sessions across 2 days
+- Notable: 12 plans completed in ~2 days; refactoring phases averaged faster execution than feature phases
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 | v1.3 | v1.4 |
-|--------|------|------|------|------|
-| Phases | 6 | 4 | 7 | 5 |
-| Plans | 13 | 8 | 8 | 11 |
-| Avg plan duration | ~4min | ~4min | ~2min | ~2min |
-| Requirements | 22/22 | 23/23 | 16/16 | 26/26 |
-| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed |
-| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 |
-| Sessions | ~10 | ~6 | 1 | ~4 |
+| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 |
+|--------|------|------|------|------|------|
+| Phases | 6 | 4 | 7 | 5 | 6 |
+| Plans | 13 | 8 | 8 | 11 | 12 |
+| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min |
+| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 |
+| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) |
+| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 |
+| Sessions | ~10 | ~6 | 1 | ~4 | ~3 |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Schema-first with required fields produces better AI output (v1.0, v1.1, v1.4)
-2. Gap closure phases are lightweight and effective for cross-phase integration fixes (v1.0, v1.3, v1.4)
+2. Gap closure phases are lightweight and effective for cross-phase integration fixes (v1.0, v1.3, v1.4, v1.5)
 3. ROADMAP.md plan checkboxes consistently fall out of sync -- needs automation (v1.0, v1.1, v1.3, v1.4)
-4. Nyquist validation consistently deprioritized -- either automate or remove from process (v1.1, v1.3, v1.4)
+4. Nyquist validation consistently deprioritized -- either automate or remove from process (v1.1, v1.3, v1.4, v1.5)
 5. Execution velocity improves with each milestone as patterns mature (45min→4min→2min per plan)
-6. Tech debt cleanup first in a milestone creates clean foundation for subsequent phases (v1.4)
+6. Tech debt cleanup first in a milestone creates clean foundation for subsequent phases (v1.4, v1.5)
+7. Incremental extraction without tests is viable when each phase verifies via tsc compilation (v1.5)
+8. SUMMARY.md one_liner field consistently missing -- template or tooling should enforce it (v1.4, v1.5)

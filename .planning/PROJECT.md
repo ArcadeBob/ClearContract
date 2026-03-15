@@ -58,32 +58,19 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Side-by-side contract comparison with findings diff and risk score delta -- v1.4
 - ✓ Advanced multi-select filters (severity, category, priority, negotiation position) -- v1.4
 - ✓ Re-analyze finding preservation via composite key matching (resolved status + notes) -- v1.4
+- ✓ Centralized localStorage access (storageManager), error handling (classifyError), severity palette -- v1.5
+- ✓ Extracted reusable hooks: useInlineEdit, useContractFiltering, useFieldValidation -- v1.5
+- ✓ Component decomposition: LegalMetaBadge (11 subcomponents), ScopeMetaBadge (4), ContractReview (3 subcomponents) -- v1.5
+- ✓ ToastProvider context with useToast hook — eliminated prop drilling -- v1.5
+- ✓ Zod as single source of truth for Finding type, client-side response validation, localStorage migration -- v1.5
+- ✓ Server-side modularization: api/passes.ts extracted, analyze.ts slimmed to ~443 lines -- v1.5
+- ✓ Zero tsc --noEmit errors across entire codebase -- v1.5
+- ✓ Request validation schema for /api/analyze POST body -- v1.5
+- ✓ merge.ts assertion casts replaced with Zod safeParse type guards -- v1.5
 
 ### Active
 
-#### Component Decomposition
-- [ ] Split ContractReview.tsx — extract filter/sort logic to hook
-- [ ] Split LegalMetaBadge.tsx — 12 clause subcomponents
-- [ ] Split ScopeMetaBadge.tsx — scope metadata subcomponents
-- [ ] Modularize api/analyze.ts — schemas, pass config, orchestration
-- [ ] Refactor api/merge.ts — finding conversion + dedup modules
-
-#### Type Safety
-- [ ] Reconcile Zod/TS optionality drift
-- [ ] Validate API response on client with Zod
-- [ ] Replace merge.ts casts with type guards
-- [ ] Create request validation schema for POST body
-
-#### Pattern Consolidation
-- [ ] Centralize localStorage access (storage manager)
-- [ ] Centralize error handling utility
-- [ ] Centralize color/severity mapping (palette map)
-- [ ] Extract toast to useToast context
-
-#### Hook Extraction
-- [ ] Create useInlineEdit hook
-- [ ] Create useContractFiltering hook
-- [ ] Create useFieldValidation hook
+(No active requirements — next milestone not yet defined. Use `/gsd:new-milestone` to start.)
 
 ### Out of Scope
 
@@ -108,20 +95,21 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ## Context
 
-Shipped v1.4 with ~9,669 LOC TypeScript across client, server, and knowledge modules.
+Shipped v1.5 with ~10,809 LOC TypeScript across client, server, and knowledge modules.
 Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF.
-Deployed on Vercel with serverless function (api/analyze.ts + api/pdf.ts).
+Deployed on Vercel with serverless function (api/analyze.ts + api/passes.ts + api/pdf.ts).
 17-pass analysis pipeline (16 specialized + 1 synthesis) via Files API upload-once/analyze-many pattern.
 16 knowledge modules across 3 domains (regulatory, trade, standards) with expiration-based staleness warnings.
 Category-weighted risk scoring with compound risk detection across pass boundaries.
 Company profile with localStorage persistence drives insurance/bonding comparison and bid/no-bid signals.
-All structured outputs via Zod v3 schemas converted to JSON Schema.
-Contracts persist in localStorage with full CRUD. URL-based routing via custom History API hook.
+All structured outputs via Zod v3 schemas converted to JSON Schema. Finding type derived from z.infer (Zod is single source of truth).
+Contracts persist in localStorage with full CRUD and v1→v2 migration. URL-based routing via custom History API hook.
 Finding workflow: resolve/annotate, hide resolved, multi-select filters, filter-aware CSV export.
 Actionable output: PDF reports, action priority badges, negotiation checklist tab, bid signal factor breakdown.
 Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, finding preservation across re-analysis.
+Code health: shared utilities (storageManager, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors.
 
-Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyquist validation partial.
+Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyquist validation not compliant (no test framework).
 
 ## Constraints
 
@@ -171,17 +159,24 @@ Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyqu
 | Composite key for finding preservation across re-analysis | clauseReference+category matches old→new findings to preserve resolved/notes | ✓ Good -- user work survives re-analysis |
 | Set-based multi-select filter state | All-selected = no filtering; clean toggle semantics | ✓ Good -- intuitive behavior |
 | Compare route transient (no sidebar entry) | Contract comparison is ad-hoc action, not persistent navigation | ✓ Good -- clean navigation |
+| StorageResult<T> wrapper for all storage ops | Typed ok/data/error/quotaExceeded; replaces try/catch at each call site | ✓ Good -- consistent error handling |
+| Zod as single source of truth (z.infer) | Finding type derived from MergedFindingSchema; eliminates optionality drift | ✓ Good -- zero Zod/TS mismatches |
+| localStorage v1→v2 migration | Fills newly-required fields with safe defaults instead of clearing data | ✓ Good -- backward compatible |
+| Record<DiscriminantType, FC> dispatcher pattern | MetaBadge decomposition uses type-safe dispatch map instead of switch/case | ✓ Good -- clean component routing |
+| Toast fixed positioning + provider timer | Auto-dismiss 3s timer in ToastProvider, not in each caller | ✓ Good -- centralized behavior |
+| Incremental extraction over wholesale rewrite | Safer without test coverage; each phase verifiable independently | ✓ Good -- zero regressions |
+| Server modularization last | Highest regression risk; verify all client phases first | ✓ Good -- caught TYPE-01 gap before touching server |
+| Coalesce undefined at store level | `note ?? ''` in updateFindingNote for Finding.note type safety | ✓ Good -- single fix point |
 
 ---
-## Current Milestone: v1.5 Code Health
+## Completed Milestones
 
-**Goal:** Broad refactoring sweep — decompose god components, fix type safety gaps, consolidate scattered patterns, extract reusable hooks.
-
-**Target features:**
-- Component decomposition (ContractReview, LegalMetaBadge, ScopeMetaBadge, analyze.ts, merge.ts)
-- Type safety (Zod/TS reconciliation, client validation, type guards, request schema)
-- Pattern consolidation (localStorage, error handling, color mapping, toast context)
-- Hook extraction (useInlineEdit, useContractFiltering, useFieldValidation)
+- **v1.0** Enhanced Analysis Release (2026-03-06) -- 16-pass analysis pipeline, findings with clause quotes
+- **v1.1** Domain Intelligence (2026-03-10) -- knowledge modules, company profile, bid/no-bid signals
+- **v1.2** UX Foundations (2026-03-12) -- persistence, contract management, upload error feedback
+- **v1.3** Workflow Completion (2026-03-13) -- routing, finding actions, settings, re-analyze, CSV export
+- **v1.4** Production Readiness (2026-03-15) -- risk scoring, PDF reports, action priority, portfolio intelligence
+- **v1.5** Code Health (2026-03-15) -- shared utilities, hook extraction, component decomposition, type safety
 
 ---
-*Last updated: 2026-03-15 after v1.5 milestone started*
+*Last updated: 2026-03-15 after v1.5 milestone*

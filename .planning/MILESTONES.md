@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.5 Code Health (Shipped: 2026-03-15)
+
+**Phases:** 27-32 (12 plans)
+**Timeline:** 2 days (2026-03-14 → 2026-03-15)
+**Code:** 55 commits, 10,809 LOC TypeScript total
+**Requirements:** 16/16 satisfied
+**Audit:** PASSED (re-audited after Phase 32 gap closure)
+
+**Key accomplishments:**
+- Centralized localStorage access (storageManager), error handling (classifyError), and severity palette into shared utilities — eliminated scattered inline patterns
+- Extracted 3 reusable hooks: useInlineEdit (shared edit state machine), useContractFiltering (filter/group/sort with persistence), useFieldValidation (onBlur validate/save/revert)
+- Decomposed god components: LegalMetaBadge (11 subcomponents), ScopeMetaBadge (4 subcomponents), ContractReview split into ReviewHeader + FilterToolbar + RiskSummary orchestrator
+- Created ToastProvider context with useToast hook — eliminated prop drilling from App.tsx through page components
+- Hardened type safety: Zod as single source of truth for Finding type (z.infer), client-side response validation with safeParse, localStorage v1→v2 migration, zero assertion casts in merge.ts
+- Modularized 1,478-line api/analyze.ts into api/passes.ts (16 pass definitions) + slim handler (~443 lines)
+- Zero tsc --noEmit errors across entire codebase after Phase 32 gap closure
+
+**Tech debt carried forward:**
+- Human UAT (live API + real contract) not yet performed
+- vercel.json maxDuration: 300 may require Vercel Pro plan
+- Nyquist validation not compliant (no test framework configured)
+
+---
+
 ## v1.4 Production Readiness (Shipped: 2026-03-15)
 
 **Phases:** 22-26 (11 plans)

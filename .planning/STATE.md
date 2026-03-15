@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: completed
-stopped_at: Completed 32-01-PLAN.md
-last_updated: "2026-03-15T20:01:31.208Z"
-last_activity: 2026-03-15 -- Completed 32-01 type safety gap closure
+status: milestone_complete
+stopped_at: v1.5 milestone archived
+last_updated: "2026-03-15T21:30:00.000Z"
+last_activity: 2026-03-15 -- v1.5 Code Health milestone archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -20,14 +20,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 32 Type Safety Gap Closure complete
+**Current focus:** v1.5 Code Health shipped. Planning next milestone.
 
 ## Current Position
 
-Phase: 32 of 32 (Type Safety Gap Closure) -- sixth of 6 phases in v1.5
-Plan: 1 of 1 in current phase (32-01 complete)
-Status: Phase 32 complete
-Last activity: 2026-03-15 -- Completed 32-01 type safety gap closure
+Milestone: v1.5 Code Health -- SHIPPED 2026-03-15
+All 6 milestones complete (v1.0 through v1.5, 32 phases, 57 plans total)
+Next step: `/gsd:new-milestone` to define v1.6
 
 ## Performance Metrics
 
@@ -36,35 +35,13 @@ Last activity: 2026-03-15 -- Completed 32-01 type safety gap closure
 **v1.2 (Phases 11-14):** 5 plans, single session (parallel waves)
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
+**v1.5 (Phases 27-32):** 12 plans, 2 days
 
 ## Accumulated Context
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (37 decisions).
-Recent decisions affecting v1.5:
-
-- Incremental extraction over wholesale rewrite -- safer without test coverage
-- No new runtime dependencies -- all refactoring uses existing stack
-- Server modularization last -- highest regression risk, verify client phases first
-- [Phase 27]: StorageResult<T> wrapper with ok/data/error/quotaExceeded for all storage operations
-- [Phase 27]: Kept CompanyProfileSchema in api/analyze.ts nested inside AnalyzeRequestSchema
-- [Phase 27]: Added border classes to getRiskBadgeColor for ContractComparison compatibility (inert without border-width)
-- [Phase 28]: Kept useFieldValidation validate callback generic (not tied to FieldType) for reusability
-- [Phase 28]: Added setFilterSet to useContractFiltering for MultiSelectDropdown full-Set onChange compatibility
-- [Phase 29]: Duplicated pillBase in LegalMetaBadge/shared.ts and ScopeMetaBadge/shared.ts rather than cross-directory import
-- [Phase 29]: Used Record<DiscriminantType, FC<{meta: any}>> dispatcher pattern for MetaBadge decomposition
-- [Phase 29]: Toast.tsx changed from absolute to fixed positioning; auto-dismiss timer moved to ToastProvider (3s)
-- [Phase 29]: Kept useCompanyProfile in ContractReview (profile banner is in main content, not header)
-- [Phase 29]: Exported ViewMode type from FilterToolbar for ContractReview import
-- [Phase 30]: Finding type derived from z.infer<MergedFindingSchema> -- Zod is single source of truth
-- [Phase 30]: LegalMeta/ScopeMeta TS interfaces kept in contract.ts alongside Zod mirrors to avoid circular deps
-- [Phase 30]: localStorage migration fills defaults inline rather than clearing data
-- [Phase 30]: createHandler<T> generic dispatch map for type-safe pass routing in merge.ts
-- [Phase 30]: Re-exported AnalysisResult type from analyzeContract.ts for downstream compatibility
-- [Phase 30]: Added import type alongside export type for Finding -- local scope + external re-export
-- [Phase 31]: AnalysisPass.schema typed as z.ZodTypeAny in passes.ts to avoid circular dependency on analyze.ts
-- [Phase 32]: Coalesce undefined to empty string at store level for Finding.note type safety
+Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 milestones).
 
 ### Pending Todos
 
@@ -72,14 +49,12 @@ None.
 
 ### Blockers/Concerns
 
-- Tailwind JIT purge risk: severity palette map must use complete class strings, not fragments
-- Zod/TS reconciliation requires localStorage migration for existing contracts (RESOLVED in 30-01)
-- Vercel `export const config` must stay in api/analyze.ts entry file during modularization
 - Human UAT (live API + real contract) not yet performed (carried forward)
 - vercel.json maxDuration: 300 may require Vercel Pro plan (carried forward)
+- Nyquist validation not compliant (no test framework configured)
 
 ## Session Continuity
 
-Last session: 2026-03-15T19:56:57.415Z
-Stopped at: Completed 32-01-PLAN.md
-Resume with: v1.5 Code Health milestone complete -- all phases and plans done
+Last session: 2026-03-15
+Stopped at: v1.5 milestone archived
+Resume with: `/gsd:new-milestone` to start v1.6
