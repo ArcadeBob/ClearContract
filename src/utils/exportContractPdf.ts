@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Contract, Finding, Severity, CATEGORIES } from '../types/contract';
+import { Contract, Severity, CATEGORIES } from '../types/contract';
 import { sanitizeFilename } from './exportContractCsv';
 
 type RGB = [number, number, number];

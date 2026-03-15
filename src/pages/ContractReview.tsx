@@ -9,6 +9,7 @@ import { AnalysisProgress } from '../components/AnalysisProgress';
 import { BidSignalWidget } from '../components/BidSignalWidget';
 import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
+import { NegotiationChecklist } from '../components/NegotiationChecklist';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
 import { exportContractPdf } from '../utils/exportContractPdf';
@@ -27,11 +28,12 @@ import {
   Loader2,
   Pencil,
   FileText,
+  Handshake,
 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AnimatePresence } from 'framer-motion';
 
-type ViewMode = 'by-category' | 'by-severity' | 'coverage';
+type ViewMode = 'by-category' | 'by-severity' | 'coverage' | 'negotiation';
 
 function EmptyFindings() {
   return (
@@ -443,6 +445,17 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                     <Shield className="w-4 h-4" />
                     Coverage
                   </button>
+                  <button
+                    onClick={() => setViewMode('negotiation')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'negotiation'
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Handshake className="w-4 h-4" />
+                    Negotiation
+                  </button>
                 </div>
                 <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
                   <input
@@ -464,7 +477,9 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
               )}
 
               {/* Findings display */}
-              {viewMode === 'coverage' ? (
+              {viewMode === 'negotiation' ? (
+                <NegotiationChecklist findings={contract.findings} onToggleResolved={onToggleResolved} />
+              ) : viewMode === 'coverage' ? (
                 <CoverageComparisonTab findings={contract.findings} />
               ) : viewMode === 'by-category' ? (
                 <div className="space-y-6">
