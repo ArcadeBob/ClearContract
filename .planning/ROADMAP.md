@@ -84,7 +84,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 - [x] **Phase 27: Foundation Utilities** - Storage manager, error handling, severity palette, and POST body validation (completed 2026-03-15)
 - [x] **Phase 28: Hook Extraction** - useInlineEdit, useContractFiltering, useFieldValidation (completed 2026-03-15)
 - [x] **Phase 29: Component Decomposition + Toast Context** - LegalMetaBadge split, ScopeMetaBadge split, toast context, ContractReview wired to hooks (completed 2026-03-15)
-- [ ] **Phase 30: Type Safety Hardening** - Zod/TS reconciliation, client response validation, merge.ts type guards
+- [x] **Phase 30: Type Safety Hardening** - Zod/TS reconciliation, client response validation, merge.ts type guards (completed 2026-03-15)
 - [ ] **Phase 31: Server-side API Modularization** - analyze.ts split into passes/lib/conversion, merge.ts extraction
 
 ## Phase Details
@@ -203,5 +203,5 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
 | 28. Hook Extraction | 2/2 | Complete    | 2026-03-15 | - |
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
-| 30. Type Safety Hardening | 1/2 | In Progress|  | - |
+| 30. Type Safety Hardening | 2/2 | Complete   | 2026-03-15 | - |
 | 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |

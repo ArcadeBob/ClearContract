@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: in-progress
-stopped_at: Completed 30-01-PLAN.md
-last_updated: "2026-03-15T16:06:41.000Z"
-last_activity: 2026-03-15 -- Completed 30-01 canonical Finding schema + migration
+status: executing
+stopped_at: Completed 30-02-PLAN.md
+last_updated: "2026-03-15T16:17:00.000Z"
+last_activity: 2026-03-15 -- Completed 30-02 merge cast elimination + client validation
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 30 of 31 (Type Safety Hardening) -- fourth of 5 phases in v1.5
-Plan: 1 of 2 in current phase (30-01 complete)
-Status: Phase 30 in progress
-Last activity: 2026-03-15 -- Completed 30-01 canonical Finding schema + migration
+Plan: 2 of 2 in current phase (30-02 complete -- phase complete)
+Status: Phase 30 complete
+Last activity: 2026-03-15 -- Completed 30-02 merge cast elimination + client validation
 
 ## Performance Metrics
 
@@ -60,6 +60,8 @@ Recent decisions affecting v1.5:
 - [Phase 30]: Finding type derived from z.infer<MergedFindingSchema> -- Zod is single source of truth
 - [Phase 30]: LegalMeta/ScopeMeta TS interfaces kept in contract.ts alongside Zod mirrors to avoid circular deps
 - [Phase 30]: localStorage migration fills defaults inline rather than clearing data
+- [Phase 30]: createHandler<T> generic dispatch map for type-safe pass routing in merge.ts
+- [Phase 30]: Re-exported AnalysisResult type from analyzeContract.ts for downstream compatibility
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:06:41.000Z
-Stopped at: Completed 30-01-PLAN.md
-Resume with: `/gsd:execute-phase 30` to continue with 30-02
+Last session: 2026-03-15T16:17:00.000Z
+Stopped at: Completed 30-02-PLAN.md
+Resume with: `/gsd:execute-phase 31` to continue with next phase
