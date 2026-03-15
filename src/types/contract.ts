@@ -1,3 +1,5 @@
+import type { MergedFinding as Finding } from '../schemas/finding';
+
 export const SEVERITIES = ['Critical', 'High', 'Medium', 'Low', 'Info'] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
