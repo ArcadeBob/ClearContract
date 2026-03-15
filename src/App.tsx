@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -7,12 +6,13 @@ import { ContractReview } from './pages/ContractReview';
 import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
 import { ContractComparison } from './pages/ContractComparison';
-import { Toast, ToastData } from './components/Toast';
 import { useContractStore } from './hooks/useContractStore';
 import { useRouter } from './hooks/useRouter';
+import { useToast } from './hooks/useToast';
 import { Contract, Finding } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
 import { classifyError } from './utils/errors';
+
 export function App() {
   const {
     contracts,
@@ -26,7 +26,7 @@ export function App() {
   } = useContractStore();
   const { activeView, activeContractId, compareIds, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const { showToast } = useToast();
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
@@ -90,16 +90,14 @@ export function App() {
         }
 
         const classified = classifyError(err);
-        setToast({
+        showToast({
           type: 'error',
           message: classified.userMessage,
           ...(classified.retryable ? {
             onRetry: () => {
-              setToast(null);
               handleUploadComplete(file);
             },
           } : {}),
-          onDismiss: () => setToast(null),
         });
       })
       .finally(() => {
@@ -171,10 +169,9 @@ export function App() {
             ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
             : 'Analysis complete \u2014 findings updated.';
 
-        setToast({
+        showToast({
           type: 'success',
           message: preserveMsg,
-          onDismiss: () => setToast(null),
         });
       })
       .catch((err) => {
@@ -182,16 +179,14 @@ export function App() {
         updateContract(contractId, snapshot);
 
         const classified = classifyError(err);
-        setToast({
+        showToast({
           type: 'error',
           message: classified.userMessage + ' Your previous findings are unchanged.',
           ...(classified.retryable ? {
             onRetry: () => {
-              setToast(null);
               handleReanalyze(contractId, file);
             },
           } : {}),
-          onDismiss: () => setToast(null),
         });
       })
       .finally(() => {
@@ -225,7 +220,6 @@ export function App() {
             onUpdateNote={(findingId, note) => updateFindingNote(activeContract.id, findingId, note)}
             onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
             isReanalyzing={reanalyzingId === activeContract.id}
-            onShowToast={({ type, message }) => setToast({ type, message, onDismiss: () => setToast(null) })}
             onRename={(id, name) => updateContract(id, { name })}
           />
         );
@@ -272,9 +266,6 @@ export function App() {
       )}
 
       <main className="flex-1 h-full overflow-hidden relative">
-        <AnimatePresence>
-          {toast && <Toast {...toast} />}
-        </AnimatePresence>
         {renderContent()}
       </main>
     </div>
