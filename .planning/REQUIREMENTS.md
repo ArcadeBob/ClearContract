@@ -75,41 +75,41 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Pending | Pending |
-| INFRA-02 | Pending | Pending |
-| INFRA-03 | Pending | Pending |
-| INFRA-04 | Pending | Pending |
-| INFRA-05 | Pending | Pending |
-| INFRA-06 | Pending | Pending |
-| UNIT-01 | Pending | Pending |
-| UNIT-02 | Pending | Pending |
-| UNIT-03 | Pending | Pending |
-| UNIT-04 | Pending | Pending |
-| UNIT-05 | Pending | Pending |
-| UNIT-06 | Pending | Pending |
-| HOOK-01 | Pending | Pending |
-| HOOK-02 | Pending | Pending |
-| HOOK-03 | Pending | Pending |
-| HOOK-04 | Pending | Pending |
-| COMP-01 | Pending | Pending |
-| COMP-02 | Pending | Pending |
-| COMP-03 | Pending | Pending |
-| COMP-04 | Pending | Pending |
-| COMP-05 | Pending | Pending |
-| INTG-01 | Pending | Pending |
-| INTG-02 | Pending | Pending |
-| INTG-03 | Pending | Pending |
-| INTG-04 | Pending | Pending |
-| UAT-01 | Pending | Pending |
-| UAT-02 | Pending | Pending |
-| UAT-03 | Pending | Pending |
-| UAT-04 | Pending | Pending |
+| INFRA-01 | Phase 33 | Pending |
+| INFRA-02 | Phase 33 | Pending |
+| INFRA-03 | Phase 33 | Pending |
+| INFRA-04 | Phase 33 | Pending |
+| INFRA-05 | Phase 38 | Pending |
+| INFRA-06 | Phase 38 | Pending |
+| UNIT-01 | Phase 34 | Pending |
+| UNIT-02 | Phase 34 | Pending |
+| UNIT-03 | Phase 34 | Pending |
+| UNIT-04 | Phase 34 | Pending |
+| UNIT-05 | Phase 34 | Pending |
+| UNIT-06 | Phase 34 | Pending |
+| HOOK-01 | Phase 35 | Pending |
+| HOOK-02 | Phase 35 | Pending |
+| HOOK-03 | Phase 35 | Pending |
+| HOOK-04 | Phase 35 | Pending |
+| COMP-01 | Phase 36 | Pending |
+| COMP-02 | Phase 36 | Pending |
+| COMP-03 | Phase 36 | Pending |
+| COMP-04 | Phase 36 | Pending |
+| COMP-05 | Phase 36 | Pending |
+| INTG-01 | Phase 37 | Pending |
+| INTG-02 | Phase 37 | Pending |
+| INTG-03 | Phase 37 | Pending |
+| INTG-04 | Phase 37 | Pending |
+| UAT-01 | Phase 38 | Pending |
+| UAT-02 | Phase 38 | Pending |
+| UAT-03 | Phase 38 | Pending |
+| UAT-04 | Phase 38 | Pending |
 
 **Coverage:**
 - v1.6 requirements: 29 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 29
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after initial definition*
+*Last updated: 2026-03-15 after roadmap creation*

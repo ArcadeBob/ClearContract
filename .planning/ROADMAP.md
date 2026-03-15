@@ -8,6 +8,7 @@
 - ✅ **v1.3 Workflow Completion** -- Phases 15-21 (shipped 2026-03-13)
 - ✅ **v1.4 Production Readiness** -- Phases 22-26 (shipped 2026-03-15)
 - ✅ **v1.5 Code Health** -- Phases 27-32 (shipped 2026-03-15)
+- 🚧 **v1.6 Quality & Validation** -- Phases 33-38 (in progress)
 
 ## Phases
 
@@ -91,7 +92,120 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 </details>
 
+### 🚧 v1.6 Quality & Validation (In Progress)
+
+**Milestone Goal:** Establish comprehensive test coverage and validation for a shipped 10,809-LOC application that currently has zero test infrastructure. Proves correctness of core business logic, UI components, API pipeline, and deployment configuration through automated tests and manual UAT.
+
+- [ ] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test
+- [ ] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas
+- [ ] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks
+- [ ] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar
+- [ ] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance
+- [ ] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds
+
+## Phase Details
+
+### Phase 33: Test Infrastructure
+**Goal**: Developer can run `npm run test` and see a passing test suite with both jsdom and node environments working
+**Depends on**: Nothing (first phase of v1.6)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04
+**Success Criteria** (what must be TRUE):
+  1. Running `npm run test` executes Vitest and exits with zero failures (at least one trivial test passes)
+  2. A component test file renders a React component in jsdom without errors (RTL + jest-dom matchers work)
+  3. An API test file imports a server module in node environment without jsdom contamination
+  4. Framer Motion components render in tests without animation errors or hangs
+  5. Test utility factories produce valid Contract and Finding objects that pass Zod schema validation
+**Plans**: TBD
+
+Plans:
+- [ ] 33-01: TBD
+- [ ] 33-02: TBD
+
+### Phase 34: Pure Logic Unit Tests
+**Goal**: Core business logic is proven correct through automated tests that catch regressions in risk scoring, finding merge, bid signals, error handling, storage, and schema validation
+**Depends on**: Phase 33
+**Requirements**: UNIT-01, UNIT-02, UNIT-03, UNIT-04, UNIT-05, UNIT-06
+**Success Criteria** (what must be TRUE):
+  1. Risk score computation returns deterministic values for known finding distributions and correctly applies category weights
+  2. Merge logic deduplicates findings by composite key, prefers specialized-pass findings, and handles all 16 pass schema shapes
+  3. Bid signal computation produces correct traffic light values for all 5 weighted factor combinations including edge cases
+  4. Error classifier maps network errors, API errors, validation errors, and unknown errors to their correct categories
+  5. Storage manager handles get/set/delete operations, quota exceeded errors, and v1-to-v2 migration correctly
+**Plans**: TBD
+
+Plans:
+- [ ] 34-01: TBD
+- [ ] 34-02: TBD
+- [ ] 34-03: TBD
+
+### Phase 35: Hook Tests
+**Goal**: React hooks that manage application state, filtering, inline editing, and field validation are proven to behave correctly through renderHook-based tests
+**Depends on**: Phase 34
+**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04
+**Success Criteria** (what must be TRUE):
+  1. useContractStore correctly performs CRUD on contracts, transitions contract state, and updates finding resolved/note fields
+  2. useInlineEdit follows the edit state machine (idle -> editing -> saving -> idle) and handles cancel and error paths
+  3. useContractFiltering produces correct filtered/grouped/sorted output for multi-select filter combinations
+  4. useFieldValidation calls onBlur validate, reverts to last good value on invalid input, and saves on valid input
+**Plans**: TBD
+
+Plans:
+- [ ] 35-01: TBD
+- [ ] 35-02: TBD
+
+### Phase 36: Component Tests
+**Goal**: Key UI components render correctly with all data variations, respond to user interaction, and display appropriate visual states
+**Depends on**: Phase 34
+**Requirements**: COMP-01, COMP-02, COMP-03, COMP-04, COMP-05
+**Success Criteria** (what must be TRUE):
+  1. FindingCard renders clause text, explanation, severity badge, and metadata for all severity levels including Critical, High, Medium, Low, and Info
+  2. SeverityBadge displays correct color and label text for every severity value in the system
+  3. UploadZone accepts PDF files within size limits, rejects non-PDF files, rejects oversized files, and shows appropriate error messages
+  4. FilterToolbar toggles filter selections on click, visually indicates active filters, and updates the filtered results
+  5. Sidebar renders all navigation views, highlights the currently active view, and triggers navigation on click
+**Plans**: TBD
+
+Plans:
+- [ ] 36-01: TBD
+- [ ] 36-02: TBD
+
+### Phase 37: API Integration Tests
+**Goal**: The /api/analyze endpoint correctly validates input, handles all error conditions, and processes the full 17-pass pipeline through to merged findings with risk score
+**Depends on**: Phase 33
+**Requirements**: INTG-01, INTG-02, INTG-03, INTG-04
+**Success Criteria** (what must be TRUE):
+  1. A valid PDF payload sent to /api/analyze returns a 200 response with structured analysis containing findings, risk score, and dates
+  2. The endpoint returns 400 for missing/malformed body, 401 for missing API key, 422 for image-based PDFs, and 429 for rate-limited requests
+  3. A full pipeline mock test exercises all 16 passes plus synthesis and produces merged findings with correct deduplication and risk scoring
+  4. Every finding in the API response validates against MergedFindingSchema with no Zod parse errors
+**Plans**: TBD
+
+Plans:
+- [ ] 37-01: TBD
+- [ ] 37-02: TBD
+
+### Phase 38: UAT, CI, and Coverage Enforcement
+**Goal**: The application is validated end-to-end through manual UAT, regression fixtures, live API verification, deployment config check, CI pipeline, and coverage thresholds
+**Depends on**: Phase 35, Phase 36, Phase 37
+**Requirements**: UAT-01, UAT-02, UAT-03, UAT-04, INFRA-05, INFRA-06
+**Success Criteria** (what must be TRUE):
+  1. A written UAT checklist exists covering the full user workflow (upload, analyze, review findings, resolve/annotate, filter, export CSV, export PDF, compare contracts)
+  2. A mocked regression suite replays captured API response fixtures and validates the pipeline produces correct output without calling the live API
+  3. A live API test suite (manual trigger via `npm run test:live`) validates real API responses against Zod schemas
+  4. Vercel Pro configuration is verified with 300s maxDuration working on the deployed endpoint
+  5. GitHub Actions CI runs tests on push/PR and fails the build if coverage drops below configured thresholds
+**Plans**: TBD
+
+Plans:
+- [ ] 38-01: TBD
+- [ ] 38-02: TBD
+- [ ] 38-03: TBD
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
+(Phases 35 and 36 both depend on 34; Phase 37 depends only on 33 but benefits from 34's fixtures)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -127,3 +241,9 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 | 30. Type Safety Hardening | v1.5 | 3/3 | Complete | 2026-03-15 |
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
+| 33. Test Infrastructure | v1.6 | 0/TBD | Not started | - |
+| 34. Pure Logic Unit Tests | v1.6 | 0/TBD | Not started | - |
+| 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
+| 36. Component Tests | v1.6 | 0/TBD | Not started | - |
+| 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
+| 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |
