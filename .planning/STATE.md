@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Production Readiness
-status: completed
-stopped_at: Phase 25 context gathered
-last_updated: "2026-03-15T01:19:23.070Z"
-last_activity: 2026-03-15 -- Completed 24-02 PDF report + negotiation checklist
+status: in-progress
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-03-15T01:36:00.000Z"
+last_activity: 2026-03-15 -- Completed 25-01 patterns card + multi-select filters
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.4 Production Readiness -- Phase 24: Actionable Output
+**Current focus:** v1.4 Production Readiness -- Phase 25: Portfolio Intelligence
 
 ## Current Position
 
-Phase: 24 of 25 (Actionable Output)
-Plan: 2 of 2 complete
-Status: Phase 24 complete
-Last activity: 2026-03-15 -- Completed 24-02 PDF report + negotiation checklist
+Phase: 25 of 25 (Portfolio Intelligence)
+Plan: 1 of 2 complete
+Status: Executing phase 25
+Last activity: 2026-03-15 -- Completed 25-01 patterns card + multi-select filters
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -62,6 +62,8 @@ Full decision log in PROJECT.md Key Decisions table (31 decisions).
 - [Phase 24]: jsPDF + jspdf-autotable for client-side PDF generation (no server roundtrip)
 - [Phase 24]: Letter format for US construction industry; negotiation section limited to Critical/High
 - [Phase 24]: NegotiationChecklist uncategorized group for backward compat with old contracts
+- [Phase 25]: PatternsCard full-width row below stat cards (list layout better than single-number stat card)
+- [Phase 25]: Set-based filter state; all-selected = no filtering; findings without actionPriority hidden when priority filter active
 
 ### Pending Todos
 
@@ -74,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T01:19:23.068Z
-Stopped at: Phase 25 context gathered
+Last session: 2026-03-15T01:36:00.000Z
+Stopped at: Completed 25-01-PLAN.md
 Resume with: /gsd:execute-phase 25
