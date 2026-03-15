@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
 status: completed
-stopped_at: Phase 28 context gathered
-last_updated: "2026-03-15T05:37:28.013Z"
-last_activity: 2026-03-15 -- Completed 27-02 call site migration (Phase 27 done)
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-03-15T05:56:09.567Z"
+last_activity: 2026-03-15 -- Completed 28-02 useFieldValidation hook extraction
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 27 Foundation Utilities
+**Current focus:** v1.5 Code Health -- Phase 28 Hook Extraction
 
 ## Current Position
 
-Phase: 27 of 31 (Foundation Utilities) -- first of 5 phases in v1.5
-Plan: 2 of 2 in current phase (PHASE COMPLETE)
-Status: Phase 27 complete
-Last activity: 2026-03-15 -- Completed 27-02 call site migration (Phase 27 done)
+Phase: 28 of 31 (Hook Extraction) -- second of 5 phases in v1.5
+Plan: 2 of 2 in current phase
+Status: 28-02 complete
+Last activity: 2026-03-15 -- Completed 28-02 useFieldValidation hook extraction
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Recent decisions affecting v1.5:
 - [Phase 27]: StorageResult<T> wrapper with ok/data/error/quotaExceeded for all storage operations
 - [Phase 27]: Kept CompanyProfileSchema in api/analyze.ts nested inside AnalyzeRequestSchema
 - [Phase 27]: Added border classes to getRiskBadgeColor for ContractComparison compatibility (inert without border-width)
+- [Phase 28]: Kept useFieldValidation validate callback generic (not tied to FieldType) for reusability
 
 ### Pending Todos
 
@@ -65,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T05:37:28.011Z
-Stopped at: Phase 28 context gathered
-Resume with: `/gsd:execute-phase 28` (next phase)
+Last session: 2026-03-15T05:56:09.565Z
+Stopped at: Completed 28-02-PLAN.md
+Resume with: `/gsd:execute-phase 28` (complete remaining plans or advance to 29)
