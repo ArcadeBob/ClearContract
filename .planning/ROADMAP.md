@@ -6,7 +6,7 @@
 - v1.1 Domain Intelligence -- Phases 7-10 (shipped 2026-03-10)
 - v1.2 UX Foundations -- Phases 11-14 (shipped 2026-03-12)
 - v1.3 Workflow Completion -- Phases 15-21 (shipped 2026-03-13)
-- v1.4 Production Readiness -- Phases 22-26 (in progress)
+- v1.4 Production Readiness -- Phases 22-26 (shipped 2026-03-15)
 
 ## Phases
 
@@ -63,96 +63,18 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 
 </details>
 
-### v1.4 Production Readiness (In Progress)
+<details>
+<summary>v1.4 Production Readiness (Phases 22-26) -- SHIPPED 2026-03-15</summary>
 
-**Milestone Goal:** Clean up tech debt, strengthen the analysis pipeline, and deliver actionable output formats and cross-contract intelligence.
+- [x] Phase 22: Polish & Trust (3/3 plans) -- completed 2026-03-14
+- [x] Phase 23: Analysis Quality (3/3 plans) -- completed 2026-03-14
+- [x] Phase 24: Actionable Output (2/2 plans) -- completed 2026-03-15
+- [x] Phase 25: Portfolio Intelligence (2/2 plans) -- completed 2026-03-15
+- [x] Phase 26: Audit Gap Closure (1/1 plan) -- completed 2026-03-15 [GAP CLOSURE]
 
-- [x] **Phase 22: Polish & Trust** - Eliminate tech debt and deliver UX quick wins that build confidence in the tool (completed 2026-03-14)
-- [x] **Phase 23: Analysis Quality** - Strengthen the analysis pipeline with cross-pass synthesis, better knowledge, and cleaner scoring (completed 2026-03-14)
-- [x] **Phase 24: Actionable Output** - Give the user deliverables they can hand to others -- PDF reports, prioritized actions, negotiation checklists (completed 2026-03-15)
-- [x] **Phase 25: Portfolio Intelligence** - Enable cross-contract insights, comparison, and smarter re-analysis across stored contracts (completed 2026-03-15)
-- [x] **Phase 26: Audit Gap Closure** - Close integration gap, fix misleading dialog, and remove placeholder buttons [GAP CLOSURE] (completed 2026-03-15)
+See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
-## Phase Details
-
-### Phase 22: Polish & Trust
-**Goal**: The codebase is clean of known debt and the UI communicates contract status with precision
-**Depends on**: Nothing (first phase of v1.4)
-**Requirements**: DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05, DEBT-06, UX-01, UX-02, UX-03, UX-04, UX-05, UX-06
-**Success Criteria** (what must be TRUE):
-  1. No duplicate type definitions, dead code, or redundant schema copies exist in the codebase (DEBT-01 through DEBT-05 resolved)
-  2. Browser back/forward behavior is consistent across all navigation paths including replaceState vs pushState (DEBT-06)
-  3. User can rename a contract from the review page and see the new name reflected on dashboard, sidebar, and all contracts list (UX-01)
-  4. Dashboard cards, review page, and date timeline show data-driven status -- open/resolved counts, days-until urgency coloring, bid signal factor breakdown, and upcoming deadlines replacing the static compliance card (UX-02, UX-03, UX-04, UX-05)
-  5. Upload flow has a back/cancel escape and re-analyze failure returns user to the review page instead of the upload view (UX-06)
-**Plans**: 3 plans
-
-Plans:
-- [ ] 22-01-PLAN.md -- Tech debt cleanup (DEBT-01 through DEBT-06)
-- [ ] 22-02-PLAN.md -- Contract rename, finding counts, upcoming deadlines (UX-01, UX-02, UX-05)
-- [ ] 22-03-PLAN.md -- Timeline urgency, bid signal breakdown, upload escape (UX-03, UX-04, UX-06)
-
-### Phase 23: Analysis Quality
-**Goal**: The 16-pass analysis pipeline produces more accurate, better-scored, and more comprehensive findings
-**Depends on**: Phase 22
-**Requirements**: PIPE-01, PIPE-02, PIPE-03, PIPE-04, PIPE-05, PIPE-06
-**Success Criteria** (what must be TRUE):
-  1. After all 16 passes complete, a synthesis pass identifies compound risks that span multiple clause types and surfaces them as distinct findings (PIPE-01)
-  2. Currently-empty passes gain CA knowledge modules for insurance law, public works payment, and dispute resolution statutes (PIPE-02)
-  3. Risk score uses category-weighted formula and excludes synthetic error findings from computation; ca-title24 module reflects 2025 code cycle with staleness warning system (PIPE-03, PIPE-05)
-  4. Verbiage pass findings focus on missing standard protections without duplicating legal pass output (PIPE-04)
-  5. Bid signal match functions query structured metadata fields instead of scanning finding text strings (PIPE-06)
-**Plans**: 3 plans
-
-Plans:
-- [ ] 23-01-PLAN.md -- Knowledge modules, staleness warnings, Title 24 update (PIPE-02, PIPE-05)
-- [ ] 23-02-PLAN.md -- Category-weighted scoring, bid signal fix, verbiage refocus (PIPE-03, PIPE-04, PIPE-06)
-- [ ] 23-03-PLAN.md -- Cross-pass synthesis pass for compound risk detection (PIPE-01)
-
-### Phase 24: Actionable Output
-**Goal**: Users can produce shareable deliverables and work through findings in priority order
-**Depends on**: Phase 23
-**Requirements**: OUT-01, OUT-02, OUT-03, OUT-04
-**Success Criteria** (what must be TRUE):
-  1. User can generate and download a PDF report containing header, risk score, all findings grouped by category, and extracted dates for any analyzed contract (OUT-01)
-  2. Every finding displays an action priority label -- pre-bid, pre-sign, or monitor -- so the user knows when to act on each item (OUT-02)
-  3. Bid signal widget shows each of the 5 weighted factors with individual scores and the overall traffic light result (OUT-03)
-  4. User can open a negotiation checklist view that collects all findings with negotiation positions into a single actionable list (OUT-04)
-**Plans**: 2 plans
-
-Plans:
-- [ ] 24-01-PLAN.md -- Action priority pipeline + bid signal reason text (OUT-02, OUT-03)
-- [ ] 24-02-PLAN.md -- PDF report generation + negotiation checklist tab (OUT-01, OUT-04)
-
-### Phase 25: Portfolio Intelligence
-**Goal**: Users gain insights across their stored contracts and can manage findings across re-analysis cycles
-**Depends on**: Phase 22
-**Requirements**: PORT-01, PORT-02, PORT-03, PORT-04
-**Success Criteria** (what must be TRUE):
-  1. Dashboard shows common finding patterns (recurring categories, severities, clause types) that appear across multiple stored contracts (PORT-01)
-  2. User can select two contracts and view a side-by-side comparison showing findings diff and risk score delta (PORT-02)
-  3. Findings list supports multi-select filtering by severity, category, resolved status, and presence of negotiation position simultaneously (PORT-03)
-  4. When re-analyzing a contract, previously resolved findings and user notes are preserved by matching against new findings on composite key (PORT-04)
-**Plans**: 2 plans
-
-Plans:
-- [ ] 25-01-PLAN.md -- Dashboard patterns card + advanced multi-select filtering (PORT-01, PORT-03)
-- [ ] 25-02-PLAN.md -- Contract comparison view + re-analyze preservation (PORT-02, PORT-04)
-
-### Phase 26: Audit Gap Closure [GAP CLOSURE]
-**Goal**: Close all gaps and tech debt items identified by the v1.4 milestone audit
-**Depends on**: Phase 25
-**Requirements**: PIPE-01 (integration fix)
-**Gap Closure:** Closes gaps from v1.4 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. 'Compound Risk' category appears in CATEGORY_ORDER in ContractReview.tsx so synthesis findings are visible in by-category tab (integration gap)
-  2. Re-analyze confirmation dialog message reflects that resolved status and notes ARE preserved (tech debt warning)
-  3. Generate Monthly Report button either works or is removed — no "Coming soon" placeholder (tech debt info)
-  4. Share button either works or is removed — no "Coming soon" placeholder (tech debt info)
-**Plans**: 1 plan
-
-Plans:
-- [ ] 26-01-PLAN.md -- Integration fix, dialog message, placeholder button cleanup
+</details>
 
 ## Progress
 
@@ -181,6 +103,6 @@ Plans:
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
-| 24. Actionable Output | 2/2 | Complete    | 2026-03-15 | - |
-| 25. Portfolio Intelligence | 2/2 | Complete    | 2026-03-15 | - |
-| 26. Audit Gap Closure | 1/1 | Complete    | 2026-03-15 | - |
+| 24. Actionable Output | v1.4 | 2/2 | Complete | 2026-03-15 |
+| 25. Portfolio Intelligence | v1.4 | 2/2 | Complete | 2026-03-15 |
+| 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |

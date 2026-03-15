@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs 16 specialized analysis passes via Claude API with domain-specific knowledge injection, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, negotiation positions, CA regulatory awareness, industry standards validation, and bid/no-bid signals. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
+A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs a 17-pass analysis pipeline (16 specialized passes + cross-pass synthesis) via Claude API with domain-specific knowledge injection, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, negotiation positions, CA regulatory awareness, industry standards validation, compound risk detection, and bid/no-bid signals. Delivers actionable output: PDF reports, action priority classification, negotiation checklists, and cross-contract portfolio intelligence. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
 
 ## Core Value
 
@@ -47,14 +47,21 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Settings inline validation with onBlur persistence and save feedback -- v1.3
 - ✓ Re-analyze contract with PDF re-selection, confirmation dialog, and failure rollback -- v1.3
 - ✓ CSV export of findings with filter awareness (hideResolved, category) -- v1.3
+- ✓ Tech debt cleanup: consolidated types, single init, type-safe merge, shared schemas, consistent routing -- v1.4
+- ✓ UX quick wins: inline contract rename, open/resolved badges, urgency indicators, bid signal breakdown, upcoming deadlines -- v1.4
+- ✓ Category-weighted risk scoring with cross-pass compound risk synthesis (17th pass) -- v1.4
+- ✓ 5 new CA knowledge modules with staleness warning system and Title 24 2025 update -- v1.4
+- ✓ PDF report generation with jsPDF (header, risk score, findings by category, dates) -- v1.4
+- ✓ Action priority classification (pre-bid/pre-sign/monitor) on all findings -- v1.4
+- ✓ Negotiation checklist tab with findings grouped by action priority -- v1.4
+- ✓ Cross-contract pattern detection on dashboard -- v1.4
+- ✓ Side-by-side contract comparison with findings diff and risk score delta -- v1.4
+- ✓ Advanced multi-select filters (severity, category, priority, negotiation position) -- v1.4
+- ✓ Re-analyze finding preservation via composite key matching (resolved status + notes) -- v1.4
 
 ### Active
 
-Building toward v1.4 Production Readiness:
-- [ ] Tech debt cleanup and UX quick wins (Phase 1: Polish & Trust)
-- [ ] Analysis pipeline quality improvements (Phase 2: Analysis Quality)
-- [ ] Actionable output features — PDF report, action priority, negotiation tools (Phase 3: Actionable Output)
-- [ ] Cross-contract intelligence and portfolio features (Phase 4: Portfolio Intelligence)
+(No active requirements -- planning next milestone)
 
 ### Out of Scope
 
@@ -63,7 +70,6 @@ Building toward v1.4 Production Readiness:
 - Mobile app -- web-only
 - Real-time collaboration -- sole user
 - Automated redlining / markup -- legal liability risk
-- Multi-document comparison -- single contract focus
 - Playbook / template customization -- AI prompt IS the playbook
 - Real-time chat with contract -- comprehensive upfront analysis suffices
 - Procore / PM integration -- export report, user attaches to PM
@@ -72,29 +78,37 @@ Building toward v1.4 Production Readiness:
 - Full standard form document storage -- copyright issues with AIA/ConsensusDocs; clause patterns only
 - Real-time regulatory monitoring -- CA regulations change 1-2x/year; manual updates sufficient
 - AI fine-tuning / model training -- using Claude API; prompt engineering with knowledge injection is correct approach
+- Saved/named filter presets -- advanced filters sufficient for sole user without persistence
+- Custom tags/bookmarks on findings -- resolved + notes + filters cover annotation needs
+- Negotiation status tracking (Open/Proposed/Agreed) -- checklist view is read-only extract; status tracking adds workflow complexity
+- Cross-contract trend graphs over time -- pattern detection covers insights; time-series charts are premature
+- Template negotiation scripts -- negotiationPosition from AI is per-finding; generic templates add legal liability
 
 ## Context
 
-Shipped v1.3 with ~7,461 LOC TypeScript across client, server, and knowledge modules.
-Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK.
-Deployed on Vercel with serverless function (api/analyze.ts).
-16 analysis passes run in parallel via Files API upload-once/analyze-many pattern.
-11 knowledge modules across 3 domains (regulatory, trade, standards) injected per-pass via prompt builder.
+Shipped v1.4 with ~9,669 LOC TypeScript across client, server, and knowledge modules.
+Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF.
+Deployed on Vercel with serverless function (api/analyze.ts + api/pdf.ts).
+17-pass analysis pipeline (16 specialized + 1 synthesis) via Files API upload-once/analyze-many pattern.
+16 knowledge modules across 3 domains (regulatory, trade, standards) with expiration-based staleness warnings.
+Category-weighted risk scoring with compound risk detection across pass boundaries.
 Company profile with localStorage persistence drives insurance/bonding comparison and bid/no-bid signals.
 All structured outputs via Zod v3 schemas converted to JSON Schema.
 Contracts persist in localStorage with full CRUD. URL-based routing via custom History API hook.
-Finding workflow: resolve/annotate findings, hide resolved, filter-aware CSV export.
-Settings validation with onBlur auto-formatting and save feedback. Re-analyze with rollback on failure.
+Finding workflow: resolve/annotate, hide resolved, multi-select filters, filter-aware CSV export.
+Actionable output: PDF reports, action priority badges, negotiation checklist tab, bid signal factor breakdown.
+Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, finding preservation across re-analysis.
 
-Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, scope-of-work pass at max capacity (4/4 modules), dead updateField in useCompanyProfile.ts, human UAT pending, vercel.json maxDuration may need Pro plan.
+Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyquist validation partial.
 
 ## Constraints
 
 - **Deployment**: Vercel serverless with configurable function timeout (currently 300s, may need Pro plan)
 - **API**: Anthropic Claude API -- token limits and costs factor into pass design
 - **File size**: 10MB max PDF upload (Vercel 4.5MB body limit via base64)
-- **Stack**: React 18 + TypeScript + Tailwind + Vite (established, no reason to change)
+- **Stack**: React 18 + TypeScript + Tailwind + Vite + jsPDF (established, no reason to change)
 - **Knowledge modules**: scope-of-work pass at max capacity (4 modules); adding more requires raising MAX_MODULES_PER_PASS
+- **Storage**: localStorage only -- no backend database, single-device data
 
 ## Key Decisions
 
@@ -128,6 +142,13 @@ Known tech debt: duplicate BidSignal types, stale reviewByDate on ca-title24, sc
 | structuredClone for re-analyze rollback | Deep copy of contract state before re-analysis attempt | ✓ Good -- safe rollback |
 | CSV with UTF-8 BOM | Excel opens CSV correctly without import wizard | ✓ Good -- user-friendly |
 | Exact-match before prefix in URL parsing | /contracts before /contracts/:id prevents false matches | ✓ Good -- correct routing |
+| Two-tier category weights (1.0x legal/financial, 0.75x scope/compliance) | Legal and financial findings carry more risk weight than scope or compliance | ✓ Good -- better risk differentiation |
+| Synthesis pass non-fatal (empty array on failure) | Cross-pass synthesis is additive; failure shouldn't block analysis | ✓ Good -- graceful degradation |
+| actionPriority required in Zod, optional on TS interface | Same pattern as negotiationPosition; backward compat for old contracts | ✓ Good -- consistent approach |
+| jsPDF for client-side PDF generation | No server roundtrip needed; letter format for US construction industry | ✓ Good -- fast, reliable |
+| Composite key for finding preservation across re-analysis | clauseReference+category matches old→new findings to preserve resolved/notes | ✓ Good -- user work survives re-analysis |
+| Set-based multi-select filter state | All-selected = no filtering; clean toggle semantics | ✓ Good -- intuitive behavior |
+| Compare route transient (no sidebar entry) | Contract comparison is ad-hoc action, not persistent navigation | ✓ Good -- clean navigation |
 
 ---
-*Last updated: 2026-03-13 after v1.3 milestone*
+*Last updated: 2026-03-15 after v1.4 milestone*

@@ -1,5 +1,29 @@
 # Milestones
 
+## v1.4 Production Readiness (Shipped: 2026-03-15)
+
+**Phases:** 22-26 (11 plans)
+**Timeline:** 2 days (2026-03-14 → 2026-03-15)
+**Code:** 48 files changed, 2,902 insertions, 792 deletions (9,669 LOC TypeScript total)
+**Requirements:** 26/26 satisfied
+**Audit:** TECH_DEBT (all requirements met, 4 info-level items — 3 closed post-audit)
+
+**Key accomplishments:**
+- Eliminated 6 tech debt items (duplicate types, dead code, schema copies, routing asymmetry) and delivered UX quick wins — inline contract rename, open/resolved badges, urgency indicators, bid signal factor breakdown, upcoming deadlines widget
+- Added 5 CA knowledge modules (insurance law, public works payment, dispute resolution, liquidated damages, glazing sub protections) with staleness warning system and updated Title 24 to 2025 code cycle
+- Built category-weighted risk scoring with compound risk detection via 17th cross-pass synthesis analysis
+- Delivered PDF report generation (jsPDF), action priority classification (pre-bid/pre-sign/monitor) on all findings, and negotiation checklist tab
+- Cross-contract intelligence: pattern frequency detection across stored contracts, side-by-side contract comparison with findings diff and risk score delta, advanced multi-select filters
+- Re-analyze finding preservation via clauseReference+category composite key matching — resolved status and notes survive re-analysis
+
+**Tech debt carried forward:**
+- negotiationPosition required in Zod schema but optional on TS Finding interface (intentional backward-compat)
+- Human UAT (live API + real contract) not yet performed
+- vercel.json maxDuration: 300 may require Vercel Pro plan
+- Nyquist validation partial (phases 22-25 draft, phase 26 missing)
+
+---
+
 ## v1.3 Workflow Completion (Shipped: 2026-03-13)
 
 **Phases:** 15-21 (8 plans)
