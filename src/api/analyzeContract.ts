@@ -1,24 +1,7 @@
-import type { Finding, ContractDate, BidSignal } from '../types/contract';
 import { loadCompanyProfile } from '../knowledge/profileLoader';
+import { AnalysisResultSchema, type AnalysisResult } from '../schemas/analysisResult';
 
-export interface AnalysisResult {
-  client: string;
-  contractType:
-    | 'Prime Contract'
-    | 'Subcontract'
-    | 'Purchase Order'
-    | 'Change Order';
-  riskScore: number;
-  scoreBreakdown?: Array<{ name: string; points: number }>;
-  bidSignal?: BidSignal;
-  findings: Finding[];
-  dates: ContractDate[];
-  passResults: Array<{
-    passName: string;
-    status: 'success' | 'failed';
-    error?: string;
-  }>;
-}
+export type { AnalysisResult };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -74,5 +57,11 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  const json = await response.json();
+  const parsed = AnalysisResultSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error('API response validation failed:', parsed.error.issues);
+    throw new Error('Analysis returned invalid data. Please try again.');
+  }
+  return parsed.data;
 }
