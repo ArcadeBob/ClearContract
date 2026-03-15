@@ -7,7 +7,7 @@
 - v1.2 UX Foundations -- Phases 11-14 (shipped 2026-03-12)
 - v1.3 Workflow Completion -- Phases 15-21 (shipped 2026-03-13)
 - v1.4 Production Readiness -- Phases 22-26 (shipped 2026-03-15)
-- v1.5 Code Health -- Phases 27-31 (in progress)
+- v1.5 Code Health -- Phases 27-32 (in progress)
 
 ## Phases
 
@@ -86,6 +86,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 - [x] **Phase 29: Component Decomposition + Toast Context** - LegalMetaBadge split, ScopeMetaBadge split, toast context, ContractReview wired to hooks (completed 2026-03-15)
 - [x] **Phase 30: Type Safety Hardening** - Zod/TS reconciliation, client response validation, merge.ts type guards (completed 2026-03-15)
 - [x] **Phase 31: Server-side API Modularization** - analyze.ts split into passes/lib/conversion, merge.ts extraction (completed 2026-03-15)
+- [ ] **Phase 32: Type Safety Gap Closure** - Fix updateFindingNote TS2322 and unused variable tech debt [GAP CLOSURE]
 
 ## Phase Details
 
@@ -167,6 +168,20 @@ Plans:
 Plans:
 - [ ] 31-01-PLAN.md — Extract 16 pass definitions and SYNTHESIS_SYSTEM_PROMPT to api/passes.ts, update analyze.ts imports
 
+### Phase 32: Type Safety Gap Closure
+**Goal**: Close the single remaining TYPE-01 gap and fix pre-existing tech debt flagged by milestone audit
+**Depends on**: Phase 30 (fixes residual type error from Phase 30 Zod reconciliation)
+**Requirements**: TYPE-01
+**Gap Closure:** Closes gaps from v1.5 audit
+**Success Criteria** (what must be TRUE):
+  1. `tsc --noEmit` passes with no TS2322 error on `useContractStore.ts` `updateFindingNote`
+  2. `tsc --noEmit` passes with no TS6133 error on `CoverageComparisonTab.tsx` unused variable
+  3. `npm run build` succeeds
+**Plans**: 1 plan
+
+Plans:
+- [ ] 32-01-PLAN.md — Fix updateFindingNote parameter type and remove unused variable
+
 ## Progress
 
 **Execution Order:**
@@ -205,3 +220,4 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
 | 30. Type Safety Hardening | 3/3 | Complete   | 2026-03-15 | - |
 | 31. Server-side API Modularization | 1/1 | Complete    | 2026-03-15 | - |
+| 32. Type Safety Gap Closure | 0/1 | Not Started | - | - |
