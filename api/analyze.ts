@@ -73,6 +73,14 @@ const CompanyProfileSchema = z.object({
   typicalProjectSizeMax: z.string().max(50),
 }).partial();
 
+// 2B+: Zod schema for full request body validation
+const AnalyzeRequestSchema = z.object({
+  pdfBase64: z.string().min(1, 'pdfBase64 is required'),
+  fileName: z.string().max(255).optional(),
+  companyProfile: CompanyProfileSchema.optional(),
+});
+type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
+
 // 2C: Sanitize user-controlled filenames
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._\- ]/g, '_').slice(0, 200) || 'contract.pdf';
@@ -1324,33 +1332,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let dispatcher: Agent | null = null;
 
   try {
-    const { pdfBase64, fileName: rawFileName, companyProfile: rawProfile } = req.body as {
-      pdfBase64: string;
-      fileName?: string;
-      companyProfile?: unknown;
-    };
-
-    if (!pdfBase64 || typeof pdfBase64 !== 'string') {
-      return res
-        .status(400)
-        .json({ error: 'Missing or invalid pdfBase64 field' });
+    const parseResult = AnalyzeRequestSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: 'Invalid request body',
+        details: parseResult.error.flatten().fieldErrors,
+      });
     }
-
-    // 2C: Sanitize fileName
+    const { pdfBase64, fileName: rawFileName, companyProfile } = parseResult.data;
     const fileName = rawFileName ? sanitizeFileName(rawFileName) : 'contract.pdf';
-
-    // 2B: Validate companyProfile if provided
-    let companyProfile: CompanyProfile | undefined;
-    if (rawProfile != null) {
-      const profileResult = CompanyProfileSchema.safeParse(rawProfile);
-      if (!profileResult.success) {
-        return res.status(400).json({
-          error: 'Invalid companyProfile format',
-          details: profileResult.error.flatten().fieldErrors,
-        });
-      }
-      companyProfile = profileResult.data as CompanyProfile;
-    }
 
     // Decode and validate size
     const pdfBuffer = Buffer.from(pdfBase64, 'base64');
