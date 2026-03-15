@@ -199,7 +199,7 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 24. Actionable Output | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 25. Portfolio Intelligence | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |
-| 27. Foundation Utilities | 2/2 | Complete   | 2026-03-15 | - |
+| 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
 | 28. Hook Extraction | v1.5 | 0/TBD | Not started | - |
 | 29. Component Decomposition + Toast Context | v1.5 | 0/TBD | Not started | - |
 | 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
