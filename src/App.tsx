@@ -6,10 +6,11 @@ import { ContractUpload } from './pages/ContractUpload';
 import { ContractReview } from './pages/ContractReview';
 import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
+import { ContractComparison } from './pages/ContractComparison';
 import { Toast, ToastData } from './components/Toast';
 import { useContractStore } from './hooks/useContractStore';
 import { useRouter } from './hooks/useRouter';
-import { Contract } from './types/contract';
+import { Contract, Finding } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
 export function App() {
   const {
@@ -22,7 +23,7 @@ export function App() {
     storageWarning,
     dismissStorageWarning,
   } = useContractStore();
-  const { activeView, activeContractId, navigateTo } = useRouter();
+  const { activeView, activeContractId, compareIds, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const [toast, setToast] = useState<ToastData | null>(null);
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
@@ -138,6 +139,33 @@ export function App() {
 
     analyzeContract(file)
       .then((result) => {
+        // Build lookup from old findings with user data (PORT-04)
+        const oldByKey = new Map<string, Finding>();
+        for (const f of contract.findings) {
+          if (f.resolved || f.note) {
+            const ref = f.clauseReference ?? '';
+            if (ref && ref !== 'N/A' && ref !== 'Not Found') {
+              oldByKey.set(`${ref}::${f.category}`, f);
+            }
+          }
+        }
+
+        // Carry over resolved/note to matching new findings
+        let preservedResolved = 0;
+        let preservedNotes = 0;
+        const mergedFindings = result.findings.map((newFinding: Finding) => {
+          const ref = newFinding.clauseReference ?? '';
+          if (ref && ref !== 'N/A' && ref !== 'Not Found') {
+            const old = oldByKey.get(`${ref}::${newFinding.category}`);
+            if (old) {
+              if (old.resolved) preservedResolved++;
+              if (old.note) preservedNotes++;
+              return { ...newFinding, resolved: old.resolved, note: old.note };
+            }
+          }
+          return newFinding;
+        });
+
         updateContract(contractId, {
           status: 'Reviewed',
           name: file.name.replace(/\.pdf$/i, ''),
@@ -146,14 +174,20 @@ export function App() {
           riskScore: result.riskScore,
           scoreBreakdown: result.scoreBreakdown,
           bidSignal: result.bidSignal,
-          findings: result.findings,
+          findings: mergedFindings,
           dates: result.dates,
           passResults: result.passResults,
           uploadDate: new Date().toISOString().split('T')[0],
         });
+
+        const preserveMsg =
+          preservedResolved > 0 || preservedNotes > 0
+            ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
+            : 'Analysis complete \u2014 findings updated.';
+
         setToast({
           type: 'success',
-          message: 'Analysis complete \u2014 findings updated.',
+          message: preserveMsg,
           onDismiss: () => setToast(null),
         });
       })
@@ -219,6 +253,18 @@ export function App() {
 
       case 'contracts':
         return <AllContracts contracts={contracts} onNavigate={navigateTo} onDelete={handleDeleteContract} />;
+
+      case 'compare': {
+        const a = contracts.find(c => c.id === compareIds?.[0]);
+        const b = contracts.find(c => c.id === compareIds?.[1]);
+        if (!a || !b) {
+          // Missing contract(s), redirect to contracts list
+          navigateTo('contracts');
+          return null;
+        }
+        return <ContractComparison contractA={a} contractB={b} onBack={() => navigateTo('contracts')} />;
+      }
+
       case 'settings':
         return <Settings />;
       default:
