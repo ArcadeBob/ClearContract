@@ -8,6 +8,7 @@ import {
   DollarSign,
   Ruler,
   AlertTriangle,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -21,4 +22,5 @@ export const categoryIcons: Record<string, LucideIcon> = {
   'Financial Terms': DollarSign,
   'Technical Standards': Ruler,
   'Risk Assessment': AlertTriangle,
+  'Compound Risk': Layers,
 };
