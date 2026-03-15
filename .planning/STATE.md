@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Production Readiness
-status: completed
-stopped_at: Phase 24 context gathered
-last_updated: "2026-03-14T22:45:14.907Z"
-last_activity: 2026-03-14 -- Completed 23-03 synthesis pass
+status: in-progress
+stopped_at: Completed 24-01 action priority + bid signal reasons
+last_updated: "2026-03-15T00:25:07.000Z"
+last_activity: 2026-03-15 -- Completed 24-01 action priority
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.4 Production Readiness -- Phase 23: Analysis Quality
+**Current focus:** v1.4 Production Readiness -- Phase 24: Actionable Output
 
 ## Current Position
 
-Phase: 23 of 25 (Analysis Quality)
-Plan: 3 of 3 (PHASE COMPLETE)
-Status: Phase 23 complete
-Last activity: 2026-03-14 -- Completed 23-03 synthesis pass
+Phase: 24 of 25 (Actionable Output)
+Plan: 1 of 2 complete
+Status: Executing phase 24
+Last activity: 2026-03-15 -- Completed 24-01 action priority + bid signal reasons
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -56,6 +56,9 @@ Full decision log in PROJECT.md Key Decisions table (31 decisions).
 - [Phase 23]: Set regulatory module expirationDate to 2027-06-01 (18-month horizon); staleness check after dedup before risk score
 - [Phase 23]: Labeled ca-title24 2025 values as MEDIUM CONFIDENCE since exact prescriptive numbers are directional
 - [Phase 23]: Synthesis pass uses streaming + 4096 max_tokens (half normal) to stay fast; non-fatal failure returns empty array
+- [Phase 24]: ActionPriority required in Zod schemas but optional on TS Finding interface for backward compat
+- [Phase 24]: Contextual actionPriority prompt guidance per pass (bonding=pre-bid, indemnification=pre-sign, etc.)
+- [Phase 24]: SEVERITY_RANK ascending (Critical=0) for worst-severity-first reason text selection
 
 ### Pending Todos
 
@@ -68,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14T22:45:14.905Z
-Stopped at: Phase 24 context gathered
+Last session: 2026-03-15T00:25:07.000Z
+Stopped at: Completed 24-01-PLAN.md
 Resume with: /gsd:execute-phase 24

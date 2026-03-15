@@ -165,5 +165,5 @@ Plans:
 | 21. Fix Filtered CSV Export | v1.3 | 1/1 | Complete | 2026-03-13 |
 | 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
-| 24. Actionable Output | v1.4 | 0/2 | Not started | - |
+| 24. Actionable Output | 1/2 | In Progress|  | - |
 | 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
