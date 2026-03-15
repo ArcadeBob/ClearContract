@@ -81,7 +81,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
 **Milestone Goal:** Broad refactoring sweep -- decompose god components, fix type safety gaps, consolidate scattered patterns, extract reusable hooks. No new user-facing features.
 
-- [ ] **Phase 27: Foundation Utilities** - Storage manager, error handling, severity palette, and POST body validation
+- [x] **Phase 27: Foundation Utilities** - Storage manager, error handling, severity palette, and POST body validation (completed 2026-03-15)
 - [ ] **Phase 28: Hook Extraction** - useInlineEdit, useContractFiltering, useFieldValidation
 - [ ] **Phase 29: Component Decomposition + Toast Context** - LegalMetaBadge split, ScopeMetaBadge split, toast context, ContractReview wired to hooks
 - [ ] **Phase 30: Type Safety Hardening** - Zod/TS reconciliation, client response validation, merge.ts type guards
@@ -199,7 +199,7 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 24. Actionable Output | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 25. Portfolio Intelligence | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |
-| 27. Foundation Utilities | 1/2 | In Progress|  | - |
+| 27. Foundation Utilities | 2/2 | Complete   | 2026-03-15 | - |
 | 28. Hook Extraction | v1.5 | 0/TBD | Not started | - |
 | 29. Component Decomposition + Toast Context | v1.5 | 0/TBD | Not started | - |
 | 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
