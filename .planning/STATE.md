@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: completed
-stopped_at: Phase 31 context gathered
-last_updated: "2026-03-15T18:22:16.382Z"
-last_activity: 2026-03-15 -- Completed 30-03 tsc strict mode fixes (gap closure)
+status: in-progress
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-03-15T18:47:18Z"
+last_activity: 2026-03-15 -- Completed 31-01 pass definitions extraction
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 30 Type Safety Hardening in progress
+**Current focus:** v1.5 Code Health -- Phase 31 Server-Side API Modularization in progress
 
 ## Current Position
 
-Phase: 30 of 31 (Type Safety Hardening) -- fourth of 5 phases in v1.5
-Plan: 3 of 3 in current phase (30-03 complete -- phase complete)
-Status: Phase 30 complete
-Last activity: 2026-03-15 -- Completed 30-03 tsc strict mode fixes (gap closure)
+Phase: 31 of 31 (Server-Side API Modularization) -- fifth of 5 phases in v1.5
+Plan: 1 of 1 in current phase (31-01 complete)
+Status: Phase 31 in progress
+Last activity: 2026-03-15 -- Completed 31-01 pass definitions extraction
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Recent decisions affecting v1.5:
 - [Phase 30]: createHandler<T> generic dispatch map for type-safe pass routing in merge.ts
 - [Phase 30]: Re-exported AnalysisResult type from analyzeContract.ts for downstream compatibility
 - [Phase 30]: Added import type alongside export type for Finding -- local scope + external re-export
+- [Phase 31]: AnalysisPass.schema typed as z.ZodTypeAny in passes.ts to avoid circular dependency on analyze.ts
 
 ### Pending Todos
 
@@ -78,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T18:22:16.379Z
-Stopped at: Phase 31 context gathered
-Resume with: `/gsd:execute-phase 31` to continue with next phase
+Last session: 2026-03-15T18:47:18Z
+Stopped at: Completed 31-01-PLAN.md
+Resume with: Check if phase 31 has more plans or mark phase complete

@@ -12,8 +12,8 @@ Requirements for code health milestone. Each maps to roadmap phases.
 - [x] **DECOMP-01**: ContractReview.tsx split — extract filter/sort logic to custom hook, reduce from 608 to ~300 lines
 - [x] **DECOMP-02**: LegalMetaBadge.tsx split — extract 12 clause-type branches into subcomponents, eliminate ~30 nested ternaries
 - [x] **DECOMP-03**: ScopeMetaBadge.tsx split — extract scope metadata branches into subcomponents (same pattern as LegalMetaBadge)
-- [ ] **DECOMP-04**: api/analyze.ts modularized — extract schema definitions, pass configuration, and orchestration into separate modules
-- [ ] **DECOMP-05**: api/merge.ts refactored — extract finding conversion functions and deduplication logic into focused modules
+- [x] **DECOMP-04**: api/analyze.ts modularized — extract schema definitions, pass configuration, and orchestration into separate modules
+- [x] **DECOMP-05**: api/merge.ts refactored — extract finding conversion functions and deduplication logic into focused modules
 
 ### Type Safety
 
@@ -85,8 +85,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TYPE-01 | Phase 30 | Complete |
 | TYPE-02 | Phase 30 | Complete |
 | TYPE-03 | Phase 30 | Complete |
-| DECOMP-04 | Phase 31 | Pending |
-| DECOMP-05 | Phase 31 | Pending |
+| DECOMP-04 | Phase 31 | Complete |
+| DECOMP-05 | Phase 31 | Complete |
 
 **Coverage:**
 - v1.5 requirements: 16 total
