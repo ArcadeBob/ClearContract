@@ -114,11 +114,11 @@ Plans:
   2. All multi-select filter state and visibleFindings computation lives in useContractFiltering; ContractReview imports the hook instead of owning 5+ useState calls and a complex useMemo
   3. Settings ProfileField validation uses useFieldValidation; onBlur validates, saves valid input with flash feedback, and reverts invalid input to last good value
   4. `npm run lint` passes with zero exhaustive-deps warnings on all three extracted hooks
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 28-01: TBD
-- [ ] 28-02: TBD
+- [ ] 28-01-PLAN.md — Create useInlineEdit and useContractFiltering hooks, wire into ContractReview and FindingCard
+- [ ] 28-02-PLAN.md — Create useFieldValidation hook, wire into Settings ProfileField
 
 ### Phase 29: Component Decomposition + Toast Context
 **Goal**: God components are split into focused subcomponents, and toast notifications work without prop drilling
@@ -200,7 +200,7 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 25. Portfolio Intelligence | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |
 | 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
-| 28. Hook Extraction | v1.5 | 0/TBD | Not started | - |
+| 28. Hook Extraction | v1.5 | 0/2 | Not started | - |
 | 29. Component Decomposition + Toast Context | v1.5 | 0/TBD | Not started | - |
 | 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
 | 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |
