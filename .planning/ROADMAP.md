@@ -130,11 +130,12 @@ Plans:
   3. ScopeMetaBadge follows the same directory pattern with subcomponents for each passType branch
   4. Any component can call `useToast().showToast()` without receiving toast props from a parent; the `onShowToast` prop is removed from ContractReview's interface
   5. Filter toggle animations (AnimatePresence exit) still work correctly after all structural splits -- toggling a filter animates items in and out
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 29-01: TBD
-- [ ] 29-02: TBD
+- [ ] 29-01-PLAN.md — Split LegalMetaBadge and ScopeMetaBadge into directory modules with barrel-exported dispatchers
+- [ ] 29-02-PLAN.md — Create ToastProvider context and useToast hook
+- [ ] 29-03-PLAN.md — Decompose ContractReview into subcomponents and wire toast context throughout app
 
 ### Phase 30: Type Safety Hardening
 **Goal**: Zod schemas and TypeScript interfaces agree on field optionality, API responses are validated on the client, and merge.ts uses type guards instead of assertion casts
@@ -201,6 +202,6 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |
 | 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
 | 28. Hook Extraction | 2/2 | Complete    | 2026-03-15 | - |
-| 29. Component Decomposition + Toast Context | v1.5 | 0/TBD | Not started | - |
+| 29. Component Decomposition + Toast Context | v1.5 | 0/3 | Not started | - |
 | 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
 | 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |
