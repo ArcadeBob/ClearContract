@@ -1,6 +1,5 @@
 import { CompanyProfile, DEFAULT_COMPANY_PROFILE } from './types';
-
-export const STORAGE_KEY = 'clearcontract:company-profile';
+import { load } from '../storage/storageManager';
 
 /**
  * Load company profile from localStorage, merging with defaults.
@@ -8,13 +7,9 @@ export const STORAGE_KEY = 'clearcontract:company-profile';
  * both the useCompanyProfile hook and the analyzeContract API wrapper.
  */
 export function loadCompanyProfile(): CompanyProfile {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return { ...DEFAULT_COMPANY_PROFILE, ...JSON.parse(stored) };
-    }
-  } catch {
-    // Safari private mode, corrupt data, etc. -- fall back silently
+  const result = load('clearcontract:company-profile');
+  if (result.ok && result.data) {
+    return { ...DEFAULT_COMPANY_PROFILE, ...result.data };
   }
   return DEFAULT_COMPANY_PROFILE;
 }

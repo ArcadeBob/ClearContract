@@ -12,6 +12,7 @@ import { useContractStore } from './hooks/useContractStore';
 import { useRouter } from './hooks/useRouter';
 import { Contract, Finding } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
+import { classifyError } from './utils/errors';
 export function App() {
   const {
     contracts,
@@ -43,12 +44,6 @@ export function App() {
     if (isDeletingActive) {
       navigateTo('dashboard');
     }
-  };
-
-  const isNetworkError = (err: unknown): boolean => {
-    if (err instanceof TypeError && err.message === 'Failed to fetch') return true;
-    if (err instanceof Error && err.message.includes('NetworkError')) return true;
-    return false;
   };
 
   const handleUploadComplete = (file: File) => {
@@ -94,27 +89,18 @@ export function App() {
           navigateTo('dashboard');
         }
 
-        if (isNetworkError(err)) {
-          setToast({
-            type: 'error',
-            message:
-              'Connection failed. Check your internet and try again.',
+        const classified = classifyError(err);
+        setToast({
+          type: 'error',
+          message: classified.userMessage,
+          ...(classified.retryable ? {
             onRetry: () => {
               setToast(null);
               handleUploadComplete(file);
             },
-            onDismiss: () => setToast(null),
-          });
-        } else {
-          setToast({
-            type: 'error',
-            message:
-              err instanceof Error
-                ? err.message
-                : 'Analysis failed. Please try again.',
-            onDismiss: () => setToast(null),
-          });
-        }
+          } : {}),
+          onDismiss: () => setToast(null),
+        });
       })
       .finally(() => {
         setAnalyzingId(null);
@@ -195,25 +181,18 @@ export function App() {
         // Restore previous state completely (REANA-03)
         updateContract(contractId, snapshot);
 
-        if (isNetworkError(err)) {
-          setToast({
-            type: 'error',
-            message: 'Connection failed. Your previous findings are unchanged.',
+        const classified = classifyError(err);
+        setToast({
+          type: 'error',
+          message: classified.userMessage + ' Your previous findings are unchanged.',
+          ...(classified.retryable ? {
             onRetry: () => {
               setToast(null);
               handleReanalyze(contractId, file);
             },
-            onDismiss: () => setToast(null),
-          });
-        } else {
-          setToast({
-            type: 'error',
-            message: err instanceof Error
-              ? `Analysis failed: ${err.message}. Your previous findings are unchanged.`
-              : 'Analysis failed. Your previous findings are unchanged.',
-            onDismiss: () => setToast(null),
-          });
-        }
+          } : {}),
+          onDismiss: () => setToast(null),
+        });
       })
       .finally(() => {
         setReanalyzingId(null);

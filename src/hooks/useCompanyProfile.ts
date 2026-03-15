@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { CompanyProfile } from '../knowledge/types';
-import { loadCompanyProfile, STORAGE_KEY } from '../knowledge/profileLoader';
+import { loadCompanyProfile } from '../knowledge/profileLoader';
+import { save } from '../storage/storageManager';
 
 export function useCompanyProfile() {
   const [profile, setProfile] = useState<CompanyProfile>(loadCompanyProfile);
@@ -12,12 +13,16 @@ export function useCompanyProfile() {
       setProfile((prev) => {
         if (prev[key] === value) return prev;
         const next = { ...prev, [key]: value };
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        const result = save('clearcontract:company-profile', next);
+        if (result.ok) {
           setStorageError(null);
-        } catch {
+        } else {
           success = false;
-          setStorageError('Settings saved in memory but may not persist after refresh (storage full).');
+          setStorageError(
+            result.quotaExceeded
+              ? 'Settings saved in memory but may not persist after refresh (storage full).'
+              : result.error ?? 'Could not save settings to browser storage.'
+          );
         }
         return next;
       });

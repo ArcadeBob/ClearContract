@@ -1,8 +1,8 @@
 import { Contract } from '../types/contract';
 import { MOCK_CONTRACTS } from '../data/mockContracts';
+import { load, save, loadRaw, saveRaw, remove } from './storageManager';
 
-export const CONTRACTS_STORAGE_KEY = 'clearcontract:contracts';
-export const SEEDED_KEY = 'clearcontract:contracts-seeded';
+const CURRENT_SCHEMA_VERSION = 1;
 
 /**
  * Load contracts from localStorage.
@@ -12,24 +12,47 @@ export const SEEDED_KEY = 'clearcontract:contracts-seeded';
 export function loadContracts(): {
   contracts: Contract[];
   fromStorage: boolean;
+  migrationWarning?: string;
 } {
   try {
-    const stored = localStorage.getItem(CONTRACTS_STORAGE_KEY);
+    // Check schema version — migrate or clear if stale
+    const versionResult = loadRaw('clearcontract:schema-version');
+    const storedVersion = versionResult.data;
+    const version = storedVersion ? parseInt(storedVersion, 10) : 0;
 
-    if (stored) {
-      const parsed = JSON.parse(stored);
+    if (version > 0 && version < CURRENT_SCHEMA_VERSION) {
+      // Future: run migrations here based on version number.
+      // For now, clear stale data with a warning.
+      remove('clearcontract:contracts');
+      saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));
+      return {
+        contracts: [],
+        fromStorage: true,
+        migrationWarning: 'Storage format updated. Previous contracts were cleared.',
+      };
+    }
+
+    const contractsResult = load('clearcontract:contracts');
+
+    if (contractsResult.ok && contractsResult.data) {
+      const parsed = contractsResult.data;
       if (Array.isArray(parsed)) {
+        // Ensure version is set for existing data
+        if (!storedVersion) {
+          saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));
+        }
         return { contracts: parsed, fromStorage: true };
       }
     }
 
     // No valid stored data — check if we've seeded before
-    const seeded = localStorage.getItem(SEEDED_KEY);
+    const seededResult = loadRaw('clearcontract:contracts-seeded');
 
-    if (!seeded) {
+    if (!seededResult.data) {
       // First visit: seed with mock contracts
       saveContracts(MOCK_CONTRACTS);
-      localStorage.setItem(SEEDED_KEY, 'true');
+      saveRaw('clearcontract:contracts-seeded', 'true');
+      saveRaw('clearcontract:schema-version', String(CURRENT_SCHEMA_VERSION));
       return { contracts: MOCK_CONTRACTS, fromStorage: false };
     }
 
@@ -49,24 +72,15 @@ export function saveContracts(contracts: Contract[]): {
   success: boolean;
   error?: string;
 } {
-  try {
-    localStorage.setItem(
-      CONTRACTS_STORAGE_KEY,
-      JSON.stringify(contracts)
-    );
+  const result = save('clearcontract:contracts', contracts);
+  if (result.ok) {
     return { success: true };
-  } catch (e) {
-    if (
-      e instanceof DOMException &&
-      (e.name === 'QuotaExceededError' ||
-        e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-    ) {
-      return {
-        success: false,
-        error:
-          'Storage is full. Your contracts are safe in memory but will not persist after refresh.',
-      };
-    }
-    return { success: false, error: 'Could not save to browser storage.' };
   }
+  if (result.quotaExceeded) {
+    return {
+      success: false,
+      error: 'Storage is full. Your contracts are safe in memory but will not persist after refresh.',
+    };
+  }
+  return { success: false, error: result.error ?? 'Could not save to browser storage.' };
 }

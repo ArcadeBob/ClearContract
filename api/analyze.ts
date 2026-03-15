@@ -36,6 +36,7 @@ import type { CompanyProfile } from '../src/knowledge/types';
 import { composeSystemPrompt } from '../src/knowledge/index';
 import { validateAllModulesRegistered } from '../src/knowledge/registry';
 import { computeBidSignal } from '../src/utils/bidSignal';
+import { classifyError, formatApiError } from '../src/utils/errors';
 import '../src/knowledge/regulatory/index';
 import '../src/knowledge/trade/index';
 import '../src/knowledge/standards/index';
@@ -1450,36 +1451,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       passResults: merged.passResults,
     });
   } catch (error: unknown) {
-    const err = error as { status?: number; message?: string };
-
-    if (err.status === 429) {
-      return res.status(429).json({
-        error: 'Rate limit exceeded. Please wait a moment and try again.',
-      });
-    }
-    if (err.status === 401) {
-      return res
-        .status(500)
-        .json({ error: 'Server configuration error: invalid API key' });
-    }
-
-    const message = err.message || String(error);
-    console.error('Analysis error:', message);
-
-    if (
-      message.includes('HeadersTimeoutError') ||
-      message.includes('timeout') ||
-      message.includes('ETIMEDOUT')
-    ) {
-      return res.status(504).json({
-        error:
-          'API timeout — the contract may be too large or the API is slow. Please try again.',
-      });
-    }
-
-    return res
-      .status(500)
-      .json({ error: 'An error occurred during analysis. Please try again.' });
+    const classified = classifyError(error);
+    console.error('Analysis error:', classified.userMessage);
+    const statusCode = classified.type === 'timeout' ? 504
+      : classified.type === 'api' && (error as { status?: number }).status === 429 ? 429
+      : classified.type === 'api' && (error as { status?: number }).status === 401 ? 500
+      : 500;
+    return res.status(statusCode).json(formatApiError(classified));
   } finally {
     // Clean up: delete the uploaded file from Files API (best-effort)
     if (client && fileId) {

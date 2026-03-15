@@ -11,6 +11,7 @@ import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { NegotiationChecklist } from '../components/NegotiationChecklist';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { loadRaw, saveRaw } from '../storage/storageManager';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
 import { exportContractPdf } from '../utils/exportContractPdf';
 import {
@@ -131,19 +132,14 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
     onReanalyze?.(file);
   };
 
-  const HIDE_RESOLVED_KEY = 'clearcontract:hide-resolved';
   const [hideResolved, setHideResolved] = useState(() => {
-    try {
-      return localStorage.getItem(HIDE_RESOLVED_KEY) === 'true';
-    } catch {
-      return false;
-    }
+    return loadRaw('clearcontract:hide-resolved').data === 'true';
   });
 
   const toggleHideResolved = () => {
     setHideResolved((prev) => {
       const next = !prev;
-      try { localStorage.setItem(HIDE_RESOLVED_KEY, String(next)); } catch {}
+      saveRaw('clearcontract:hide-resolved', String(next));
       return next;
     });
   };
