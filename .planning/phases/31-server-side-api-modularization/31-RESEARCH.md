@@ -54,7 +54,7 @@ None -- discussion stayed within phase scope.
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
 | TypeScript | (project version) | Type-safe module extraction | Already configured with strict mode |
-| Zod | (project version) | Schema definitions imported by passes | Already the schema source of truth |
+| Zod | ^3.25.76 | Schema definitions imported by passes | Already the schema source of truth |
 
 ### Supporting
 No new libraries needed. This is pure code reorganization.
@@ -168,6 +168,12 @@ import type { AnalysisPass } from './passes';
 **Why it happens:** The ROADMAP target was set before the discussion session determined that handler logic, run functions, constants, and schemas all stay.
 **How to avoid:** The realistic target is ~490 lines per the CONTEXT.md decisions. The ROADMAP notes this is aspirational; ~490 is correct.
 
+### Pitfall 6: tsconfig.json Does Not Cover api/ Directory
+**What goes wrong:** Running `npx tsc --noEmit` with the project tsconfig only checks `src/`, not `api/`. Type errors in passes.ts or analyze.ts would not be caught.
+**Why it happens:** The project `tsconfig.json` has `"include": ["src"]`. The api/ directory is compiled by Vercel's bundler, not by the project's tsc configuration.
+**How to avoid:** For local validation, run tsc with explicit file targeting: `npx tsc --noEmit --strict --moduleResolution bundler --module ESNext --target ES2020 --skipLibCheck --jsx react-jsx --lib ES2020,DOM api/analyze.ts api/passes.ts`. Note: there are pre-existing type errors in api/ that are unrelated to this phase.
+**Warning signs:** CI passes but Vercel build fails, or vice versa.
+
 ## Code Examples
 
 ### Extract: AnalysisPass Interface (passes.ts)
@@ -228,6 +234,94 @@ import { PassResultSchema, RiskOverviewResultSchema } from '../src/schemas/analy
 import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 ```
 
+## Validation Architecture
+
+### Test Framework
+| Property | Value |
+|----------|-------|
+| Framework | None configured (no test framework in project) |
+| Config file | none -- see Wave 0 |
+| Quick run command | `npm run build` (Vite build, validates src/ compilation) |
+| Full suite command | `npm run build && npx tsc --noEmit` (src/ only -- see notes below) |
+
+**Important note on api/ type checking:** The project `tsconfig.json` only includes `src/`, not `api/`. The api/ directory is compiled by Vercel's bundler at deploy time. There is no local tsc command that covers api/ with the project config. For targeted api/ validation, use the explicit tsc invocation below.
+
+### Phase Requirements to Test Map
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| DECOMP-04 | api/analyze.ts modularized into analyze.ts + passes.ts | structural | `wc -l api/analyze.ts` (expect ~490 lines, under 550) | N/A |
+| DECOMP-04 | passes.ts exists with 16 pass definitions | structural | `grep -c "name:" api/passes.ts` (expect 16+) | Wave 0 creates file |
+| DECOMP-04 | passes.ts exports AnalysisPass interface | structural | `grep "export interface AnalysisPass" api/passes.ts` | Wave 0 creates file |
+| DECOMP-04 | passes.ts exports ANALYSIS_PASSES array | structural | `grep "export const ANALYSIS_PASSES" api/passes.ts` | Wave 0 creates file |
+| DECOMP-04 | analyze.ts imports from passes.ts | structural | `grep "from './passes'" api/analyze.ts` | After extraction |
+| DECOMP-04 | No circular imports (passes.ts does NOT import analyze.ts) | structural | `grep "from './analyze'" api/passes.ts` (expect NO matches) | After extraction |
+| DECOMP-04 | Vite build succeeds (src/ compilation intact) | build | `npm run build` | Existing |
+| DECOMP-04 | Vercel entry point contract preserved | structural | `grep "export const config" api/analyze.ts && grep "export default" api/analyze.ts` | Existing |
+| DECOMP-05 | merge.ts unchanged | structural | `wc -l api/merge.ts` (expect ~555 lines, unchanged) | Existing |
+| SC-4 | End-to-end pipeline works after modularization | e2e/manual | Vercel preview deployment + PDF upload test | Manual |
+
+### Verification Commands (Automated)
+
+**Build validation (proves no import breakage):**
+```bash
+npm run build
+```
+
+**Structural validation (proves extraction correctness):**
+```bash
+# analyze.ts line count (target ~490, must be under 550)
+wc -l api/analyze.ts
+
+# passes.ts exists and has correct exports
+grep "export interface AnalysisPass" api/passes.ts
+grep "export const ANALYSIS_PASSES" api/passes.ts
+grep "export const SYNTHESIS_SYSTEM_PROMPT" api/passes.ts
+
+# analyze.ts imports from passes.ts
+grep "from './passes'" api/analyze.ts
+
+# No circular dependency (passes.ts must NOT import from analyze.ts)
+grep "from './analyze'" api/passes.ts && echo "FAIL: circular import" || echo "PASS: no circular import"
+
+# Vercel entry point contract intact
+grep "export const config" api/analyze.ts
+grep "export default" api/analyze.ts
+
+# All 16 passes present in passes.ts (count pass name strings)
+grep -c "name: '" api/passes.ts
+# Expected: 16
+
+# merge.ts unchanged
+wc -l api/merge.ts
+# Expected: ~555
+
+# Pass-specific schema imports removed from analyze.ts
+grep "IndemnificationPassResultSchema" api/analyze.ts && echo "FAIL: schema not moved" || echo "PASS: schema moved to passes.ts"
+```
+
+**API-level type check (targeted, not project-wide):**
+```bash
+# Note: pre-existing type errors exist in api/ unrelated to this phase.
+# This command checks for NEW errors only -- compare output before/after extraction.
+npx tsc --noEmit --strict --moduleResolution bundler --module ESNext --target ES2020 --skipLibCheck --jsx react-jsx --lib ES2020,DOM api/analyze.ts 2>&1 | wc -l
+```
+
+**End-to-end validation (manual, requires API key):**
+```bash
+# Deploy to Vercel preview and test with a real PDF
+vercel deploy --prebuilt 2>&1 | tail -1
+# Then upload a 3-5MB PDF through the UI and verify all 16 passes complete
+```
+
+### Sampling Rate
+- **Per task commit:** `npm run build` + structural grep checks
+- **Per wave merge:** Full structural validation suite above
+- **Phase gate:** Vercel preview deployment + manual PDF analysis test before marking complete
+
+### Wave 0 Gaps
+- [ ] `api/passes.ts` -- new file created during extraction (this IS the phase deliverable)
+- No test framework gaps -- validation is structural (grep, wc) and build-based (npm run build)
+
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
@@ -250,9 +344,10 @@ import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 
 ### Primary (HIGH confidence)
 - Direct code analysis of `api/analyze.ts` (1,478 lines, read in full)
-- Direct code analysis of `api/merge.ts` (555 lines, read in full)
+- Direct code analysis of `api/merge.ts` (555 lines, referenced)
 - Direct code analysis of `api/pdf.ts` and `api/scoring.ts` (existing extraction pattern)
 - Phase 31 CONTEXT.md (user decisions from discussion session)
+- `tsconfig.json` analysis confirming api/ is not in project include path
 
 ### Secondary (MEDIUM confidence)
 - Vercel serverless function documentation (entry point contract: `export const config` + `export default handler`)
@@ -263,6 +358,7 @@ import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 - Standard stack: HIGH - no new libraries, pure extraction
 - Architecture: HIGH - pattern already proven by pdf.ts, scoring.ts, merge.ts
 - Pitfalls: HIGH - identified from direct code analysis of dependency chains
+- Validation: HIGH - structural checks are deterministic; build validation covers import correctness
 
 **Research date:** 2026-03-15
 **Valid until:** 2026-04-15 (stable -- no external dependencies to drift)
