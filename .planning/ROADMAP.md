@@ -71,7 +71,7 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 - [x] **Phase 23: Analysis Quality** - Strengthen the analysis pipeline with cross-pass synthesis, better knowledge, and cleaner scoring (completed 2026-03-14)
 - [x] **Phase 24: Actionable Output** - Give the user deliverables they can hand to others -- PDF reports, prioritized actions, negotiation checklists (completed 2026-03-15)
 - [x] **Phase 25: Portfolio Intelligence** - Enable cross-contract insights, comparison, and smarter re-analysis across stored contracts (completed 2026-03-15)
-- [ ] **Phase 26: Audit Gap Closure** - Close integration gap, fix misleading dialog, and remove placeholder buttons [GAP CLOSURE]
+- [x] **Phase 26: Audit Gap Closure** - Close integration gap, fix misleading dialog, and remove placeholder buttons [GAP CLOSURE] (completed 2026-03-15)
 
 ## Phase Details
 
@@ -183,4 +183,4 @@ Plans:
 | 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 24. Actionable Output | 2/2 | Complete    | 2026-03-15 | - |
 | 25. Portfolio Intelligence | 2/2 | Complete    | 2026-03-15 | - |
-| 26. Audit Gap Closure | v1.4 | 0/1 | Planned | - |
+| 26. Audit Gap Closure | 1/1 | Complete   | 2026-03-15 | - |
