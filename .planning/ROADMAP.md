@@ -6,7 +6,7 @@
 - v1.1 Domain Intelligence -- Phases 7-10 (shipped 2026-03-10)
 - v1.2 UX Foundations -- Phases 11-14 (shipped 2026-03-12)
 - v1.3 Workflow Completion -- Phases 15-21 (shipped 2026-03-13)
-- v1.4 Production Readiness -- Phases 22-25 (in progress)
+- v1.4 Production Readiness -- Phases 22-26 (in progress)
 
 ## Phases
 
@@ -71,6 +71,7 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 - [x] **Phase 23: Analysis Quality** - Strengthen the analysis pipeline with cross-pass synthesis, better knowledge, and cleaner scoring (completed 2026-03-14)
 - [x] **Phase 24: Actionable Output** - Give the user deliverables they can hand to others -- PDF reports, prioritized actions, negotiation checklists (completed 2026-03-15)
 - [x] **Phase 25: Portfolio Intelligence** - Enable cross-contract insights, comparison, and smarter re-analysis across stored contracts (completed 2026-03-15)
+- [ ] **Phase 26: Audit Gap Closure** - Close integration gap, fix misleading dialog, and remove placeholder buttons [GAP CLOSURE]
 
 ## Phase Details
 
@@ -138,6 +139,21 @@ Plans:
 - [ ] 25-01-PLAN.md -- Dashboard patterns card + advanced multi-select filtering (PORT-01, PORT-03)
 - [ ] 25-02-PLAN.md -- Contract comparison view + re-analyze preservation (PORT-02, PORT-04)
 
+### Phase 26: Audit Gap Closure [GAP CLOSURE]
+**Goal**: Close all gaps and tech debt items identified by the v1.4 milestone audit
+**Depends on**: Phase 25
+**Requirements**: PIPE-01 (integration fix)
+**Gap Closure:** Closes gaps from v1.4 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. 'Compound Risk' category appears in CATEGORY_ORDER in ContractReview.tsx so synthesis findings are visible in by-category tab (integration gap)
+  2. Re-analyze confirmation dialog message reflects that resolved status and notes ARE preserved (tech debt warning)
+  3. Generate Monthly Report button either works or is removed — no "Coming soon" placeholder (tech debt info)
+  4. Share button either works or is removed — no "Coming soon" placeholder (tech debt info)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 26-01-PLAN.md -- Integration fix, dialog message, placeholder button cleanup
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -167,3 +183,4 @@ Plans:
 | 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 24. Actionable Output | 2/2 | Complete    | 2026-03-15 | - |
 | 25. Portfolio Intelligence | 2/2 | Complete    | 2026-03-15 | - |
+| 26. Audit Gap Closure | v1.4 | 0/1 | Planned | - |
