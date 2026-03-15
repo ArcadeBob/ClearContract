@@ -36,10 +36,10 @@ Requirements for Production Readiness milestone. Each maps to roadmap phases.
 
 ### Actionable Output
 
-- [ ] **OUT-01**: User can generate a PDF report of contract analysis (header, risk score, findings, dates)
+- [x] **OUT-01**: User can generate a PDF report of contract analysis (header, risk score, findings, dates)
 - [x] **OUT-02**: Findings have action priority classification (pre-bid / pre-sign / monitor)
 - [x] **OUT-03**: Bid signal widget shows full factor breakdown with weighted scores
-- [ ] **OUT-04**: Negotiation checklist view generated from findings with negotiationPosition data
+- [x] **OUT-04**: Negotiation checklist view generated from findings with negotiationPosition data
 
 ### Portfolio Intelligence
 
@@ -84,10 +84,10 @@ None deferred -- all agent-identified features scoped into v1.4.
 | PIPE-04 | Phase 23 | Complete |
 | PIPE-05 | Phase 23 | Complete |
 | PIPE-06 | Phase 23 | Complete |
-| OUT-01 | Phase 24 | Pending |
+| OUT-01 | Phase 24 | Complete |
 | OUT-02 | Phase 24 | Complete |
 | OUT-03 | Phase 24 | Complete |
-| OUT-04 | Phase 24 | Pending |
+| OUT-04 | Phase 24 | Complete |
 | PORT-01 | Phase 25 | Pending |
 | PORT-02 | Phase 25 | Pending |
 | PORT-03 | Phase 25 | Pending |
