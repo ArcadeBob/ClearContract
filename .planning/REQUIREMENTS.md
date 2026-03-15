@@ -31,8 +31,8 @@ Requirements for code health milestone. Each maps to roadmap phases.
 
 ### Hook Extraction
 
-- [ ] **HOOK-01**: Create useInlineEdit hook — shared by ContractReview (rename) and FindingCard (notes), replacing duplicated edit/commit/cancel pattern
-- [ ] **HOOK-02**: Create useContractFiltering hook — extract multi-select filter state and visibleFindings logic from ContractReview
+- [x] **HOOK-01**: Create useInlineEdit hook — shared by ContractReview (rename) and FindingCard (notes), replacing duplicated edit/commit/cancel pattern
+- [x] **HOOK-02**: Create useContractFiltering hook — extract multi-select filter state and visibleFindings logic from ContractReview
 - [x] **HOOK-03**: Create useFieldValidation hook — extract onBlur validation/save/revert logic from Settings ProfileField
 
 ## Future Requirements
@@ -75,8 +75,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PATN-02 | Phase 27 | Complete |
 | PATN-03 | Phase 27 | Complete |
 | TYPE-04 | Phase 27 | Complete |
-| HOOK-01 | Phase 28 | Pending |
-| HOOK-02 | Phase 28 | Pending |
+| HOOK-01 | Phase 28 | Complete |
+| HOOK-02 | Phase 28 | Complete |
 | HOOK-03 | Phase 28 | Complete |
 | DECOMP-01 | Phase 29 | Pending |
 | DECOMP-02 | Phase 29 | Pending |

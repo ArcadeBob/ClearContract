@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
 status: completed
-stopped_at: Completed 28-02-PLAN.md
-last_updated: "2026-03-15T05:56:09.567Z"
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-03-15T05:59:37.979Z"
 last_activity: 2026-03-15 -- Completed 28-02 useFieldValidation hook extraction
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Recent decisions affecting v1.5:
 - [Phase 27]: Kept CompanyProfileSchema in api/analyze.ts nested inside AnalyzeRequestSchema
 - [Phase 27]: Added border classes to getRiskBadgeColor for ContractComparison compatibility (inert without border-width)
 - [Phase 28]: Kept useFieldValidation validate callback generic (not tied to FieldType) for reusability
+- [Phase 28]: Added setFilterSet to useContractFiltering for MultiSelectDropdown full-Set onChange compatibility
 
 ### Pending Todos
 
@@ -66,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T05:56:09.565Z
-Stopped at: Completed 28-02-PLAN.md
+Last session: 2026-03-15T05:59:37.977Z
+Stopped at: Completed 28-01-PLAN.md
 Resume with: `/gsd:execute-phase 28` (complete remaining plans or advance to 29)
