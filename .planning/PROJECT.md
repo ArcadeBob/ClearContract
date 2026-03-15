@@ -70,7 +70,15 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(No active requirements — next milestone not yet defined. Use `/gsd:new-milestone` to start.)
+#### v1.6 Quality & Validation
+- [ ] Manual UAT walkthrough with guided checklist (live API + real contract)
+- [ ] Automated regression suite with mocked API responses
+- [ ] Live integration test suite (real API, manual trigger)
+- [ ] Test framework setup (Vitest + React Testing Library)
+- [ ] Unit tests on core logic (risk scoring, merge, storage, Zod validation)
+- [ ] Integration tests on API endpoint
+- [ ] Component tests for key UI flows
+- [ ] Vercel Pro config verification
 
 ### Out of Scope
 
@@ -109,11 +117,11 @@ Actionable output: PDF reports, action priority badges, negotiation checklist ta
 Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, finding preservation across re-analysis.
 Code health: shared utilities (storageManager, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors.
 
-Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyquist validation not compliant (no test framework).
+Known issues: human UAT pending, Nyquist validation not compliant (no test framework). Vercel Pro plan active (300s timeout confirmed).
 
 ## Constraints
 
-- **Deployment**: Vercel serverless with configurable function timeout (currently 300s, may need Pro plan)
+- **Deployment**: Vercel Pro with 300s serverless function timeout
 - **API**: Anthropic Claude API -- token limits and costs factor into pass design
 - **File size**: 10MB max PDF upload (Vercel 4.5MB body limit via base64)
 - **Stack**: React 18 + TypeScript + Tailwind + Vite + jsPDF (established, no reason to change)
@@ -179,4 +187,4 @@ Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyqu
 - **v1.5** Code Health (2026-03-15) -- shared utilities, hook extraction, component decomposition, type safety
 
 ---
-*Last updated: 2026-03-15 after v1.5 milestone*
+*Last updated: 2026-03-15 after v1.6 milestone start*
