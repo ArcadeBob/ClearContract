@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
 status: completed
-stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-03-15T07:15:00.364Z"
-last_activity: 2026-03-15 -- Completed 29-02 ToastProvider context and useToast hook
+stopped_at: Completed 29-03-PLAN.md
+last_updated: "2026-03-15T07:21:02.630Z"
+last_activity: 2026-03-15 -- Completed 29-03 ContractReview decomposition + toast wiring
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 29 Component Decomposition + Toast Context
+**Current focus:** v1.5 Code Health -- Phase 29 complete, next: Phase 30 Type Safety Hardening
 
 ## Current Position
 
 Phase: 29 of 31 (Component Decomposition + Toast Context) -- third of 5 phases in v1.5
-Plan: 2 of 3 in current phase
-Status: 29-02 complete
-Last activity: 2026-03-15 -- Completed 29-02 ToastProvider context and useToast hook
+Plan: 3 of 3 in current phase (phase complete)
+Status: Phase 29 complete
+Last activity: 2026-03-15 -- Completed 29-03 ContractReview decomposition + toast wiring
 
 ## Performance Metrics
 
@@ -55,6 +55,8 @@ Recent decisions affecting v1.5:
 - [Phase 29]: Duplicated pillBase in LegalMetaBadge/shared.ts and ScopeMetaBadge/shared.ts rather than cross-directory import
 - [Phase 29]: Used Record<DiscriminantType, FC<{meta: any}>> dispatcher pattern for MetaBadge decomposition
 - [Phase 29]: Toast.tsx changed from absolute to fixed positioning; auto-dismiss timer moved to ToastProvider (3s)
+- [Phase 29]: Kept useCompanyProfile in ContractReview (profile banner is in main content, not header)
+- [Phase 29]: Exported ViewMode type from FilterToolbar for ContractReview import
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T07:14:30Z
-Stopped at: Completed 29-01-PLAN.md (MetaBadge decomposition)
-Resume with: `/gsd:execute-phase 29` (complete remaining plan 29-03)
+Last session: 2026-03-15T07:21:02.628Z
+Stopped at: Completed 29-03-PLAN.md
+Resume with: `/gsd:execute-phase 30` (Type Safety Hardening)
