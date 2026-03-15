@@ -99,11 +99,11 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
   3. Severity-to-Tailwind-class mapping lives in one palette map file; no inline ternary chains for severity colors remain across the codebase
   4. POST requests to /api/analyze with missing or malformed pdfBase64/fileName fields return a clean 400 response with a descriptive error message
   5. Production build (`npm run build`) succeeds with no Tailwind purge issues -- all severity colors render correctly
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 27-01: TBD
-- [ ] 27-02: TBD
+- [ ] 27-01-PLAN.md — Create utility files (storage manager, error classifier, palette) and request validation schema
+- [ ] 27-02-PLAN.md — Refactor all call sites to use shared utilities
 
 ### Phase 28: Hook Extraction
 **Goal**: Reusable state-logic hooks exist that encapsulate inline edit, contract filtering, and field validation patterns
@@ -199,7 +199,7 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 24. Actionable Output | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 25. Portfolio Intelligence | v1.4 | 2/2 | Complete | 2026-03-15 |
 | 26. Audit Gap Closure | v1.4 | 1/1 | Complete | 2026-03-15 |
-| 27. Foundation Utilities | v1.5 | 0/TBD | Not started | - |
+| 27. Foundation Utilities | v1.5 | 0/2 | Not started | - |
 | 28. Hook Extraction | v1.5 | 0/TBD | Not started | - |
 | 29. Component Decomposition + Toast Context | v1.5 | 0/TBD | Not started | - |
 | 30. Type Safety Hardening | v1.5 | 0/TBD | Not started | - |
