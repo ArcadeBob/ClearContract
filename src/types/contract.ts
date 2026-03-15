@@ -198,4 +198,5 @@ export type ViewState =
   | 'upload'
   | 'review'
   | 'contracts'
-  | 'settings';
+  | 'settings'
+  | 'compare';

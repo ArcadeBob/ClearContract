@@ -8,8 +8,11 @@ interface ContractCardProps {
   contract: Contract;
   onClick: () => void;
   onDelete?: (id: string) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
-export function ContractCard({ contract, onClick, onDelete }: ContractCardProps) {
+export function ContractCard({ contract, onClick, onDelete, selectable, selected, onToggleSelect }: ContractCardProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const criticalCount = contract.findings.filter(
     (f) => f.severity === 'Critical'
@@ -20,10 +23,22 @@ export function ContractCard({ contract, onClick, onDelete }: ContractCardProps)
   return (
     <div
       onClick={onClick}
-      className="group bg-white p-4 rounded-lg border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+      className={`group bg-white p-4 rounded-lg border transition-all cursor-pointer ${selected ? 'border-blue-500 ring-2 ring-blue-500' : 'border-slate-200 hover:border-blue-300 hover:shadow-md'}`}
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-start space-x-3">
+          {selectable && (
+            <input
+              type="checkbox"
+              checked={selected || false}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleSelect?.();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+          )}
           <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-blue-50 transition-colors">
             <FileText className="w-5 h-5 text-slate-500 group-hover:text-blue-600" />
           </div>

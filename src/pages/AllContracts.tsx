@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Contract, ViewState } from '../types/contract';
 import { ContractCard } from '../components/ContractCard';
-import { Search, SlidersHorizontal, Plus, ArrowUpDown } from 'lucide-react';
+import { Search, SlidersHorizontal, Plus, ArrowUpDown, GitCompareArrows } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 interface AllContractsProps {
   contracts: Contract[];
-  onNavigate: (view: ViewState, id?: string) => void;
+  onNavigate: (view: ViewState, id?: string, compareIds?: [string, string]) => void;
   onDelete?: (id: string) => void;
 }
 const CONTRACT_TYPES = [
@@ -42,6 +42,29 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>('date-desc');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Clear stale selections when contracts change
+  useEffect(() => {
+    setSelectedIds(prev => {
+      const contractIdSet = new Set(contracts.map(c => c.id));
+      const cleaned = new Set([...prev].filter(id => contractIdSet.has(id)));
+      return cleaned.size !== prev.size ? cleaned : prev;
+    });
+  }, [contracts]);
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < 2) {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   const filteredContracts = useMemo(() => {
     let result = [...contracts];
     // Search
@@ -104,13 +127,27 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
               {criticalCount} critical
             </p>
           </div>
-          <button
-            onClick={() => onNavigate('upload')}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Upload Contract</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            {selectedIds.size === 2 && (
+              <button
+                onClick={() => {
+                  const ids = Array.from(selectedIds) as [string, string];
+                  onNavigate('compare', undefined, ids);
+                }}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+              >
+                <GitCompareArrows className="w-4 h-4" />
+                <span>Compare Selected</span>
+              </button>
+            )}
+            <button
+              onClick={() => onNavigate('upload')}
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Upload Contract</span>
+            </button>
+          </div>
         </div>
 
         {/* Search & Filters */}
@@ -195,13 +232,16 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
                       y: -8,
                     }}
                     transition={{
-                      delay: index * 0.04,
+                      delay: Math.min(index * 0.04, 0.3),
                     }}
                   >
                     <ContractCard
                       contract={contract}
                       onClick={() => onNavigate('review', contract.id)}
                       onDelete={onDelete}
+                      selectable={true}
+                      selected={selectedIds.has(contract.id)}
+                      onToggleSelect={() => toggleSelection(contract.id)}
                     />
                   </motion.div>
                 ))}

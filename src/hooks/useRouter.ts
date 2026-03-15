@@ -4,6 +4,7 @@ import { ViewState } from '../types/contract';
 interface RouterState {
   view: ViewState;
   contractId: string | null;
+  compareIds?: [string, string];
 }
 
 function parseUrl(pathname: string): RouterState {
@@ -19,6 +20,15 @@ function parseUrl(pathname: string): RouterState {
   }
   if (pathname === '/settings') {
     return { view: 'settings', contractId: null };
+  }
+  if (pathname === '/compare') {
+    const params = new URLSearchParams(window.location.search);
+    const a = params.get('a');
+    const b = params.get('b');
+    if (a && b) {
+      return { view: 'compare', contractId: null, compareIds: [a, b] };
+    }
+    return { view: 'contracts', contractId: null };
   }
   return { view: 'dashboard', contractId: null };
 }
@@ -37,12 +47,19 @@ export function useRouter() {
   }, []);
 
   const navigateTo = useCallback(
-    (view: ViewState, contractId?: string) => {
+    (view: ViewState, contractId?: string, compareIds?: [string, string]) => {
       let newState: RouterState;
 
       if (view === 'upload') {
         newState = { view: 'upload', contractId: null };
         window.history.pushState(null, '', '/upload');
+        setState(newState);
+        return;
+      }
+
+      if (view === 'compare' && compareIds) {
+        newState = { view: 'compare', contractId: null, compareIds };
+        window.history.pushState(null, '', `/compare?a=${compareIds[0]}&b=${compareIds[1]}`);
         setState(newState);
         return;
       }
@@ -69,6 +86,7 @@ export function useRouter() {
   return {
     activeView: state.view,
     activeContractId: state.contractId,
+    compareIds: state.compareIds,
     navigateTo,
   };
 }
