@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Production Readiness
-status: in-progress
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-03-15T01:36:00.000Z"
-last_activity: 2026-03-15 -- Completed 25-01 patterns card + multi-select filters
+status: completed
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-03-15T01:36:22Z"
+last_activity: 2026-03-15 -- Completed 25-02 contract comparison + re-analyze preservation
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 100
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 25 of 25 (Portfolio Intelligence)
-Plan: 1 of 2 complete
-Status: Executing phase 25
-Last activity: 2026-03-15 -- Completed 25-01 patterns card + multi-select filters
+Plan: 2 of 2 complete
+Status: Phase 25 complete
+Last activity: 2026-03-15 -- Completed 25-02 contract comparison + re-analyze preservation
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -64,6 +64,8 @@ Full decision log in PROJECT.md Key Decisions table (31 decisions).
 - [Phase 24]: NegotiationChecklist uncategorized group for backward compat with old contracts
 - [Phase 25]: PatternsCard full-width row below stat cards (list layout better than single-number stat card)
 - [Phase 25]: Set-based filter state; all-selected = no filtering; findings without actionPriority hidden when priority filter active
+- [Phase 25]: clauseReference+category composite key for finding preservation across re-analysis
+- [Phase 25]: Compare route is transient (no sidebar entry), accessed only via All Contracts selection
 
 ### Pending Todos
 
@@ -76,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T01:36:00.000Z
-Stopped at: Completed 25-01-PLAN.md
-Resume with: /gsd:execute-phase 25
+Last session: 2026-03-15T01:36:22Z
+Stopped at: Completed 25-02-PLAN.md (phase 25 complete)
+Resume with: All plans complete

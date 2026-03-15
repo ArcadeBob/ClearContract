@@ -44,9 +44,9 @@ Requirements for Production Readiness milestone. Each maps to roadmap phases.
 ### Portfolio Intelligence
 
 - [x] **PORT-01**: Dashboard shows common finding patterns across all stored contracts
-- [ ] **PORT-02**: User can compare two contracts side-by-side (findings diff, risk score delta)
+- [x] **PORT-02**: User can compare two contracts side-by-side (findings diff, risk score delta)
 - [x] **PORT-03**: Advanced multi-select filters on findings (severity, category, resolved, has negotiation position)
-- [ ] **PORT-04**: Re-analyze preserves resolved status and notes by matching findings
+- [x] **PORT-04**: Re-analyze preserves resolved status and notes by matching findings
 
 ## Future Requirements
 
@@ -89,9 +89,9 @@ None deferred -- all agent-identified features scoped into v1.4.
 | OUT-03 | Phase 24 | Complete |
 | OUT-04 | Phase 24 | Complete |
 | PORT-01 | Phase 25 | Complete |
-| PORT-02 | Phase 25 | Pending |
+| PORT-02 | Phase 25 | Complete |
 | PORT-03 | Phase 25 | Complete |
-| PORT-04 | Phase 25 | Pending |
+| PORT-04 | Phase 25 | Complete |
 
 **Coverage:**
 - v1.4 requirements: 26 total
