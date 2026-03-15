@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
 
@@ -35,20 +34,12 @@ const styleMap = {
 export function Toast({ type, message, onRetry, onDismiss }: ToastData) {
   const { container, button, Icon } = styleMap[type];
 
-  useEffect(() => {
-    // Don't auto-dismiss if retry is available -- user needs time to click
-    if (onRetry) return;
-
-    const timer = setTimeout(onDismiss, 8000);
-    return () => clearTimeout(timer);
-  }, [onRetry, onDismiss]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg rounded-lg border shadow-lg p-4 flex items-center gap-3 ${container}`}
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg rounded-lg border shadow-lg p-4 flex items-center gap-3 ${container}`}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
       <span className="text-sm font-medium flex-1">{message}</span>
