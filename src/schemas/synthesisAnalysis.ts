@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ActionPriorityEnum } from './analysis';
 
 export const SynthesisFindingSchema = z.object({
   title: z.string().describe('Compound risk title, e.g., "Cash Flow Squeeze"'),
@@ -17,6 +18,9 @@ export const SynthesisFindingSchema = z.object({
     .describe(
       'Titles of the individual findings that combine to create this compound risk'
     ),
+  actionPriority: ActionPriorityEnum.describe(
+    'When to act on this compound risk: pre-bid, pre-sign, or monitor'
+  ),
 });
 
 export const SynthesisPassResultSchema = z.object({

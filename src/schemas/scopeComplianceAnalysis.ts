@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { SEVERITIES } from '../types/contract';
-import { ContractDateSchema } from './analysis';
+import { ContractDateSchema, ActionPriorityEnum } from './analysis';
 
 /**
  * Zod schemas for the specialized scope/compliance/verbiage analysis passes.
@@ -41,6 +41,7 @@ export const ScopeOfWorkFindingSchema = z.object({
   affectedTrade: z.string(),
   negotiationPosition: z.string(),
   downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
 });
 
 export const ScopeOfWorkPassResultSchema = z.object({
@@ -75,6 +76,7 @@ export const DatesDeadlinesFindingSchema = z.object({
   triggerEvent: z.string(),
   negotiationPosition: z.string(),
   downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
 });
 
 export const DatesDeadlinesPassResultSchema = z.object({
@@ -117,6 +119,7 @@ export const VerbiageFindingSchema = z.object({
   suggestedClarification: z.string(),
   negotiationPosition: z.string(),
   downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
 });
 
 export const VerbiagePassResultSchema = z.object({
@@ -164,6 +167,7 @@ export const LaborComplianceFindingSchema = z.object({
   checklistItems: z.array(ComplianceChecklistItemSchema),
   negotiationPosition: z.string(),
   downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
 });
 
 export const LaborCompliancePassResultSchema = z.object({

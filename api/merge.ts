@@ -26,6 +26,7 @@ export interface UnifiedFinding {
   negotiationPosition?: string;
   downgradedFrom?: string;
   isSynthesis?: boolean;
+  actionPriority?: string;
 }
 
 function buildBaseFinding(
@@ -45,6 +46,7 @@ function buildBaseFinding(
     sourcePass: passName,
     negotiationPosition: finding.negotiationPosition,
     downgradedFrom: finding.downgradedFrom,
+    actionPriority: finding.actionPriority as string | undefined,
   };
 }
 

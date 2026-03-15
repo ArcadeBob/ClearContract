@@ -158,6 +158,12 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 
 IMPORTANT: negotiationPosition is distinct from recommendation. Recommendation = what to do about it (general guidance). negotiationPosition = what to say to the GC (specific language or position to negotiate).
 
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (bonding requirements, insurance capacity, scope gaps that affect pricing)
+- "pre-sign": Must be negotiated BEFORE signing the contract (indemnification, payment terms, liability caps, unfair clauses)
+- "monitor": Ongoing compliance item to track during project execution (deadlines, regulatory requirements, warranty periods)
+
 ## Company Profile Comparison (when Company Profile section is present above)
 When a Company Profile section appears in this prompt, you MUST:
 1. If the contract specifies bonding requirements, compare against company's bonding capacity
@@ -215,7 +221,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (schedule feasibility, milestone constraints affecting pricing)
+- "pre-sign": Must be negotiated BEFORE signing the contract (unreasonable deadlines, missing timelines)
+- "monitor": Ongoing compliance item to track during project execution (deadlines, notice periods, cure periods, submittal dates)`,
     userPrompt:
       'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
   },
@@ -267,7 +279,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 When a Company Profile section appears in this prompt:
 - Consider the company's capabilities and typical project size when assessing severity
 - If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
-- Set downgradedFrom to the original severity when downgrading`,
+- Set downgradedFrom to the original severity when downgrading
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (scope gaps affecting pricing, specification references, material requirements)
+- "pre-sign": Must be negotiated BEFORE signing the contract (ambiguous scope language, missing exclusions)
+- "monitor": Ongoing compliance item to track during project execution (scope rules, trade coordination)`,
     userPrompt:
       'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
   },
@@ -325,7 +343,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (rarely applies to indemnification)
+- "pre-sign": Must be negotiated BEFORE signing the contract (indemnification clauses are typically pre-sign items)
+- "monitor": Ongoing compliance item to track during project execution (rarely applies to indemnification)`,
     userPrompt:
       'Analyze all indemnification and hold-harmless clauses in this glazing subcontract.',
   },
@@ -378,7 +402,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 When a Company Profile section appears in this prompt:
 - Consider the company's capabilities and typical project size when assessing severity
 - If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
-- Set downgradedFrom to the original severity when downgrading`,
+- Set downgradedFrom to the original severity when downgrading
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (rarely applies to payment contingency)
+- "pre-sign": Must be negotiated BEFORE signing the contract (payment contingency clauses are typically pre-sign items)
+- "monitor": Ongoing compliance item to track during project execution (payment timing tracking)`,
     userPrompt:
       'Analyze all payment contingency clauses (pay-if-paid, pay-when-paid) in this glazing subcontract.',
   },
@@ -430,7 +460,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 When a Company Profile section appears in this prompt:
 - Consider the company's capabilities and typical project size when assessing severity
 - If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
-- Set downgradedFrom to the original severity when downgrading`,
+- Set downgradedFrom to the original severity when downgrading
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (LD exposure affects bid pricing and contingency)
+- "pre-sign": Must be negotiated BEFORE signing the contract (LD caps, proportionality, flow-through)
+- "monitor": Ongoing compliance item to track during project execution (schedule adherence to avoid LD triggers)`,
     userPrompt:
       'Analyze all liquidated damages clauses in this glazing subcontract.',
   },
@@ -490,7 +526,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 When a Company Profile section appears in this prompt:
 - Consider the company's capabilities and typical project size when assessing severity
 - If the company already meets a requirement referenced in this analysis, downgrade severity and explain: "Downgraded from [original] to [new]: [reason]"
-- Set downgradedFrom to the original severity when downgrading`,
+- Set downgradedFrom to the original severity when downgrading
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (retainage percentage affects cash flow planning)
+- "pre-sign": Must be negotiated BEFORE signing the contract (release conditions, tied-to provisions)
+- "monitor": Ongoing compliance item to track during project execution (retainage release timing)`,
     userPrompt:
       'Analyze all retainage and retention provisions in this glazing subcontract.',
   },
@@ -556,7 +598,13 @@ When a Company Profile section appears in this prompt, you MUST:
 2. Generate findings with SPECIFIC amounts: "Contract requires $2M GL, your policy covers $1M -- $1M gap"
 3. If the company MEETS or EXCEEDS a requirement, set severity to Low and include in explanation: "Downgraded from [original severity] to Low: company meets this insurance requirement"
 4. Set downgradedFrom to the original severity when downgrading
-5. If company profile field is empty, skip comparison for that coverage type and note "Profile incomplete for this coverage"`,
+5. If company profile field is empty, skip comparison for that coverage type and note "Profile incomplete for this coverage"
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (insurance requirements that may require new policies or higher limits affect bid costs)
+- "pre-sign": Must be negotiated BEFORE signing the contract (non-standard endorsements, unreasonable coverage limits)
+- "monitor": Ongoing compliance item to track during project execution (certificate renewals, policy maintenance)`,
     userPrompt:
       'Analyze all insurance requirements in this glazing subcontract. Produce a summary checklist and individual findings for gaps or unusual requirements.',
   },
@@ -610,7 +658,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (rarely applies to termination)
+- "pre-sign": Must be negotiated BEFORE signing the contract (termination clauses are typically pre-sign items)
+- "monitor": Ongoing compliance item to track during project execution (cure period awareness, notice requirements)`,
     userPrompt: 'Analyze all termination clauses in this glazing subcontract.',
   },
   {
@@ -664,7 +718,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (flow-down obligations that affect bid pricing)
+- "pre-sign": Must be negotiated BEFORE signing the contract (blanket flow-down, hidden obligations, unavailable prime contract)
+- "monitor": Ongoing compliance item to track during project execution (flowed-down reporting or compliance obligations)`,
     userPrompt: 'Analyze all flow-down provisions in this glazing subcontract.',
   },
   {
@@ -713,7 +773,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (delay risk exposure affects bid contingency)
+- "pre-sign": Must be negotiated BEFORE signing the contract (no-damage-for-delay waivers are typically pre-sign items)
+- "monitor": Ongoing compliance item to track during project execution (delay documentation, exception triggers)`,
     userPrompt:
       'Analyze all no-damage-for-delay clauses in this glazing subcontract.',
   },
@@ -765,7 +831,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (lien right waivers affect payment security risk)
+- "pre-sign": Must be negotiated BEFORE signing the contract (no-lien clauses, unconditional waivers)
+- "monitor": Ongoing compliance item to track during project execution (lien filing deadlines, waiver submissions)`,
     userPrompt:
       'Analyze all provisions affecting lien rights in this glazing subcontract.',
   },
@@ -824,7 +896,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (rarely applies to dispute resolution)
+- "pre-sign": Must be negotiated BEFORE signing the contract (dispute resolution clauses are typically pre-sign items)
+- "monitor": Ongoing compliance item to track during project execution (mediation prerequisites, filing deadlines)`,
     userPrompt:
       'Analyze all dispute resolution provisions in this glazing subcontract.',
   },
@@ -880,7 +958,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (change order pricing mechanisms affect bid strategy)
+- "pre-sign": Must be negotiated BEFORE signing the contract (unilateral change rights, proceed-pending clauses)
+- "monitor": Ongoing compliance item to track during project execution (notice requirements, change order documentation)`,
     userPrompt:
       'Analyze all change order and change directive provisions in this glazing subcontract.',
   },
@@ -946,7 +1030,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (missing protections that affect bid risk assessment)
+- "pre-sign": Must be negotiated BEFORE signing the contract (one-sided terms, missing protections, undefined terms)
+- "monitor": Ongoing compliance item to track during project execution (verbiage compliance items)`,
     userPrompt:
       'Audit this glazing subcontract for missing standard protections and flag genuinely problematic verbiage that is not covered by other analysis passes.',
   },
@@ -1004,7 +1094,13 @@ For every finding you rate as Critical or High severity, you MUST populate the n
 - Frame from the glazing subcontractor's perspective
 - Be specific enough that the user can bring this directly to a negotiation discussion
 - This is NOT legal advice -- it is a starting position for discussion
-- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""`,
+- For findings rated Medium, Low, or Info, set negotiationPosition to an empty string ""
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (bonding requirements, prevailing wage requirements that affect labor costs)
+- "pre-sign": Must be negotiated BEFORE signing the contract (disproportionate compliance requirements)
+- "monitor": Ongoing compliance item to track during project execution (certified payroll, safety training, reporting deadlines)`,
     userPrompt:
       'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
   },
@@ -1105,7 +1201,13 @@ Your task is to identify COMPOUND RISKS -- situations where multiple individual 
 - Only flag compound risks where 2+ findings genuinely interact -- do not restate individual findings
 - Each compound risk should read like an executive summary insight: "These clauses together create [specific problem]"
 - If no compound risks are detected, return an empty findings array
-- Maximum 4 compound risk findings`;
+- Maximum 4 compound risk findings
+
+## Action Priority (MANDATORY for every finding)
+For each finding, assign an actionPriority value:
+- "pre-bid": Must be evaluated BEFORE submitting a bid (compound risks that fundamentally affect bid viability)
+- "pre-sign": Must be negotiated BEFORE signing the contract (compound risks from interacting contract clauses)
+- "monitor": Ongoing compliance item to track during project execution (compound risks requiring ongoing vigilance)`;
 
 async function runSynthesisPass(
   client: Anthropic,
@@ -1178,6 +1280,7 @@ async function runSynthesisPass(
       sourcePass: 'synthesis',
       isSynthesis: true,
       crossReferences: sf.constituentFindings,
+      actionPriority: sf.actionPriority,
     }));
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

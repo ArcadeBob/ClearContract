@@ -148,6 +148,7 @@ export interface Finding {
   negotiationPosition?: string;
   downgradedFrom?: Severity;
   isSynthesis?: boolean;
+  actionPriority?: 'pre-bid' | 'pre-sign' | 'monitor';
   resolved?: boolean;
   note?: string;
 }

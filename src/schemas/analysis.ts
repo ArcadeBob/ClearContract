@@ -17,6 +17,8 @@ import { SEVERITIES, CATEGORIES } from '../types/contract';
 const SeverityEnum = z.enum(SEVERITIES);
 const CategoryEnum = z.enum(CATEGORIES);
 
+export const ActionPriorityEnum = z.enum(['pre-bid', 'pre-sign', 'monitor']);
+
 const DateTypeEnum = z.enum(['Start', 'Milestone', 'Deadline', 'Expiry']);
 
 const ContractTypeEnum = z.enum([
@@ -39,6 +41,7 @@ export const FindingSchema = z.object({
   explanation: z.string().optional(),
   negotiationPosition: z.string(),
   downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
 });
 
 export const ContractDateSchema = z.object({
