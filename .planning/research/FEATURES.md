@@ -1,245 +1,188 @@
-# Feature Landscape: v1.3 Workflow Completion
+# Feature Research
 
-**Domain:** Contract Review AI -- Export, Routing, Re-analysis, Finding Actions
-**Researched:** 2026-03-12
-**Scope:** NEW features only -- v1.0 analysis engine and v1.1 domain intelligence already shipped
-**Confidence:** HIGH (features are well-understood patterns; implementation details verified against existing codebase)
+**Domain:** React/TypeScript codebase refactoring — component decomposition, hook extraction, type safety, pattern consolidation
+**Researched:** 2026-03-14
+**Confidence:** HIGH (direct codebase inspection; all findings come from reading source files, not training data)
 
-## Table Stakes
+---
 
-Features users expect given what already exists. Missing = workflow feels incomplete.
+## Context: What This Milestone Is
 
-| Feature | Why Expected | Complexity | Dependencies | Notes |
-|---------|--------------|------------|--------------|-------|
-| **Export Report (PDF)** | "Export Report" button already visible in ContractReview header (line 161) and does nothing. A non-functional button is worse than no button. Users need to share findings with legal counsel, PMs, or attach to Procore. | Medium | Contract data model, FindingCard layout (existing) | Must include findings with clause quotes, risk score, dates, bid signal, disclaimer |
-| **Export Report (CSV)** | Spreadsheet format for users who want to sort/filter findings in Excel or track remediation. Complementary to PDF. | Low | Contract data model (existing) | Flat tabular export: one row per finding with all fields |
-| **Settings Validation** | Settings currently accept any string for dollar amounts and dates. Entering "abc" for GL Per Occurrence breaks insurance comparison silently. Users expect form fields to reject invalid input. | Low | useCompanyProfile hook, Settings page, ProfileField component (existing) | Dollar fields need currency validation; date fields need expiry warnings; inline error display |
-| **Save Feedback** | Settings save silently on blur with no confirmation (useCompanyProfile line 12-17). User has no idea if save succeeded or if localStorage quota was exceeded. Standard form UX requires visible feedback. | Low | useCompanyProfile hook (existing), Toast component (existing) | Brief "Saved" indicator or toast on success; error toast on failure |
-| **URL-based Routing** | Browser back button does nothing. Refreshing loses current view (ViewState resets to 'dashboard' on mount). Cannot bookmark or share a link to a contract review. These are baseline web app behaviors. | Medium | ViewState type, navigateTo(), App.tsx switch/case (existing) | Must sync URL with ViewState bidirectionally; handle deep links on load; preserve back/forward |
-| **Finding Actions: Resolve** | Users review findings and want to mark items as "addressed" or "not applicable" to track progress. Without this, findings are static -- no remediation workflow. | Medium | Finding interface, FindingCard component, contract persistence (existing) | Adds `status` field to Finding. Resolved findings visually dim but remain visible. Toggleable. |
-| **Finding Actions: Annotate** | Users want to add notes like "Discussed with attorney -- acceptable risk" or "Negotiate per Bob's guidance." Institutional knowledge that makes the review actionable. | Medium | Finding interface, FindingCard component, contract persistence (existing) | Adds `userNote` field to Finding. Plain text, not rich text. |
-| **Re-analyze Contract** | After updating company profile (insurance limits, bonding), existing analyses are stale -- severity downgrades and bid signals reflect old profile. No way to refresh without re-uploading. | High | Analysis pipeline (api/analyze.ts), company profile, handleUploadComplete in App.tsx (existing). **Critical constraint: original PDF not stored.** | User must re-select file from disk. Refactor upload handler to support update-in-place. |
+v1.5 is a code health sweep on an existing ~9,700 LOC React 18 + TypeScript + Vite application. There are no user-facing features being added. The "features" here are refactoring work items that improve maintainability, type safety, and developer experience. The sole user of the application will not notice any of these changes — all value is captured by the developer.
 
-## Differentiators
+All items are drawn from direct inspection of the source. Complexity estimates reflect actual code size, coupling, and regression risk.
 
-Features beyond expected that add clear value for this user and use case.
+---
+
+## Feature Landscape
+
+### Table Stakes (Must Do — These Fix Active Correctness Gaps)
+
+These are non-negotiable. Missing them means the codebase has real bugs or type system gaps that will cause future pain.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| POST body request validation schema | `api/analyze.ts` validates `companyProfile` via Zod (lines 53-74) but `pdfBase64` and `fileName` are not validated for presence or type before use. A missing field causes an opaque crash inside the analysis pipeline rather than a clean 400 response. | LOW | Wrap existing `CompanyProfileSchema` in a top-level `RequestBodySchema` adding `pdfBase64: z.string()` and `fileName: z.string()`. Return 400 with clear error if validation fails. One file change. |
+| Zod/TS optionality reconciliation | Fields like `actionPriority` and `negotiationPosition` are `required` in Zod schemas but `optional` in `src/types/contract.ts` TypeScript interfaces. TypeScript strict mode passes but the runtime contract doesn't match the static type. Zod schema is the source of truth — TS types should derive from it. | MEDIUM | Audit each schema file against its corresponding TS interface. For each mismatch, decide direction: either add `?` to Zod (if truly optional in API output) or remove `?` from TS (if Zod requires it). Changes cascade to call sites. |
+| Client-side Zod validation of `/api/analyze` response | `src/api/analyzeContract.ts` line 77 does `return response.json()` with zero validation. If the API returns a malformed shape, the failure surface is wherever the data is consumed (finding render, PDF export, etc.) rather than at the boundary. | MEDIUM | Define a `AnalysisResultSchema` mirroring the `AnalysisResult` interface. Call `.parse()` on `response.json()` before returning. One new schema export; one `.parse()` call in `analyzeContract.ts`. Zod is already in the project. |
+| Replace `merge.ts` type casts with type guards | `api/merge.ts` has ~40 `as string`, `as boolean`, `as string[]` casts operating on `FindingResult & Record<string, unknown>`. Every cast silently swallows a type mismatch. The Zod schemas in `src/schemas/legalAnalysis.ts` already carry the correct field shapes — converting `convertLegalFinding` and `convertScopeFinding` to use type guards derived from those schemas eliminates the risk. | HIGH | Highest regression risk of all type safety items. Every legal and scope finding goes through this path. Must preserve pass-specific field mapping behavior exactly. Write against the schemas, not against intuition. |
+
+### Differentiators (High Value, Not Strictly Blocking)
+
+Refactoring that pays meaningful dividends for future development but does not fix active correctness bugs.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Findings Progress Tracker** | Dashboard shows "12 of 28 findings resolved" per contract. Tracks remediation across contracts. Computed from finding status -- zero new data needed. | Low | Pure UI addition on Dashboard and ContractReview sidebar |
-| **Export Filtered Findings** | Export only Critical/High findings, or only a specific category. Attorneys only need Legal Issues, PMs only need Important Dates. | Low | Apply existing filter state (selectedCategory, severity filter) before generating PDF/CSV |
-| **Deep Link Sharing** | URL like `/review/c-123456` bookmarkable directly to a specific contract. Falls out naturally from URL routing. | Low | Free consequence of URL routing implementation |
-| **PDF Report with Branding** | Professional cover page with company name, formatted sections, severity color-coding. Looks credible when shared with GCs. | Medium | jsPDF supports custom fonts and colors. Company name from profile. Logo upload is out of scope. |
-| **Re-analyze Diff** | After re-analysis, show what changed: new findings, removed findings, severity changes. Shows whether profile updates actually affected the analysis. | High | Requires storing previous findings snapshot. Significant diff UI work. v1.4 candidate. |
+| `useContractFiltering` hook extraction | `ContractReview.tsx` is 608 lines. Lines 82-212 are exclusively filter/sort state: 5 `useState` calls, `useMemo` for `visibleFindings`, `groupedFindings`, `flatFindings`, a severity rank map, a category order constant, and the `HIDE_RESOLVED_KEY` localStorage access. Extracting this logic reduces the file by ~100 lines and creates a testable, reusable unit. | MEDIUM | Hook takes `findings: Finding[]` as input. Manages: filter state (severity, category, priority, negotiation-only), `hideResolved` with localStorage persistence, derived `visibleFindings`, `groupedFindings`, `flatFindings`. Returns all state + setters + derived arrays. ContractReview becomes a thin orchestrator. |
+| `useInlineEdit` hook extraction | The inline rename interaction (isEditing, editValue, renameInputRef, startEditing, commitRename, cancelEditing, useEffect for auto-focus) appears in `ContractReview.tsx` lines 92-120. It is a self-contained, generic pattern that will recur if any other component gets inline editing. | LOW | Generic signature: `useInlineEdit(initialValue: string, onCommit: (v: string) => void)`. Returns `{ isEditing, editValue, setEditValue, ref, start, commit, cancel }`. Zero behavioral change. ~20 lines of hook logic. |
+| `useFieldValidation` hook extraction | `ProfileField` component in `Settings.tsx` (lines 8-120) combines local field state, validation, revert-on-invalid, saved-flash timer, and focus tracking in one 120-line component. The validation + revert + feedback timer is a repeatable pattern that would appear in any future settings page expansion. | MEDIUM | `useFieldValidation(value, fieldType, onSave)` owns: `localValue`, `error`, `warning`, `showSaved`, timer ref, `handleChange`, `handleFocus`, `handleBlur`. Cleanup of `timerRef` stays inside hook. `ProfileField` becomes a presentational wrapper. |
+| Centralize localStorage access (storage manager) | `localStorage` is accessed directly in 4 locations with inconsistent error handling: `contractStorage.ts` (try/catch, QuotaExceeded detection), `useCompanyProfile.ts` (try/catch, generic message), `profileLoader.ts` (try/catch, silent fail), `ContractReview.tsx` (bare try/catch, silent fail for `HIDE_RESOLVED_KEY`). A storage manager gives all callers consistent QuotaExceeded detection and a single place to add telemetry or swap storage backends. | LOW | ~50 lines. `storageGet<T>(key, fallback)` / `storageSet(key, value)` / `storageRemove(key)`. Wraps try/catch consistently. All 4 callers have small, easy-to-update access sites. |
+| Severity palette centralization | Severity-to-color mapping (`Critical: 'bg-red-100 text-red-700'`) is defined in `SeverityBadge.tsx` and also appears inline in `ContractCard.tsx`, `ContractComparison.tsx`, `DateTimeline.tsx`, and `exportContractPdf.ts` (as jsPDF hex colors). Not catastrophically duplicated yet but will drift as the codebase grows. | LOW | `src/utils/severityPalette.ts` exports `severityTailwind: Record<Severity, string>` and `severityHex: Record<Severity, string>`. SeverityBadge and exportContractPdf become the primary consumers. Other callers remove inline definitions. |
+| `LegalMetaBadge` subcomponent split | 417 lines, 11 `clauseType` branches in one file. Each branch is a distinct rendering unit (~20-40 lines) with no shared state between branches. Adding a 12th legal pass today requires editing a 400-line file and risks accidentally breaking an adjacent branch. | MEDIUM | Extract one component per clause type: `IndemnificationBadge`, `PaymentContingencyBadge`, `LiquidatedDamagesBadge`, `RetainageBadge`, `InsuranceBadge`, `TerminationBadge`, `FlowDownBadge`, `NoDamageDelayBadge`, `LienRightsBadge`, `DisputeResolutionBadge`, `ChangeOrderBadge`. Parent `LegalMetaBadge` becomes a switch dispatcher (~20 lines). |
+| `useToast` context extraction | Toast state (`toast`, `setToast`) lives in `App.tsx` and threads down via `onShowToast` prop to `ContractReview`, where it is used inside CSV export handlers. Context eliminates this prop threading. | MEDIUM | `ToastContext` with `showToast(data: ToastData)` and `dismissToast()`. `App.tsx` provides context and renders `<Toast>`. `AnimatePresence` must remain above the `Toast` render site (already in `App.tsx` main). Any component can call `useToast()` without prop drilling. |
+| `ScopeMetaBadge` subcomponent split | 199 lines, 4 `passType` branches (`scope-of-work`, `dates-deadlines`, `verbiage`, `labor-compliance`). Same split pattern as `LegalMetaBadge` at smaller scale. Lower urgency since the file is still manageable. | LOW | Extract 4 sub-components (~30-50 lines each). Parent becomes a dispatcher. Follow the same pattern established by `LegalMetaBadge` split. |
+| `api/analyze.ts` modularization | 1,510 lines in one serverless function file. Contains: request validation, 16 pass definitions, individual pass runner, synthesis pass, response assembly, and error handling. The pass configuration (name, schema, system prompt) is the most natural extraction. | HIGH | Extract: `api/passes/config.ts` (pass definitions array with schema refs), `api/passes/runPass.ts` (single pass execution), `api/passes/runSynthesis.ts`. The main handler becomes a thin orchestrator. Highest regression risk — a bug here breaks the entire analysis pipeline. Do last, after all client-side work is verified. |
 
-## Anti-Features
+### Anti-Features (Avoid — These Seem Useful But Create Problems)
 
-Features to explicitly NOT build in v1.3.
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Rewrite `ContractReview.tsx` as a single sweep | God component is obviously a problem; a wholesale rewrite feels efficient. | At 608 lines with 8 props, 10+ state variables, and complex memoized filter/sort logic, a single-pass rewrite risks breaking: filtering (hideResolved + 4 filter dimensions), re-analyze UX (rollback, file input ref), CSV export (filter-aware), rename UX. The component is integrated with App.tsx via 8 callback props. | Extract incrementally: `useContractFiltering` first (isolated logic, no render change), then `useInlineEdit` (isolated, no render change), then header and filter toolbar as sub-components with narrow prop surfaces. Verify each step independently. |
+| Consolidate all localStorage keys into one object | Fewer `getItem` calls, simpler mental model. | Merging profile + contracts + schema version + hide-resolved into one blob means any write failure corrupts all data at once. Schema migration becomes harder — currently each domain upgrades independently. | Storage manager provides unified access API without key consolidation. Each domain retains its own key and failure domain. |
+| Add Zustand, Jotai, or Redux | Toast prop-drilling and scattered state suggest a global store. | At ~10K LOC with a sole user and no concurrent state writers, the existing `useContractStore` pattern is appropriate. A state library adds bundle weight (~15-45KB) and a new learning surface for zero performance gain. The only real prop-drilling pain is `onShowToast`. | `useToast` context solves the specific problem. Leave contract store as-is. |
+| Migrate localStorage to IndexedDB | IDB has higher quotas and async access. | The app stores at most a few dozen contracts (typical: 3-10). IDB introduces async complexity everywhere: `useContractStore`, `contractStorage`, `useCompanyProfile` all become async or callback-based. The synchronous localStorage model is correct for this data volume. | Leave storage as-is. The storage manager wraps localStorage consistently without changing semantics. |
+| Write unit tests during this refactor | Tests would catch regressions. | No test framework is configured. Setting up Vitest/Jest is a separate project with its own scope (test runner config, mocking strategy, CI integration). Doing it mid-refactor inflates scope and risks stalling the refactor. | Manual UAT after each extraction step. Add testing as a dedicated v1.6 initiative. |
+| Merge `LegalMetaBadge` and `ScopeMetaBadge` into a unified badge | Both render metadata pills — seems like shared logic. | The data shapes are completely different (`LegalMeta` vs `ScopeMeta`, discriminated on different fields). The pill styling patterns happen to look similar but the rendering logic doesn't share code. A unified component would be an awkward switch on meta type that recreates the existing structure. | Split each into sub-components independently. If a shared `MetaPill` primitive emerges, extract it after the splits, not before. |
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| **Server-side PDF generation** | Adds serverless function complexity (wkhtmltopdf/Puppeteer), cold start latency, Vercel function size limits, and a new dependency chain. Client-side is simpler and sufficient for single user. | Use jsPDF + jspdf-autotable client-side. Both are well-maintained (jsPDF: 2.6M weekly npm downloads; autotable: v3.8+). |
-| **Full react-router-dom adoption** | The app has 5 views with one parameterized route (`/review/:id`). React Router v7 brings ~45KB gzipped, framework mode, loaders, actions -- massive overhead for a problem solvable in ~80 lines. | Custom router hook using History API (pushState + popstate), syncing directly with existing ViewState. Zero dependencies added. |
-| **Hash-based routing (#)** | Hash URLs look outdated (`/#/review/c-123`). Modern browsers universally support pushState. Vercel handles SPA routing natively with rewrites. | Clean path URLs (`/review/c-123`) via History API. Add Vercel rewrite rule in vercel.json. |
-| **Rich text annotations** | Markdown/WYSIWYG editor for finding notes is overkill. Single user writing quick notes. Adds editor dependencies and complexity. | Plain text textarea, max 500 chars. Enough for "Discussed with attorney -- acceptable" or "Negotiate clause 12.3." |
-| **Finding edit/override** | Letting users edit AI-generated titles, descriptions, or severities blurs the line between AI analysis and user opinion. Creates liability confusion about what the AI said vs what the user changed. | Resolve (mark as addressed) and Annotate (add note) keep original AI output intact. User workflow actions are separate from AI analysis. |
-| **Automatic re-analysis on profile change** | Auto-triggering re-analysis burns API credits silently and surprises user with changed results. | Manual "Re-analyze" button with explicit confirmation dialog explaining what will happen. |
-| **PDF storage in localStorage** | Storing base64 PDFs for re-analysis would blow the ~5MB localStorage quota instantly (a 3MB PDF = ~4MB base64). Even IndexedDB is fragile for this. | User re-selects the file from disk for re-analysis. Clear UX guidance: "Select the original PDF to re-analyze with your updated profile." |
-| **Batch export** | Exporting multiple contracts at once. Single user reviews one contract at a time. | Export from individual contract review page only. |
-
-## Feature Details
-
-### 1. Export Report (PDF/CSV)
-
-**Expected behavior:**
-- "Export Report" button (already exists, line 161-164 of ContractReview.tsx) opens a dropdown menu with "Export as PDF" and "Export as CSV" options
-- PDF layout: header section (contract name, client, type, date, risk score, bid signal level), findings grouped by category with severity color-coding, clause quotes in blockquote style, recommendations in callout boxes, dates timeline, disclaimer footer ("AI-generated analysis -- verify with legal counsel")
-- CSV format: one row per finding, columns: Severity, Category, Title, Description, Clause Reference, Clause Text, Recommendation, Negotiation Position, Status (active/resolved), User Note
-- If category filter is active, export only filtered findings (with a note indicating the filter)
-- Generation happens entirely client-side; triggers browser download via Blob + URL.createObjectURL
-
-**Technology:**
-- **PDF:** jsPDF (v2.5+) + jspdf-autotable (v3.8+). jsPDF handles document creation, headers, and text. AutoTable handles the findings table layout with automatic pagination and column sizing. Severity colors map to cell background colors matching existing Tailwind palette (red-100 for Critical, amber-100 for High, etc.).
-- **CSV:** Native string concatenation with proper escaping (double-quote fields containing commas/newlines). Blob with `text/csv` MIME type. No library needed.
-
-**Complexity breakdown:**
-- PDF layout + formatting + severity colors: Medium (bulk of work; ~200-300 lines for report builder)
-- CSV generation: Low (~50 lines)
-- Dropdown UI on Export button: Low (existing button, add menu)
-- Filter-aware export: Low (pass current filter state to export function)
-
-### 2. Settings Validation + Save Feedback
-
-**Expected behavior:**
-- Dollar fields (GL Per Occurrence, GL Aggregate, Umbrella, Auto, WC Employer's Liability, Bonding Single/Aggregate, Project Size Min/Max): validate on blur as currency-parseable. Accept formats like "$1,000,000", "1000000", "1M", "$2M". Show red border + "Enter a valid dollar amount" on invalid.
-- Date fields (License Expiry, DIR Expiry): show amber warning if date is in the past ("This date has expired"). Red error if format invalid.
-- License number: format hint placeholder text, no strict validation (formats vary).
-- On successful save: brief green "Saved" text appears next to the section header, auto-fades after 2 seconds via Framer Motion (already available).
-- On save failure (localStorage quota exceeded): amber warning toast using existing Toast component.
-
-**Important design choice:** Validation should be non-blocking -- warn but do not prevent saving. These are reference values, not transactional data. Users might enter approximate amounts or notes. Warning is enough.
-
-**Complexity breakdown:**
-- Validation rules per field type: Low (regex for currency, Date comparison for expiry)
-- Error/warning display UI: Low (inline colored text, border color change on ProfileField)
-- Save feedback animation: Low (Framer Motion AnimatePresence fade, already used throughout app)
-- Auto-format currency display on blur: Low (optional nicety)
-
-### 3. URL-based Routing
-
-**Expected behavior:**
-- URL path maps to ViewState:
-  - `/` or `/dashboard` -> `'dashboard'`
-  - `/upload` -> `'upload'`
-  - `/review/:contractId` -> `'review'` (with activeContractId set)
-  - `/contracts` -> `'contracts'`
-  - `/settings` -> `'settings'`
-- Browser back/forward buttons navigate between views correctly
-- Page refresh preserves current view (URL parsed on mount to derive initial ViewState)
-- Direct URL entry and bookmarks work (requires Vercel SPA rewrite)
-- `navigateTo()` internally calls `history.pushState()` -- no full page reload
-
-**Implementation approach:** Custom `useRouter` hook (~80 lines), not react-router.
-- On mount: parse `window.location.pathname` to derive initial `activeView` and `activeContractId`
-- On `navigateTo(view, contractId?)`: call `history.pushState({}, '', path)` alongside existing state updates
-- Listen for `popstate` event to handle back/forward, updating ViewState accordingly
-- Fallback: if URL contains an unknown path or a contract ID that does not exist in storage, redirect to dashboard
-
-**Vercel config addition:**
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
-
-**Complexity breakdown:**
-- URL-to-ViewState mapping + parsing: Low (simple switch on pathname segments)
-- History API integration (pushState + popstate listener): Low
-- Initial load from URL with validation: Medium (contract ID existence check, graceful fallback)
-- Vercel rewrite config: Low (one line in vercel.json)
-- Refactoring navigateTo to include URL sync: Medium (touches useContractStore hook)
-
-### 4. Re-analyze Contract
-
-**Expected behavior:**
-- "Re-analyze" button on ContractReview page header (next to Export Report and Delete)
-- Button only appears for contracts in "Reviewed" status (not while "Analyzing")
-- Clicking opens a dialog: "Re-analyze with current company profile? Select the original PDF file to proceed." with a file picker area inside the dialog
-- User selects PDF, confirms, analysis begins
-- Contract status changes to "Analyzing", review page shows AnalysisProgress (existing component)
-- On completion: findings, risk score, bid signal, dates all update in-place; old findings are fully replaced
-- On failure: revert to previous "Reviewed" status with old data intact, show error toast
-
-**Critical constraint:** Original PDF is not stored. The File object from the initial upload is garbage-collected after the analysis promise resolves. localStorage cannot store PDFs (size). The user MUST re-select the file from disk. This is unavoidable without adding server-side file storage (out of scope).
-
-**Implementation notes:**
-- Refactor `handleUploadComplete` in App.tsx to accept an optional `existingContractId` parameter. When provided, set existing contract to "Analyzing" and update in-place on completion instead of creating a new entry.
-- Before overwriting, snapshot the current contract data so failure can restore it.
-- The file picker in the re-analyze dialog should be a simple `<input type="file" accept=".pdf">`, not the full UploadZone component.
-
-**Complexity breakdown:**
-- Re-analyze button + confirmation dialog with file picker: Medium
-- Refactoring handleUploadComplete for update mode: Medium (most significant change)
-- Snapshot/rollback on failure: Low (save copy of contract before analysis)
-- Status management during re-analysis: Low (existing "Analyzing" status works)
-
-### 5. Finding Actions (Resolve + Annotate)
-
-**Expected behavior:**
-
-**Resolve:**
-- Each FindingCard gets a subtle action bar at the bottom with a "Mark Resolved" button (checkmark icon)
-- Clicking toggles the finding between `active` and `resolved` states
-- Resolved findings: reduced opacity (opacity-50), green checkmark overlay, subtle strikethrough on title
-- Resolved findings remain in the list (not hidden by default)
-- Optional "Hide resolved" toggle in the filter bar to suppress resolved findings
-- Toggling back to active restores full appearance
-- Risk Summary sidebar shows resolved count: "3 of 7 Critical findings resolved"
-
-**Annotate:**
-- "Add Note" button (pencil icon) in the action bar next to Resolve
-- Clicking expands an inline textarea below the finding card content
-- User types note (max 500 chars), clicks "Save" or presses Ctrl+Enter
-- Saved note displays in a distinct callout (slate-50 background, "Your Note" header) below the finding
-- Notes can be edited (click to re-open textarea) or deleted (X button on note)
-- Notes persist immediately to localStorage via updateContract
-
-**Type changes to Finding interface:**
-```typescript
-// Add to Finding interface in src/types/contract.ts
-status?: 'active' | 'resolved';   // undefined treated as 'active' for backward compat
-userNote?: string;                  // user annotation, max 500 chars
-resolvedAt?: string;                // ISO date string when resolved
-```
-
-**Backward compatibility:** Existing contracts with findings that lack `status` or `userNote` fields work without migration. The UI treats `undefined` status as `'active'` and absent `userNote` as no note. No data migration step needed.
-
-**Persistence approach:** When a finding action occurs, update the contract's findings array and call `updateContract(contractId, { findings: updatedFindings })`. This uses the existing `persistAndSet` path in useContractStore which writes to localStorage.
-
-**Complexity breakdown:**
-- Finding type extension: Low (3 optional fields)
-- Resolve toggle UI + visual treatment: Medium (opacity, checkmark, strikethrough, color changes)
-- Annotate UI (textarea expand/collapse, save/edit/delete): Medium
-- Contract persistence on finding change: Low (existing updateContract path)
-- "Hide resolved" filter toggle: Low
-- Risk Summary resolved counts: Low
+---
 
 ## Feature Dependencies
 
 ```
-Settings Validation --> Save Feedback (validation errors need feedback UI patterns)
+[useContractFiltering hook]
+    └──extracts from──> [ContractReview.tsx lines 82-212]
+                            └──feeds output to──> [visibleFindings]
+                                                       └──used by──> [CSV export in ContractReview]
+                                                       └──used by──> [groupedFindings and flatFindings renders]
 
-URL Routing (standalone -- no dependencies on other v1.3 features)
+[useInlineEdit hook]
+    └──extracts from──> [ContractReview.tsx lines 92-120]
+    └──no external dependencies, pure extraction]
 
-Finding Actions: Resolve --> Finding Actions: Annotate (share action bar UI component)
-Finding Actions -----------> Export Report (export includes status + userNote columns)
+[useFieldValidation hook]
+    └──extracts from──> [Settings.tsx ProfileField component]
+    └──no external dependencies]
 
-Re-analyze Contract (standalone, but refactors upload handler shared with initial upload)
+[Storage manager]
+    └──consolidates access in──> [contractStorage.ts]
+    └──consolidates access in──> [useCompanyProfile.ts]
+    └──consolidates access in──> [profileLoader.ts]
+    └──consolidates access in──> [ContractReview.tsx HIDE_RESOLVED_KEY]
+
+[Client-side Zod API response validation]
+    └──depends on──> [AnalysisResult interface in analyzeContract.ts]
+    └──should precede──> [merge.ts type guards]
+    (both touch the same data shape; doing client validation first clarifies canonical type)
+
+[merge.ts type guards]
+    └──derives guards from──> [Zod schemas in src/schemas/legalAnalysis.ts and scopeComplianceAnalysis.ts]
+    └──replaces──> [Record<string, unknown> casts in convertLegalFinding and convertScopeFinding]
+
+[useToast context]
+    └──eliminates prop drilling of──> [onShowToast in ContractReview.tsx]
+    └──requires AnimatePresence above context provider render site (already true in App.tsx)]
+
+[LegalMetaBadge subcomponents]
+    └──no external dependencies, pure structural split]
+    └──follow-on: ScopeMetaBadge subcomponents (same pattern, do after)]
+
+[api/analyze.ts modularization]
+    └──highest regression risk, do last]
+    └──no dependency on client-side refactors]
+    └──requires all 16 pass behaviors verified manually before and after]
 ```
 
-**Build order rationale:**
-1. **URL Routing** -- foundational infrastructure. Changes how navigation works throughout the app. Other features (Export, Re-analyze) produce URLs or navigate, so routing should be stable first.
-2. **Settings Validation + Save Feedback** -- small, self-contained, quick win. Builds the validation/feedback patterns reused elsewhere.
-3. **Finding Actions (Resolve + Annotate)** -- extends core Finding data model. Must ship before Export so PDF/CSV can include status and notes.
-4. **Export Report (PDF + CSV)** -- benefits from having resolve/annotate data to include in output. The "complete" export with all fields is better than adding columns later.
-5. **Re-analyze Contract** -- most complex feature, touches the analysis pipeline. Depends on nothing else but benefits from shipping last so the full workflow (resolve findings -> update profile -> re-analyze -> export new report) is testable end-to-end.
+### Dependency Notes
 
-## MVP Recommendation
+- **useContractFiltering before any ContractReview UI splits:** Extracting the filter hook first reduces the component to a manageable size and isolates the most complex logic. Further UI decomposition is safer after this extraction.
+- **Client-side validation before merge.ts type guards:** Both touch the API response shape. Validating first establishes the canonical type; guards then implement against a known-correct schema.
+- **Storage manager before useToast:** Storage manager is pure utility with no rendering impact. Build confidence with lower-risk items before adding React context.
+- **analyze.ts modularization last:** Server-side, highest regression risk. A mistake breaks the entire pipeline. All client-side work should be verified before touching this.
 
-**Must ship in v1.3 (all five, ordered by priority):**
-1. **URL Routing** -- broken back button and lost-on-refresh are usability bugs disguised as missing features
-2. **Export Report (PDF + CSV)** -- the button already exists and does nothing; this is the most visible gap
-3. **Finding Actions (Resolve + Annotate)** -- transforms static analysis into actionable workflow
-4. **Settings Validation + Save Feedback** -- small effort, prevents silent data corruption in company profile
-5. **Re-analyze Contract** -- completes the review lifecycle (upload -> review -> update profile -> re-analyze)
+---
 
-**Defer to v1.4 if time-constrained:**
-- Re-analyze Contract is the deferral candidate. Users can work around it by re-uploading the PDF (creates a new contract entry). The real compelling version of re-analyze includes a diff view showing what changed, which is High complexity. Shipping re-analyze without diff is functional but underwhelming.
-- PDF branding (cover page, company name header) can ship as basic PDF first and polish later.
-- Re-analyze Diff is clearly v1.4+.
-- Findings Progress Tracker on Dashboard is a quick add anytime after Finding Actions ships.
+## MVP Definition
 
-## Complexity Budget
+### Launch With (P1 — Fix Correctness Gaps First)
 
-| Feature | Effort Estimate | Risk Level | Notes |
-|---------|----------------|------------|-------|
-| URL Routing | 0.5-1 day | Low | Well-understood pattern, clean ViewState mapping |
-| Settings Validation + Save Feedback | 0.5 day | Low | Simple validation rules, existing Toast component |
-| Finding Actions (Resolve + Annotate) | 1-1.5 days | Low-Medium | Type changes + FindingCard UI + persistence |
-| Export Report (PDF + CSV) | 1.5-2 days | Medium | PDF layout is the bulk of work; CSV is trivial |
-| Re-analyze Contract | 1-1.5 days | Medium | Upload handler refactor + file re-selection UX |
-| **Total** | **~5-6.5 days** | | |
+Minimum viable code health. These close actual bugs or prevent imminent ones.
+
+- [ ] POST body request validation schema — closes opaque crash path, LOW complexity
+- [ ] Zod/TS optionality reconciliation — ensures strict TypeScript actually catches real bugs, MEDIUM
+- [ ] Client-side Zod validation of API response — eliminates silent bad-data path, MEDIUM
+- [ ] `useInlineEdit` hook extraction — pure gain, zero risk, LOW
+- [ ] `useContractFiltering` hook extraction — unlocks ContractReview decomposition, MEDIUM
+- [ ] Storage manager centralization — unifies 4 inconsistent error-handling sites, LOW
+- [ ] Severity palette centralization — stops color mapping drift before it compounds, LOW
+
+### Add After Validation (P2 — High-Value, Moderate Risk)
+
+Once P1 items are verified working and no regressions.
+
+- [ ] `LegalMetaBadge` subcomponent split — clean structural decomposition, no behavior change, MEDIUM
+- [ ] `ScopeMetaBadge` subcomponent split — follow-on to LegalMetaBadge, LOW
+- [ ] `useFieldValidation` hook extraction — improves Settings maintainability, MEDIUM
+- [ ] `useToast` context — reduces prop drilling, moderate complexity, MEDIUM
+- [ ] merge.ts type guards — correctness fix with high regression risk, HIGH
+
+### Future Consideration (P3 — Separate Phase or v1.6)
+
+- [ ] `api/analyze.ts` modularization — server-side, requires full UAT, HIGH
+- [ ] Test framework setup — prerequisite for confident large-scale refactoring
+- [ ] `ContractReview.tsx` UI subcomponents (header, filter toolbar, findings pane as separate components) — only worthwhile after hook extractions reduce the file to a manageable size
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | Developer Value | Implementation Cost | Priority |
+|---------|----------------|---------------------|----------|
+| POST body request validation | HIGH — closes crash path | LOW | P1 |
+| Zod/TS optionality reconciliation | HIGH — type system correctness | MEDIUM | P1 |
+| Client-side API response validation | HIGH — eliminates silent bad data | MEDIUM | P1 |
+| `useInlineEdit` hook | MEDIUM — reusability | LOW | P1 |
+| Storage manager | MEDIUM — consistency, single error handling | LOW | P1 |
+| Severity palette centralization | LOW — drift prevention | LOW | P1 |
+| `useContractFiltering` hook | HIGH — unlocks decomposition | MEDIUM | P1 |
+| `useFieldValidation` hook | MEDIUM — reusability | MEDIUM | P2 |
+| `LegalMetaBadge` subcomponents | MEDIUM — maintainability | MEDIUM | P2 |
+| `ScopeMetaBadge` subcomponents | LOW — maintainability | LOW | P2 |
+| `useToast` context | MEDIUM — eliminates prop drilling | MEDIUM | P2 |
+| merge.ts type guards | HIGH — correctness | HIGH | P2 |
+| `api/analyze.ts` modularization | HIGH — long-term maintainability | HIGH | P3 |
+
+**Priority key:**
+- P1: First phase of v1.5 — correctness and foundational extractions
+- P2: Second phase of v1.5 — structural decomposition, after P1 verified
+- P3: Separate milestone or later phase — server-side, high risk
+
+---
 
 ## Sources
 
-- ClearContract codebase: ContractReview.tsx (Export button lines 157-164, findings display), FindingCard.tsx (current card layout), useContractStore.ts (navigateTo, persistAndSet), useCompanyProfile.ts (onBlur save pattern), Settings.tsx (ProfileField component), App.tsx (handleUploadComplete, view routing)
-- [jsPDF npm](https://www.npmjs.com/package/jspdf) -- 30K+ GitHub stars, 2.6M weekly downloads, v2.5+
-- [jsPDF-AutoTable GitHub](https://github.com/simonbengtsson/jsPDF-AutoTable) -- table plugin, v3.8+, automatic pagination
-- [React Router v7 SPA docs](https://reactrouter.com/how-to/spa) -- evaluated, rejected (overkill for 5 flat routes)
-- [History API popstate in SPAs](https://www.frontendgeek.com/blogs/understanding-popstate-in-single-page-applications-spas) -- lightweight routing pattern
-- [Lightweight SPA routing without framework](https://namastedev.com/blog/routing-without-a-framework-building-a-minimal-spa-router/) -- pushState + popstate pattern reference
+- Direct inspection of `src/pages/ContractReview.tsx` (608 lines, 5 useState filter calls, inline rename, localStorage access)
+- Direct inspection of `src/components/LegalMetaBadge.tsx` (417 lines, 11 clauseType branches)
+- Direct inspection of `src/components/ScopeMetaBadge.tsx` (199 lines, 4 passType branches)
+- Direct inspection of `api/analyze.ts` (1,510 lines, 16 pass definitions)
+- Direct inspection of `api/merge.ts` (405 lines, ~40 `as` casts against `Record<string, unknown>`)
+- Direct inspection of `src/pages/Settings.tsx` (308 lines, ProfileField component with validation)
+- Direct inspection of all `localStorage` call sites via grep (4 files: contractStorage, useCompanyProfile, profileLoader, ContractReview)
+- Direct inspection of severity color mapping sites via grep (9 files)
+- `.planning/PROJECT.md` — v1.5 active requirements list with the 4 category breakdown
+- `src/types/contract.ts` — canonical domain types, baseline for optionality audit
 
 ---
-*Feature research for: v1.3 Workflow Completion*
-*Researched: 2026-03-12*
-*Supersedes: 2026-03-08 v1.1 feature research (all v1.1 features now shipped)*
+
+*Feature research for: React 18/TypeScript codebase refactoring (v1.5 Code Health)*
+*Researched: 2026-03-14*
+*Supersedes: 2026-03-12 v1.3 feature research (v1.3 features are all shipped)*

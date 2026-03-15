@@ -1,264 +1,352 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Adding Export Report (PDF/CSV), Settings Validation, URL-based Routing, Re-analyze Contract, and Finding Actions (Resolve/Annotate) to an existing React SPA with localStorage state
-**Researched:** 2026-03-12
-**Applies to:** v1.3 Workflow Completion milestone for ClearContract
+**Domain:** Refactoring a React 18 + TypeScript SPA — component decomposition, hook extraction, type safety hardening, pattern consolidation
+**Researched:** 2026-03-14
+**Confidence:** HIGH (codebase read directly; patterns verified against React/TypeScript/Vercel official docs and community post-mortems)
+**Applies to:** v1.5 Code Health milestone for ClearContract
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Vercel Rewrite Ordering Breaks API Routes When Adding SPA Routing
+### Pitfall 1: Hook Extraction Breaks Framer Motion Exit Animations via AnimatePresence
 
-**What goes wrong:** Adding a catch-all rewrite `"/(.*)" -> "/index.html"` for client-side routing intercepts `/api/analyze` requests, returning HTML instead of the API response. The analysis endpoint silently breaks in production while working locally (Vite dev server proxies differently).
+**What goes wrong:**
+ContractReview.tsx renders `<AnimatePresence>` wrapping filtered finding lists. When the filter logic moves into `useContestFiltering` and the filtered array is returned as a stable reference, AnimatePresence still works — BUT if component decomposition wraps the motion children in a fragment or extra div, AnimatePresence loses the keyed child it needs to track unmount. Exit animations silently stop firing. The list items appear and disappear without animation, which looks broken compared to the rest of the UI.
 
-**Why it happens:** Vercel processes rewrites in array order. The current `vercel.json` only configures `functions` -- it has no `rewrites` array. Adding SPA routing means adding rewrites, and if the catch-all appears before API routes (or without an API exclusion), all API traffic gets swallowed.
+**Why it happens:**
+AnimatePresence requires direct children to be keyed `<motion.*>` elements. React Fragments (`<>...</>`) do not propagate keys at the level AnimatePresence inspects. When splitting a large component into sub-components, developers often wrap return values in a fragment for "clean" JSX, destroying the direct-child contract that AnimatePresence relies on.
 
-**Consequences:** Contract analysis completely breaks in production. Users see "Server returned HTML instead of JSON" errors. The app already has this error handling in `analyzeContract.ts` line 70, which confirms this failure mode was anticipated.
+This is a documented bug pattern in the Framer Motion GitHub issues (framer/motion#2554, framer/motion#2023) — fast state changes or structural changes around AnimatePresence cause it to desync.
 
-**Prevention:** API routes MUST come before the SPA catch-all in `vercel.json`:
-```json
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-Test the `/api/analyze` endpoint in a Vercel preview deployment before merging routing changes. Do not rely on local dev testing alone -- `vercel dev` may not replicate rewrite behavior.
+**How to avoid:**
+- When extracting sub-components that contain `<motion.*>` elements, ensure the parent's `<AnimatePresence>` wrapper maps over the motion elements directly, not over the sub-component wrapper.
+- Test: toggle a filter and verify items animate out, not just disappear.
+- Alternative pattern: move AnimatePresence inside the extracted component rather than keeping it in the parent.
+- Never wrap a motion element in a Fragment when it is a direct child of AnimatePresence.
 
-**Detection:** POST to `/api/analyze` returns Content-Type `text/html` instead of `application/json`.
+**Warning signs:**
+- Filtered list items disappear without animation after a refactor.
+- `key` prop warnings appear in the console for list items.
+- AnimatePresence props like `mode="wait"` stop having any visible effect.
 
----
-
-### Pitfall 2: URL Routing State and localStorage State Diverge on Deep Link Load
-
-**What goes wrong:** A user bookmarks `/review/c-1710288000000`. On a fresh page load, the URL says "show review for contract X" but `useContractStore` initializes from localStorage which may not contain that contract (data was deleted, different browser, or localStorage was cleared). The app either crashes on null access or shows a blank review page.
-
-**Why it happens:** The current `App.tsx` handles this for in-session navigation (lines 114-122: when `activeContract` is null in review mode, it falls back to Dashboard). But with URL routing, the contract ID comes from URL parameters, not from `navigateTo()`. The hook initializes `activeContractId` via `useState(null)`, not from the URL. Two sources of truth (URL vs. React state) must be reconciled on every page load.
-
-**Consequences:** Broken deep links, confusing UX where URLs don't match displayed content, potential null reference errors if fallback logic isn't extended to router-driven navigation.
-
-**Prevention:**
-1. URL is the single source of truth for navigation state. The router reads the URL, looks up the contract in the store, and renders accordingly.
-2. Add an explicit "contract not found" state that shows a message and redirects to dashboard, rather than silently falling back.
-3. Remove `activeContractId` and `activeView` from `useContractStore`. Let the router own navigation entirely. The store should only manage data (contracts, upload state), not navigation.
-
-**Detection:** Test every deep link URL with empty localStorage. Test with a URL containing a contract ID that does not exist in storage.
+**Phase to address:** Component Decomposition phase (ContractReview split). Must be verified after every split.
 
 ---
 
-### Pitfall 3: Re-analyze Race Condition Corrupts Contract State
+### Pitfall 2: useMemo Dependencies Silently Break After Hook Extraction
 
-**What goes wrong:** User clicks "Re-analyze" while a previous analysis is still running (status is "Analyzing"). Two concurrent `analyzeContract()` promises race, and whichever resolves last overwrites the other's results via `updateContract()`. If the first (stale) analysis resolves after the second (fresh) one, the contract shows outdated results -- computed without the updated company profile.
+**What goes wrong:**
+ContractReview.tsx has a `useMemo` for `visibleFindings` (line 174-192) with six dependencies: `contract.findings`, `hideResolved`, `selectedSeverities`, `selectedCategories`, `selectedPriorities`, `hasNegotiationOnly`. If filter state moves into `useContractFiltering`, the returned filtered array is still computed inside the hook — but the hook's internal dependencies are now invisible to ESLint's exhaustive-deps rule running in the parent. If a new filter is added to the hook but the hook's internal `useMemo` dependency array is incomplete, filtering silently returns stale results on some state transitions.
 
-**Why it happens:** The current `handleUploadComplete` in `App.tsx` creates a closure over the contract `id` and calls `updateContract(id, ...)` on completion. There is no guard against concurrent analyses for the same contract. Re-analyze is a new trigger for an already-existing contract, unlike initial upload which always creates a new ID.
+**Why it happens:**
+The ESLint `react-hooks/exhaustive-deps` rule only validates dependencies within the same function scope. Once logic moves into a custom hook, the caller has no visibility into the hook's internal dependency correctness. Without a test suite, a missing dependency produces a bug that only manifests in specific filter-toggle sequences — not on every render.
 
-**Consequences:** Stale analysis results silently overwrite fresh ones. User sees wrong findings. No error is displayed because both analyses "succeed."
+**How to avoid:**
+- Verify the ESLint `react-hooks/exhaustive-deps` rule is enabled and applied to custom hook files (check `.eslintrc`).
+- After extracting `useContractFiltering`, run `npm run lint` and treat dependency warnings as blocking, not optional.
+- The hook should accept all filter state as parameters (not read from closures) so dependencies are explicit: `useContractFiltering(findings, { hideResolved, selectedSeverities, selectedCategories, selectedPriorities, hasNegotiationOnly })`.
+- Manually test: apply each filter in isolation after extraction. Verify the count changes correctly.
 
-**Prevention:**
-1. Track an `analysisVersion` counter or timestamp per contract. When the analysis callback fires, compare versions -- if a newer analysis was triggered, discard the stale result.
-2. Disable the "Re-analyze" button while analysis is in progress (`contract.status === 'Analyzing'`).
-3. Use an `AbortController` on the fetch call in `analyzeContract.ts`. When re-analyze is triggered, abort the in-flight request before starting the new one.
+**Warning signs:**
+- Filter count badges show wrong numbers intermittently.
+- Toggling a filter once does nothing; toggling twice works.
+- The `visibleFindings` array doesn't update when `hideResolved` changes.
 
-**Detection:** Click "Re-analyze" twice rapidly. Check which result set appears. If findings change after the second click and then revert, the race condition exists.
+**Phase to address:** Hook Extraction phase (useContractFiltering). Run lint after extraction.
 
 ---
 
-### Pitfall 4: PDF Export via html2canvas Produces Blurry, Unsearchable Output
+### Pitfall 3: Vercel Serverless Function Splitting Breaks the `export const config` Requirement
 
-**What goes wrong:** Using html2canvas + jsPDF to export the review page captures a rasterized screenshot. The PDF has blurry text (not vector), is not searchable or copy-pasteable, produces enormous file sizes for contracts with 50+ findings, and page breaks land mid-finding or mid-table.
+**What goes wrong:**
+`api/analyze.ts` has `export const config = { api: { bodyParser: { sizeLimit: '15mb' } } }` at the top. This Vercel-specific config export must live in the entry-point file for the route — the file Vercel maps to a function. If `analyze.ts` is refactored so the actual handler logic moves to a module (e.g., `api/handlers/analyze.ts`) and `api/analyze.ts` becomes a thin re-export, Vercel will NOT pick up the `config` if it's not in the file the route maps to.
 
-**Why it happens:** html2canvas renders DOM to a canvas bitmap. This is fundamentally wrong for generating a professional report. The review page also has scroll containers, Framer Motion animations, and dynamically expanded sections that html2canvas cannot reliably capture.
+The consequence is that the 15MB body parser limit reverts to Vercel's default (1MB). Base64-encoded PDFs averaging 3-5MB will be silently truncated or rejected with a 413, and users will see upload failures for files that worked before. This does not show up in `vercel dev` if the local dev server doesn't enforce the same limit.
 
-**Consequences:** Unprofessional export that the user would be embarrassed to attach to a Procore project or share with a GC. Defeats the purpose of the feature.
+**Why it happens:**
+Vercel's routing maps `api/*.ts` files directly. The `config` export is tied to file location, not module exports. If `analyze.ts` becomes `export { handler as default } from './handlers/analyze'`, the config in the re-exported file is invisible to Vercel's build tooling.
 
-**Prevention:** Use `@react-pdf/renderer` to build a dedicated PDF layout from the contract data (not from the DOM). Design a report template using React PDF components that:
-- Renders vector text (searchable, selectable, professional)
-- Has explicit page break logic between findings
-- Includes a cover page with contract summary, risk score, bid signal
-- Uses the same severity color scheme as the UI
-- Handles contracts with 50+ findings without performance issues
+**How to avoid:**
+- Keep `export const config` and the default export handler in `api/analyze.ts`. Extract only logic (pass definitions, schema conversion, orchestration helpers) into modules that `analyze.ts` imports — not the other way around.
+- Never convert `api/analyze.ts` into a re-export barrel.
+- After any restructuring, deploy a Vercel preview and test uploading a PDF between 1MB and 5MB to verify the body limit is still in effect.
 
-For CSV export, serialize the findings array directly -- no PDF library needed.
+**Warning signs:**
+- Upload failures in Vercel preview for files that work locally.
+- 413 errors from the `/api/analyze` endpoint.
+- `Failed to parse body` or truncated JSON responses from the analysis endpoint.
 
-**Detection:** Generate a PDF from a contract with 40+ findings. Try to select/search text. Check file size. Check if page breaks land sensibly.
+**Phase to address:** Serverless function modularization (analyze.ts decomposition). Must be checked in preview deployment.
+
+---
+
+### Pitfall 4: Zod/TypeScript Optionality Reconciliation Deletes Runtime Data
+
+**What goes wrong:**
+The codebase has a documented pattern (PROJECT.md key decisions) of making fields `required` in Zod schemas and `optional` on TypeScript interfaces for backward compatibility with old localStorage contracts. If the reconciliation work makes a field required on the TS interface (to fix optionality drift), it silently breaks loading of contracts stored before that field existed. `JSON.parse` returns the field as `undefined`; TypeScript says it's required; nothing errors at runtime, but the field is `undefined` where code expects a string. Downstream nullish coalescing (`??`) masks the issue until a code path that doesn't use `??` throws.
+
+Concrete example: if `actionPriority` is made required on `Finding` (to match the Zod schema), all contracts analyzed before v1.4 that lack `actionPriority` on their findings will silently have `undefined` for that field. The action priority filter in ContractReview (line 185-187) would then exclude ALL findings when the `pre-bid` filter is active.
+
+**Why it happens:**
+localStorage is a schemaless store. There is no migration gate. Each time the data model evolves, existing stored data has the old shape. TypeScript strict mode catches structural incompatibilities at compile time but NOT at the `JSON.parse` boundary, where everything is `unknown` and the code casts with `as Contract[]` (contractStorage.ts line 44).
+
+**How to avoid:**
+- Before making any TS interface field non-optional, add a migration in `contractStorage.ts` that normalizes the shape after `JSON.parse`. The existing schema version key (`clearcontract:schema-version`) supports this — bump it and add a migration function.
+- Use `z.infer<typeof FindingSchema>` to derive the TypeScript type, NOT a hand-written interface. This ensures TS type and Zod schema cannot drift.
+- After any type change, manually test by loading a contract that was saved with the previous data shape (copy old JSON into localStorage manually).
+
+**Warning signs:**
+- Filter counts drop to zero after a type change but findings are visible.
+- Components show "undefined" as rendered text.
+- TypeScript compiles clean but runtime behavior is wrong.
+
+**Phase to address:** Type Safety phase (Zod/TS reconciliation). Must include migration before shipping.
+
+---
+
+### Pitfall 5: Toast Context Re-renders Kill Filter Dropdown Performance
+
+**What goes wrong:**
+Extracting toast state to a `useToast` context means every component that calls `useToast()` re-renders when any toast is shown or dismissed. ContractReview renders the multi-select dropdowns (MultiSelectDropdown.tsx) — if those consume the toast context (even indirectly via a parent), showing a toast during analysis causes the entire filter panel to re-render. At 50+ findings with Framer Motion stagger animations, this produces a visible frame drop.
+
+The more direct version: if `useToast` is added to App.tsx as a context provider wrapping everything, and the toast context value object is recreated on every render (the default when using `useState` directly in a provider), every context consumer re-renders on any toast event.
+
+**Why it happens:**
+React Context has no built-in memoization. When the provider's value changes (e.g., `toast` state goes from `null` to `{type: 'success', ...}`), every component that called `useContext(ToastContext)` re-renders. The current architecture passes toast as a prop chain (`onShowToast` in ContractReview props), which is actually more efficient — only the prop recipient re-renders.
+
+**How to avoid:**
+- Memoize the context value object: `useMemo(() => ({ showToast, dismissToast }), [])` — keep the dispatch functions stable with `useCallback`.
+- Split toast context into two contexts: one for toast state (read), one for dispatch (write). Components that only show toasts consume dispatch context; the Toast component itself consumes state context.
+- Alternatively: keep the current prop-passing pattern for `onShowToast`. It is already working and prop-drilling one level is fine for this app's size. Context adds complexity without benefit if the prop chain is short.
+- Do not add toast context until profiling shows prop-drilling is actually causing maintenance problems.
+
+**Warning signs:**
+- Filter dropdowns stutter or re-render when a toast appears.
+- React DevTools Profiler shows ContractReview re-rendering on toast dismissal.
+- Framer Motion animations restart unexpectedly during toast transitions.
+
+**Phase to address:** Pattern Consolidation phase (toast context extraction). Profile before and after.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 5: Finding Actions Mutate Contract Shape Without Schema Migration
+### Pitfall 6: Centralizing localStorage Access Creates a False Single Source of Truth
 
-**What goes wrong:** Adding `resolved`, `annotation`, or `resolvedAt` fields to the `Finding` type means existing contracts in localStorage have findings without these fields. Code that checks `finding.resolved === false` fails (it is `undefined`, not `false`). Filtering logic like `findings.filter(f => f.resolved === false)` silently excludes all legacy findings.
+**What goes wrong:**
+The plan includes creating a "storage manager" to centralize localStorage access. If this manager is a module-level singleton (not a React hook), it cannot participate in React's render cycle. The `useContractStore` hook currently calls `saveContracts` directly and reflects storage errors back into React state via `setStorageWarning`. A storage manager that lives outside the hook breaks this feedback loop — quota errors are swallowed or require a separate channel to surface to the UI.
 
-**Why it happens:** localStorage has no schema migration. The `loadContracts()` function in `contractStorage.ts` parses raw JSON and returns it as `Contract[]` without validation or normalization.
+Additionally, `useCompanyProfile` and `contractStorage` currently use different localStorage keys (`clearcontract:profile` vs `clearcontract:contracts`). A centralized manager that wraps both must maintain backward compatibility with those exact key strings — changing them requires a migration.
 
-**Prevention:**
-1. Use optional fields with explicit checks: `finding.resolved ?? false`.
-2. Add a migration function in `contractStorage.ts` that runs after `JSON.parse()` to normalize old data shapes -- for example, setting `resolved: false` on every finding that lacks the field.
-3. Never use strict equality (`=== false`) on fields that might be `undefined`. Always use nullish coalescing.
+**How to avoid:**
+- Design the storage manager as a utility layer (pure functions), not a React context or global class with internal state. It should replace the raw `localStorage.*` calls but not own state.
+- Keep the existing key strings exactly as-is. Document them as API contracts.
+- The storage manager's error return format must match what `useContractStore.persistAndSet` and `useCompanyProfile.saveField` already handle.
+- The `HIDE_RESOLVED_KEY` inside ContractReview.tsx (line 134) is a third localStorage key that the storage manager should also cover — don't miss it.
 
-**Detection:** Load the app with pre-existing contracts in localStorage. Check that all findings appear and that filter/count logic includes them correctly.
+**Warning signs:**
+- Storage quota errors stop appearing in the UI banner.
+- Company profile changes don't persist across page refreshes after refactor.
+- The `clearcontract:hide-resolved` key is missing from the centralized manager.
 
----
-
-### Pitfall 6: Settings Validation Conflicts with Existing Auto-Save Pattern
-
-**What goes wrong:** The current `useCompanyProfile` hook saves to localStorage on every field change (line 13: `localStorage.setItem` inline in `updateField`). If validation is added as a gate before save, it conflicts with the auto-save pattern. If validation runs on a "Save" button but the hook already persisted the invalid value, the button is cosmetic -- bad data is already in storage and will be sent to the next analysis via `loadCompanyProfile()`.
-
-**Why it happens:** The architecture decision (documented in PROJECT.md) is "onBlur persistence." Validation was not part of the original design. Adding it after the fact creates a tension between auto-save and gated-save.
-
-**Consequences:** Either (a) validation blocks save and breaks the existing auto-save UX, or (b) validation shows errors but data is already persisted, creating a false sense of protection.
-
-**Prevention:** Two viable approaches:
-1. **Inline field-level validation (informational, not blocking):** Validate on change/blur and show errors immediately, but still persist. The validation warns ("This doesn't look like a dollar amount") without blocking. This preserves the existing auto-save UX.
-2. **Refactor to draft + save pattern:** Local component state holds the draft, validation runs on explicit save, only valid data persists. This is more correct but requires refactoring the hook.
-
-Do NOT add a "Save" button that validates already-persisted data -- it creates UX where the button does nothing meaningful.
-
-**Detection:** Enter an invalid value (e.g., "abc" for a dollar field), navigate away, come back. Is the invalid value still there? If yes, validation is not preventing persistence.
+**Phase to address:** Pattern Consolidation phase (localStorage centralization).
 
 ---
 
-### Pitfall 7: Re-analyze Does Not Clear Previous Findings Before Starting
+### Pitfall 7: Extracting useInlineEdit Loses ref Focus Behavior
 
-**What goes wrong:** User clicks "Re-analyze." The contract keeps its existing findings and "Reviewed" status while the new analysis runs. If the analysis fails or times out (300s on Vercel), the contract still shows old findings as if they are current. The user doesn't realize those findings were computed without the updated company profile.
+**What goes wrong:**
+The inline rename logic in ContractReview.tsx (lines 92-120) uses `renameInputRef` with a `useEffect` that calls `renameInputRef.current?.focus()` and `renameInputRef.current?.select()` when `isEditing` becomes true. If `useInlineEdit` is extracted and returns the ref, but the consuming component creates a second ref (or uses a forwarded ref incorrectly), the focus effect fires against a ref that doesn't point to the actual DOM node. The input renders but is never focused — the user sees a text box appear but has to click into it manually.
 
-**Why it happens:** The current upload flow creates a fresh placeholder with `status: 'Analyzing'` and empty findings. Re-analyze needs to do the same for an existing contract, but the natural impulse is to just start the API call and update on completion -- leaving stale data visible during analysis.
+**Why it happens:**
+`useRef` returns the same object on every render, but the `.current` assignment happens during render commit. If the custom hook owns the ref and the component mounts the input with that ref, it works. If the component creates its own ref and doesn't pass it to the hook, the hook's ref is always `null`. The split between "hook owns ref" and "component owns DOM" must be clear.
 
-**Prevention:**
-1. On re-analyze trigger, immediately update: `updateContract(id, { status: 'Analyzing', findings: [], dates: [], riskScore: 0, bidSignal: undefined })`.
-2. Show a confirmation dialog: "Re-analyzing will replace current findings. Continue?"
-3. On failure, show a clear error state rather than reverting to old findings. Do NOT silently restore the previous analysis -- the user needs to know the re-analysis failed.
+**How to avoid:**
+- `useInlineEdit` should return the ref object and the component attaches it to the DOM element: `<input ref={editRef} ... />`. The hook owns the ref, the component wires it to the DOM.
+- Test immediately after extraction: start editing (click pencil icon), verify the input auto-focuses and text is pre-selected.
+- The `commitRename` logic (line 102-108) reads `renameInputRef.current?.value` directly from the DOM element — this pattern must be preserved or replaced with controlled input state.
 
-**Detection:** Update company profile insurance limits, trigger re-analyze, force a network error mid-analysis. Check if old findings reappear.
+**Warning signs:**
+- After rename refactor, input renders but requires manual click to focus.
+- Select-all on rename start stops working.
+- TypeScript shows ref type mismatch between hook return type and input element.
 
----
-
-### Pitfall 8: CSV Export Loses Structured Metadata
-
-**What goes wrong:** Naively flattening the `Finding` type to CSV drops discriminated union fields (`legalMeta` with 11 clause types, `scopeMeta` with 4 pass types), nested arrays (`crossReferences`, `checklistItems`), and structured data like `negotiationPosition`. A CSV with just `title, severity, description` loses 60% of the analysis value.
-
-**Why it happens:** The `Finding` interface (contract.ts lines 130-146) has 15 fields including deeply nested discriminated unions. Flat CSV cannot represent this natively.
-
-**Prevention:**
-1. Define a clear CSV schema that flattens key nested fields: `legalMeta.clauseType`, `scopeMeta.passType`, `negotiationPosition`. These are the most actionable fields.
-2. For labor compliance checklists, create a separate CSV section or serialize checklist items as pipe-delimited strings.
-3. Include contract-level metadata as header rows (contract name, risk score, bid signal, analysis date).
-4. Test CSV output with a real contract that has findings across all 9 categories -- ensure Legal Issues findings export their `legalMeta` clause type.
-
-**Detection:** Export CSV for a contract with Legal Issues findings. Open in Excel. Check if indemnification risk type, payment type, retainage percentage are visible columns.
+**Phase to address:** Hook Extraction phase (useInlineEdit).
 
 ---
 
-### Pitfall 9: URL Routing Breaks the Upload-Then-Navigate Flow
+### Pitfall 8: Pass Name String Coupling in merge.ts Type Guards
 
-**What goes wrong:** The current flow in `handleUploadComplete` (App.tsx line 42-106) creates a placeholder contract via `addContract()` and immediately calls `navigateTo('review', id)`. With URL routing, this becomes a programmatic navigation (e.g., `navigate('/review/c-123')`). But if the router reads the URL before the contract state update propagates, it hits the "contract not found" fallback.
+**What goes wrong:**
+`api/merge.ts` has a large switch-on-pass-name block (`convertLegalFinding`, lines 59+) that maps pass name strings like `'legal-indemnification'`, `'legal-payment-contingency'`, etc. to legalMeta shapes. If analysis passes in `api/analyze.ts` are reorganized and any pass is renamed, the merge logic silently stops populating `legalMeta` for that pass — findings appear in the UI without their structured metadata (no clause type badges, no specialized display in LegalMetaBadge). No TypeScript error catches this because both files use string literals.
 
-**Why it happens:** `addContract` is a `setState` call that React may batch. The URL navigation and state update need to be synchronized from the router's perspective. Additionally, the `analyzeContract()` promise callback (lines 61-105) uses `updateContract` and `navigateTo` -- both need to work with the router instead of internal state.
+**Why it happens:**
+Pass names are stringly typed. The `ANALYSIS_PASSES` array in `analyze.ts` and the switch in `merge.ts` must agree on every string, but TypeScript does not enforce this. When modularizing the pass config, if a pass is renamed for clarity (e.g., `'legal-payment-contingency'` to `'payment-contingency'`) and the rename is not propagated to `merge.ts`, the type guard falls through to the default case and `legalMeta` is undefined.
 
-**Prevention:**
-1. Ensure `addContract` and navigation happen in the same synchronous handler (React 18 batches these in event handlers).
-2. The review page already handles "contract exists but analyzing" state (line 180-183: `AnalysisProgress`). Preserve this guard.
-3. Test the full upload flow end-to-end after routing migration: upload -> navigate to review -> see analyzing state -> see results.
+**How to avoid:**
+- Extract pass names as a `const` enum or `as const` object shared between `analyze.ts` and `merge.ts`. Both files import from the same source of truth.
+- When adding the request validation schema (also planned for v1.5), include pass name validation against the same constant list.
+- After any pass restructuring, scan for all occurrences of each pass name string in the codebase and verify consistency.
 
-**Detection:** Upload a contract. Check if URL updates to `/review/{id}`. Refresh during analysis. Verify analyzing state persists.
+**Warning signs:**
+- LegalMetaBadge stops rendering for a specific clause type after pass restructuring.
+- Finding cards for indemnification (or any legal clause) show no clause type pills.
+- `sourcePass` on findings in the UI shows the new name but `legalMeta` is undefined.
 
----
-
-### Pitfall 10: Multiple useCompanyProfile Hooks Show Stale Data
-
-**What goes wrong:** The `useCompanyProfile` hook (used in both `Settings.tsx` and `ContractReview.tsx` line 70) creates independent `useState` instances. If the user edits their insurance limits in Settings and then navigates to a contract review (without full page reload), the review page's profile state is stale -- it was initialized when the component first mounted. The incomplete-profile warning banner (ContractReview lines 73-86) may show incorrectly.
-
-**Why it happens:** Each `useCompanyProfile()` call creates its own `useState` initialized from `loadCompanyProfile()`. There is no cross-instance synchronization. React state is local to the component tree.
-
-**Prevention:**
-1. Use a shared context provider for company profile state, or lift profile state to `App.tsx` and pass down.
-2. Alternatively, re-read from localStorage on every navigation to a review page (in a `useEffect` keyed to the contract ID).
-3. For the re-analyze feature specifically: `analyzeContract.ts` line 57 calls `loadCompanyProfile()` directly from localStorage at call time, so the API call will use fresh data. The stale state is only a UI display issue, not an analysis accuracy issue.
-
-**Detection:** Open Settings and ContractReview side by side (or navigate between them). Edit a field in Settings. Check if ContractReview's profile-dependent UI updates.
+**Phase to address:** Serverless function modularization (analyze.ts, merge.ts decomposition).
 
 ---
 
-## Minor Pitfalls
+### Pitfall 9: Color/Severity Map Centralization Breaks Tailwind's Static Analysis
 
-### Pitfall 11: Browser Back Button Ignores Modal State
+**What goes wrong:**
+The plan includes centralizing color/severity mapping into a "palette map." The current pattern uses inline Tailwind class strings like `'bg-red-100 text-red-700'` inside switch statements. If centralization moves these to a JavaScript object like `{ Critical: { bg: 'bg-red-100', text: 'text-red-700' } }`, Tailwind's JIT compiler can no longer statically scan for these class names at build time. The classes are absent from the generated CSS bundle. In production, severity badges render with no background color or text color.
 
-**What goes wrong:** The delete confirmation dialog (`ConfirmDialog`) and any future annotation modals don't push history entries. Pressing browser back while a modal is open navigates away from the page instead of closing the modal, potentially losing unsaved annotation text.
+**Why it happens:**
+Tailwind's JIT purge mechanism works by scanning source files for complete class name strings. Dynamic string concatenation (`'bg-' + color + '-100'`) and object lookups where the class names are values in a map are NOT reliably picked up by the scanner. This is a well-known Tailwind pitfall documented in their safelist configuration.
 
-**Prevention:** Accept this as a minor UX limitation. Route-based modals add complexity disproportionate to the benefit for a single-user app. If annotations are important, add a "discard unsaved changes?" prompt via `beforeunload`.
+**How to avoid:**
+- Keep complete class strings, never fragment them. The palette map must contain the full Tailwind class strings, not color names: `{ bg: 'bg-red-100', text: 'text-red-700' }` — not `{ color: 'red', shade: '100' }`.
+- After implementing the palette map, run `npm run build` and visually inspect a contract review with all severity levels visible. Do not rely on `npm run dev` — Vite dev mode does not purge.
+- Alternatively, add the severity-related classes to Tailwind's `safelist` in `tailwind.config.js` to guarantee they are always included.
 
----
+**Warning signs:**
+- SeverityBadge components render as unstyled elements in production builds.
+- `npm run build` output is dramatically smaller than expected (purged legitimate classes).
+- Classes appear in dev but disappear in the Vercel preview deployment.
 
-### Pitfall 12: PDF Generation Blocks UI Thread on Large Contracts
-
-**What goes wrong:** PDF generation for a contract with 50+ findings (common for 100-page contracts) freezes the UI for several seconds using `@react-pdf/renderer`. The user thinks the app crashed.
-
-**Prevention:** Show a loading indicator ("Generating report...") before starting generation. Use `React.lazy` or dynamic import for the PDF library to avoid adding it to the main bundle. If generation consistently takes more than 2 seconds, consider generating in a Web Worker.
-
----
-
-### Pitfall 13: Resolved Findings Distort Risk Score
-
-**What goes wrong:** If "resolved" findings are excluded from risk score recalculation, the score changes when the user marks findings resolved. This is misleading -- the contract's inherent risk has not changed, only the user's acknowledgment. If the user exports the report, the risk score won't match the original analysis.
-
-**Prevention:** Keep the risk score as originally computed (it is deterministic from the analysis, per PROJECT.md key decisions). Display resolved count separately: "42 findings (7 resolved)." The risk score reflects the CONTRACT's risk, not the user's review progress. Never recalculate risk score based on user actions.
+**Phase to address:** Pattern Consolidation phase (color/severity mapping).
 
 ---
 
-### Pitfall 14: Annotations Stored in localStorage Balloon Storage Size
+### Pitfall 10: Client-side Zod Validation of API Response Rejects Valid Data After Schema Evolution
 
-**What goes wrong:** Each annotation adds free-text data per finding. With 50+ findings per contract and multiple contracts, annotation text pushes localStorage toward its ~5MB limit. The app already has quota handling in `contractStorage.ts` but hitting the limit means new contracts cannot be saved.
+**What goes wrong:**
+Adding client-side Zod validation of the `/api/analyze` response is good for catching malformed responses. However, if `src/schemas/analysis.ts` (the shared schema) is updated during the v1.5 type safety work and an existing contract in localStorage was saved with the old shape, the Zod validator on the client will reject the stored data as invalid when it is passed through any validation path. Additionally, if the server-side Zod schemas and the client-side validation schema are allowed to drift (different optional/required treatment), the client will reject responses that the server considers valid.
 
-**Prevention:** Add a character limit on annotations (e.g., 500 chars). The existing `storageWarning` mechanism (useContractStore line 13-14) surfaces quota errors. Consider trimming annotations from mock/sample contracts that are not needed.
+**Why it happens:**
+The schemas in `src/schemas/` are shared between client and server (imported by both `api/analyze.ts` and client code). This is correct. But during reconciliation, if the client-side interface (TS type) is separately validated with a stricter schema than what the server produces, valid server responses fail client validation. The shared schema is the contract — it must not be made stricter on one side.
+
+**How to avoid:**
+- Client-side validation schema = same Zod schema used server-side. Do not create a separate "strict" schema for client validation.
+- Use `.safeParse()` not `.parse()` on the client — unknown shapes from old localStorage data should produce a warning and use the stored data as-is, not throw.
+- Scope the client-side validation to API responses only, not to localStorage read paths.
+
+**Warning signs:**
+- Contracts loaded from localStorage disappear or show "invalid data" after schema reconciliation.
+- API responses that the server sends correctly are rejected by the client with Zod parse errors.
+- `z.ZodError` appears in the browser console for data that was previously working.
+
+**Phase to address:** Type Safety phase (client validation, Zod/TS reconciliation).
 
 ---
 
-## Phase-Specific Warnings
+## Technical Debt Patterns
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| URL-based Routing | Vercel rewrite breaks `/api/analyze` (Pitfall 1) | Add rewrites with API exclusion first, test in Vercel preview deployment |
-| URL-based Routing | Deep link to missing contract (Pitfall 2) | Add "contract not found" fallback, derive nav state from URL only |
-| URL-based Routing | Upload flow timing (Pitfall 9) | Test full upload-navigate-review flow end-to-end |
-| Export Report (PDF) | html2canvas produces unusable output (Pitfall 4) | Use @react-pdf/renderer with dedicated report template |
-| Export Report (CSV) | Nested metadata lost (Pitfall 8) | Define explicit CSV schema that flattens legalMeta/scopeMeta |
-| Export Report | Large contract freezes UI (Pitfall 12) | Loading indicator, lazy-load PDF library |
-| Re-analyze Contract | Race condition (Pitfall 3) | AbortController on fetch, disable button during analysis |
-| Re-analyze Contract | Old findings persist on failure (Pitfall 7) | Clear findings on re-analyze start, explicit error state |
-| Re-analyze Contract | Stale company profile in review UI (Pitfall 10) | Re-read profile on navigation, or use shared context |
-| Finding Actions | Schema migration for existing contracts (Pitfall 5) | Optional fields, nullish coalescing, migration function in contractStorage |
-| Finding Actions | Resolved findings change risk score (Pitfall 13) | Keep original score, display resolved count separately |
-| Finding Actions | Annotations balloon storage (Pitfall 14) | Character limit, existing quota warning mechanism |
-| Settings Validation | Auto-save conflicts with validation gate (Pitfall 6) | Inline validation (informational) or refactor to draft+save |
+Shortcuts that seem reasonable but create long-term problems.
 
-## Integration Risk: Feature Interaction Effects
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| `as SomeType` casts in merge.ts when converting pass results | Avoids verbose type guard boilerplate | Silently wrong types reach the UI; legalMeta fields may be undefined | Never for discriminated union fields; acceptable for primitive fields with runtime-safe fallbacks |
+| Keeping HIDE_RESOLVED_KEY defined inline in ContractReview.tsx | Avoids touching storage layer | Three separate localStorage key definitions scattered across codebase; one missed during centralization | Acceptable until centralization phase, not after |
+| Hardcoded CATEGORY_ORDER array in ContractReview.tsx | Simple, clear ordering | Must be kept in sync with `CATEGORIES` const in contract.ts; new categories added to the type won't appear in review without updating this array | Acceptable, but add a lint/compile check that every CATEGORIES item appears in CATEGORY_ORDER |
+| String literals for pass names in ANALYSIS_PASSES and merge.ts | Fast to add new passes | Renaming a pass breaks metadata extraction silently | Never — should be a shared const |
+| Inline filter logic in ContractReview.tsx useMemo | Co-located with the state it depends on | 6-dependency memoized filter is hard to test or compose | Acceptable until useContractFiltering extraction |
 
-These five features are not independent -- they interact in ways that compound pitfalls:
+---
 
-1. **Routing + Re-analyze:** If re-analyze changes the URL (e.g., adds a query param like `?version=2`), deep links to re-analyzed contracts need to work. If re-analyze does NOT change the URL, browser back/forward after re-analyze shows the same URL but different content.
+## Integration Gotchas
 
-2. **Finding Actions + Export:** The export must reflect the current state of findings (which are resolved, what annotations exist). If export is built first and finding actions added later, the export template needs to be updated to include resolution status and annotations.
+Common mistakes when connecting components after refactoring.
 
-3. **Settings Validation + Re-analyze:** The re-analyze feature should check if the company profile has changed since the last analysis. If settings validation prevents saving invalid data, the profile sent to re-analysis is guaranteed valid. If validation is informational-only, the API receives whatever the user typed.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| useContractFiltering + ContractReview | Hook returns new array reference every render (no memo) causing all child finding cards to re-render | useMemo inside the hook with stable dependency identity |
+| useInlineEdit + AllContracts + ContractReview | Extracting hook and using it in two places, then making the hook stateful in a way that cross-pollutes (e.g., shared module-level state) | Each component call to useInlineEdit gets isolated state — hooks are instance-scoped, not shared |
+| Storage manager + useContractStore | Storage manager throws on quota exceeded; hook catches only DOMException but manager wraps in a generic Error | Preserve the existing DOMException check or ensure the manager re-throws DOMException, not wraps it |
+| Anthropic Files API + analyze.ts modularization | Moving `preparePdfForAnalysis` import outside the handler function causes the undici fetch override to be called before the module is loaded | Keep import and undici setup in the same module scope as the handler |
+| Zod client validation + analyzeContract.ts | Calling `.parse()` on the raw API response before null-checking `result.findings` causes unhandled throw in the error path | Always call `.safeParse()` on untrusted data; `.parse()` only on data known to be valid |
 
-4. **Routing + Export:** Deep links to an exported contract should work. If the user shares a URL `/review/c-123` and the recipient doesn't have the contract in their localStorage, they see "contract not found" -- the export PDF is the offline shareable artifact, not the URL.
+---
 
-**Recommendation:** Build URL-based routing first (it touches the most code and is a prerequisite for stable deep links), then export (standalone feature), then finding actions (modifies the data model), then re-analyze (depends on understanding the full data flow), then settings validation (lowest risk, most contained).
+## Performance Traps
+
+Patterns that work at small scale but fail as usage grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Re-rendering all FindingCard components on filter toggle | Brief white flash on filter change; worse with 50+ findings | Memoize FindingCard with React.memo; ensure stable props (callbacks wrapped in useCallback) | 30+ findings with Framer Motion animations |
+| LegalMetaBadge renders 12 sub-components unconditionally | Profiler shows LegalMetaBadge as slow even when clause type doesn't match | Early return pattern — render nothing if `meta.clauseType` doesn't match the sub-component's target; current switch-on-clauseType is correct | Not a current problem; relevant only if clause type count increases further |
+| `getAllModules()` in merge.ts called on every finding conversion | Module store iterated once per finding | Move the call outside the per-finding loop; call once per merge operation | Current: called in `computeRiskScore` (scoring.ts) — verify after merge.ts refactor |
+| localStorage serialization of full Contract array on every finding resolve/note change | Noticeable pause on keystroke when annotating a finding in a large contract | Debounce saves or save only the changed contract, not the full array | 5+ contracts with 50+ findings each (~500KB+ in storage) |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **useContractFiltering extraction:** Verify CSV export still uses the same filtered array (not unfiltered) — the filter-aware export is intentional behavior, not a bug.
+- [ ] **LegalMetaBadge decomposition:** Verify each sub-component handles its clause type only and renders null for others — not that it renders an empty div (empty div breaks flex gap spacing).
+- [ ] **Storage manager centralization:** Verify `HIDE_RESOLVED_KEY` (`clearcontract:hide-resolved`) is included alongside contracts and profile keys.
+- [ ] **Color palette map:** Run `npm run build` (not just `npm run dev`) and check SeverityBadge in the production bundle — Tailwind purge runs only at build time.
+- [ ] **Zod/TS reconciliation:** After making any field non-optional in a TS interface, test with localStorage data from the previous schema shape to verify backward compatibility.
+- [ ] **analyze.ts modularization:** Deploy a Vercel preview and test uploading a 3-5MB PDF — verifies 15MB body limit config is still active.
+- [ ] **useInlineEdit extraction:** Test rename flow end-to-end: click pencil, verify auto-focus + select-all, type new name, press Enter, verify contract name updates in both header and sidebar.
+- [ ] **Toast context:** Run React DevTools Profiler during a toast event — verify ContractReview's filter dropdowns do not re-render.
+- [ ] **Pass name constants:** After extracting pass config, search the codebase for any remaining string literals matching pass names that did not use the constant.
+
+---
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| AnimatePresence broken after component split | LOW | Identify the fragment wrapping motion children; replace with a motion element or move AnimatePresence inside the sub-component |
+| Vercel body limit reverted after analyze.ts restructuring | LOW | Move `export const config` back into `api/analyze.ts` entry file; redeploy |
+| Tailwind purged severity classes in production | LOW | Add affected classes to `safelist` in `tailwind.config.js`; rebuild and redeploy |
+| localStorage data incompatible after type field change | MEDIUM | Bump schema version, add migration function in contractStorage.ts to normalize the field; users will get migration warning once |
+| Pass name mismatch causes legalMeta to be undefined | MEDIUM | Add shared pass name const, update switch in merge.ts, redeploy serverless function |
+| stale useMemo dependency causes wrong filter results | MEDIUM | Re-examine hook's internal dependency array; add missing dep; verify with manual filter toggle test |
+| Toast context causes excessive re-renders | HIGH | Split context into read/write, memoize provider value, or revert to prop-passing pattern |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| AnimatePresence broken by component split (P1) | Component Decomposition | Toggle a filter after each split; verify items animate out |
+| useMemo dependency breaks after hook extraction (P2) | Hook Extraction | Run lint with exhaustive-deps after extraction; manual filter tests |
+| Vercel config export location (P3) | Serverless Modularization | Deploy preview, upload 3-5MB PDF |
+| Zod/TS optionality breaks localStorage data (P4) | Type Safety | Load pre-migration localStorage data manually; verify all findings visible |
+| Toast context re-render performance (P5) | Pattern Consolidation | React DevTools Profiler during toast event |
+| Storage manager breaks quota error feedback (P6) | Pattern Consolidation | Simulate quota exceeded; verify banner appears |
+| useInlineEdit loses ref focus (P7) | Hook Extraction | Test rename flow: click pencil -> auto-focus + select-all |
+| Pass name string coupling in merge.ts (P8) | Serverless Modularization | Search for remaining string literals after extract; visual check of LegalMetaBadge |
+| Tailwind purge removes palette map classes (P9) | Pattern Consolidation | `npm run build` then visual severity badge check in browser |
+| Client Zod validation rejects valid API data (P10) | Type Safety | Verify `.safeParse()` used on all untrusted paths |
+
+---
 
 ## Sources
 
-- [Vercel Rewrites Documentation](https://vercel.com/docs/rewrites) -- rewrite ordering, catch-all patterns
-- [Vercel SPA Fallback Discussion](https://github.com/vercel/vercel/discussions/5448) -- API route exclusion pattern
-- [JS PDF Generation Libraries Comparison (2025)](https://dmitriiboikov.com/posts/2025/01/pdf-generation-comarison/) -- jsPDF vs @react-pdf/renderer tradeoffs
-- [npm-compare: PDF libraries](https://npm-compare.com/@react-pdf/renderer,jspdf,pdfmake,react-pdf) -- download stats, feature comparison
-- [html2canvas resolution issues](https://github.com/niklasvh/html2canvas/issues/3009) -- blurry PDF output confirmation
-- [React SPA Routing Issues](https://medium.com/@taghiyev.ahad/react-single-page-application-spa-routing-issues-and-solutions-433910ddcdb1) -- refresh/deep link problems
-- [Keeping React State and localStorage in sync](https://thomasderleth.de/keeping-react-state-and-local-storage-in-sync/) -- schema drift, multi-hook sync
-- [Persisting React State in localStorage (Josh Comeau)](https://www.joshwcomeau.com/react/persisting-react-state-in-localstorage/) -- schema migration, hydration
-- [Syncing localStorage across tabs (useSyncExternalStore)](https://oakhtar147.medium.com/sync-local-storage-state-across-tabs-in-react-using-usesyncexternalstore-613d2c22819e) -- multi-instance hook problems
-- Current codebase: `App.tsx`, `useContractStore.ts`, `useCompanyProfile.ts`, `contractStorage.ts`, `analyzeContract.ts`, `ContractReview.tsx`, `FindingCard.tsx`, `vercel.json`, `contract.ts`
+- Framer Motion GitHub issues: [AnimatePresence stuck on fast state change](https://github.com/framer/motion/issues/2554), [AnimatePresence doesn't update with latest state](https://github.com/framer/motion/issues/2023)
+- [Why Framer Motion Exit Animations Fail](https://medium.com/javascript-decoded-in-plain-english/understanding-animatepresence-in-framer-motion-attributes-usage-and-a-common-bug-914538b9f1d3)
+- [Vercel Serverless Function 250MB size limit](https://vercel.com/kb/guide/troubleshooting-function-250mb-limit) — `config` export location requirements
+- [Vercel Functions docs](https://vercel.com/docs/functions) — bodyParser config must be in route entry file
+- [React hooks/exhaustive-deps rule](https://react.dev/learn/reusing-logic-with-custom-hooks) — custom hook dependency visibility
+- [Tailwind JIT purge and dynamic classes](https://tailwindcss.com/docs/content-configuration#dynamic-class-names) — safelist for runtime-determined classes
+- [Pitfalls of overusing React Context](https://blog.logrocket.com/pitfalls-of-overusing-react-context/) — re-render behavior of context consumers
+- [Optimizing React Context for Performance](https://www.tenxdeveloper.com/blog/optimizing-react-context-performance) — split context read/write pattern
+- [Prevent re-renders with useContext](https://blog.allaroundjavascript.com/prevent-unnecessary-re-renders-of-components-when-using-usecontext-with-react)
+- [Can you refactor JavaScript safely without test coverage?](https://dev.to/p42/can-you-refactor-javascript-safely-without-test-coverage-2hbo) — risk categorization for untested refactors
+- [Refactoring components in React with custom hooks](https://codescene.com/blog/refactoring-components-in-react-with-custom-hooks) — hook extraction patterns
+- Direct codebase reads: `ContractReview.tsx`, `useContractStore.ts`, `useCompanyProfile.ts`, `contractStorage.ts`, `api/analyze.ts`, `api/merge.ts`, `api/scoring.ts`, `src/knowledge/registry.ts`, `src/types/contract.ts`, `src/components/Toast.tsx`
 
 ---
-*Pitfalls research for: v1.3 Workflow Completion milestone (ClearContract)*
-*Researched: 2026-03-12*
+*Pitfalls research for: v1.5 Code Health — refactoring/component decomposition/type safety*
+*Researched: 2026-03-14*

@@ -1,177 +1,170 @@
-# Technology Stack
+# Stack Research
 
-**Project:** ClearContract v1.3 -- Workflow Completion
-**Researched:** 2026-03-12
+**Domain:** React TypeScript refactoring — component decomposition, type safety hardening, pattern consolidation, hook extraction
+**Project:** ClearContract v1.5 Code Health
+**Researched:** 2026-03-14
 **Confidence:** HIGH
 
 ## Context
 
-ClearContract v1.2 has a validated stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, unpdf, Zod v3, localStorage persistence, Lucide React, React Dropzone, Vercel serverless. This research covers ONLY the stack additions needed for v1.3 features: Export Report (PDF/CSV), Settings Validation + Save Feedback, URL-based Routing, Re-analyze Contract, and Finding Actions (Resolve/Annotate).
+ClearContract v1.4 ships a validated stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, Zod v3, jsPDF, Vercel serverless, custom History API routing, localStorage persistence. This research covers ONLY what is needed for the v1.5 refactoring milestone. The question is whether any new libraries or tools are required.
 
-## Recommended Stack Additions
+**Conclusion reached before detailing: No new runtime dependencies are needed. All refactoring work uses the existing stack. The answer to the downstream question is confirmed.**
 
-### PDF Export: jsPDF + jspdf-autotable
+---
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| jspdf | ^4.2.0 | Client-side PDF generation | Mature library (30K+ GitHub stars, 2.6M weekly npm downloads). Client-side only -- no server round-trip needed. v4.0+ patches CVE-2025-68428 (a path traversal affecting Node.js builds only, not exploitable in browser, but use patched version). Ships TypeScript declarations. |
-| jspdf-autotable | ^5.0.7 | Table rendering in generated PDFs | Contract reports need structured tables for findings, dates, risk scores, and bid signals. jspdf-autotable handles column widths, cell wrapping, page breaks, and styling automatically. 496 npm dependents. Ships TypeScript declarations. |
+## What the Refactoring Work Actually Requires
 
-**Why jsPDF over alternatives:**
-- **pdfmake**: Heavier bundle (~300KB vs ~200KB for jsPDF). JSON-declarative API is elegant but unnecessary for a known, fixed report layout. jsPDF gives more direct control over positioning and styling.
-- **react-to-pdf / html2canvas**: Converts rendered React components to PDF via screenshot. Produces image-based PDFs -- no selectable text, large file sizes, poor print quality. Not suitable for a professional contract report that needs to be shared with project managers and attorneys.
-- **@react-pdf/renderer**: React component-based PDF builder with its own layout engine. Adds ~400KB+ to the bundle and introduces a parallel rendering model. Overkill when the report is a linear document with tables, not a complex multi-column layout.
+### Component Decomposition
 
-### CSV Export: No library needed
+**Targets:** ContractReview.tsx (608 LOC), LegalMetaBadge.tsx (417 LOC), ScopeMetaBadge.tsx (199 LOC), api/analyze.ts (1510 LOC), api/merge.ts (405 LOC).
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Native JS | N/A | CSV generation and download | CSV generation is trivial: join arrays with commas, escape fields containing commas/quotes with double-quoting, create a Blob with `text/csv` MIME type, trigger download via a temporary anchor element. Adding papaparse (a CSV parser, not generator) or file-saver (5 lines of native code) would be unnecessary dependencies. |
+**What is needed:**
+- Moving JSX out of large files into new `*.tsx` files in `src/components/` or new subdirectories
+- Splitting server-side logic in `api/analyze.ts` into sibling modules (e.g., `api/schemas.ts`, `api/passes.ts`, `api/orchestration.ts`)
+- Same for `api/merge.ts` — extract conversion functions and dedup logic into named modules
 
-### URL-based Routing: wouter
+**New dependencies required:** None. This is file-splitting and co-location work. The TypeScript module system, Vite's bundler, and the existing import/export conventions handle all of it.
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| wouter | ^3.9.0 | Client-side routing with browser History API | 1.5KB gzipped -- practically zero bundle cost. Hooks-first API (`useLocation`, `useRoute`, `useParams`) matches existing codebase conventions. Supports browser history (back/forward navigation), hash location fallback, route parameters, and nested routes. 165 npm dependents. Ships TypeScript declarations with inferred route params. |
+### Type Safety Hardening
 
-**Why wouter over alternatives:**
-- **React Router v7 (7.13.1)**: Has evolved into a Remix-style framework with data loaders, actions, and server-side rendering conventions. Massive API surface (~14KB gzipped) for what this app needs: 5 flat routes. The framework-oriented mental model does not match this project's simple SPA architecture.
-- **TanStack Router**: Excellent type-safe router with search param management, route loaders, and nested layouts. Designed for complex applications. At ~30KB gzipped with a steep learning curve, it is overkill for 5 routes with no data loading needs.
-- **Custom History API wrapper**: Could be built in ~100 lines, but wouter at 1.5KB is battle-tested, handles edge cases (popstate events, base paths, SSR compatibility), and eliminates maintenance burden for essentially free bundle cost.
-- **No router (current approach)**: The ViewState approach cannot support URL-based deep links or browser back/forward. The requirement explicitly calls for these capabilities.
+**Targets:**
+1. Zod/TypeScript optionality drift — Zod schemas mark fields required, TypeScript interfaces mark them optional (or vice versa)
+2. Client-side API response validation — currently the client trusts the `/api/analyze` JSON response without Zod parsing
+3. Type casts in `api/merge.ts` — `as Array<{...}>`, `as RiskOverviewResult`, `as FindingResult & Record<string, unknown>` (8 identified cast sites)
+4. Request body validation schema for the POST body received by `api/analyze.ts`
 
-**Integration approach:**
+**What is needed:**
+- Zod v3 is already installed (`^3.25.76`). Client-side use requires only importing from `zod` — already in `node_modules`. Zero installation work.
+- Type guards replace casts: `function isLegalFinding(f: unknown): f is LegalFinding { ... }` — pure TypeScript, no library.
+- Optionality alignment: edit the Zod schemas and/or the TypeScript interfaces so they agree — no new tools.
 
-The existing `navigateTo(view, contractId?)` function and `activeView` state in `useContractStore` get replaced by wouter's URL-based routing. Route mapping:
+**New dependencies required:** None. Zod v3 is already a dependency. Importing it client-side costs ~13KB gzipped but is already paid server-side and will be tree-shaken correctly by Vite since client and server bundles are separate. The client bundle will incur the Zod cost only for the files that import it (likely a new `src/api/validateResponse.ts` utility).
 
-| Current ViewState | URL Path | Route Pattern |
-|-------------------|----------|---------------|
-| `'dashboard'` | `/` | `/` |
-| `'upload'` | `/upload` | `/upload` |
-| `'review'` | `/review/c-123456` | `/review/:id` |
-| `'contracts'` | `/contracts` | `/contracts` |
-| `'settings'` | `/settings` | `/settings` |
+### Pattern Consolidation
 
-The `activeContractId` is derived from the `:id` route parameter on the review page via `useParams()`. The `ViewState` type can be retired or kept as a derived value from the current URL for backward compatibility with components that reference it.
+**Targets:**
 
-### Settings Validation: No library needed
+| Pattern | Current State | Consolidation |
+|---------|--------------|---------------|
+| localStorage access | Scattered across `contractStorage.ts`, `useCompanyProfile.ts`, `App.tsx`, `src/knowledge/profileLoader.ts` | Single `src/storage/storageManager.ts` with typed get/set/remove wrappers |
+| Error handling | Ad-hoc try/catch in multiple call sites | `src/utils/errors.ts` with typed error classes and a `handleStorageError()` utility |
+| Severity color mapping | `SeverityBadge.tsx` has the canonical map; other components duplicate inline Tailwind color strings | `src/utils/severityPalette.ts` exporting a single `SEVERITY_COLORS` record |
+| Toast state | `setToast` called 10+ times in `App.tsx` with repeated `onDismiss: () => setToast(null)` boilerplate | `useToast` hook or React Context encapsulating the state and helper functions |
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Native validation logic | N/A | Field validation + save confirmation | The settings form has ~20 fields: dollar amounts, dates, license numbers, free text. Validation rules are straightforward format checks. A dedicated validation or form library would be overkill for one form. Write a `validateCompanyProfile()` function with explicit rules per field. |
+**What is needed:** New TypeScript/TSX utility files. No libraries. React's built-in `createContext` + `useContext` handles the toast context. The consolidation pattern is purely organizational.
 
-**Note on Zod reuse:** Zod v3 is already a dependency for server-side structured output schemas. It could technically validate settings client-side, but importing Zod into the client bundle adds ~13KB gzipped for what amounts to a handful of string format checks. Keep Zod server-side only. If validation logic later grows complex enough to warrant Zod, the dependency is already installed -- just import it.
+**New dependencies required:** None.
 
-### Re-analyze Contract: No new dependencies
+### Hook Extraction
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Existing stack | N/A | Re-trigger analysis pipeline | The analysis pipeline already exists (`analyzeContract()` client wrapper, `api/analyze.ts` serverless function). Re-analyze requires: (1) retaining the PDF file after initial upload, (2) calling the same pipeline again, (3) replacing findings/dates/riskScore on the existing contract record. |
+**Targets:**
 
-**PDF retention strategy:** The original `File` object is currently consumed during upload and discarded. Two options:
+| Hook | Extracts From | What It Encapsulates |
+|------|--------------|---------------------|
+| `useInlineEdit` | ContractReview.tsx (inline rename logic) | `isEditing`, `draftValue`, `startEdit`, `cancelEdit`, `commitEdit` state and handlers |
+| `useContractFiltering` | ContractReview.tsx (filter/sort logic) | Multi-select filter state, sort state, `visibleFindings` derived value, filter reset |
+| `useFieldValidation` | Settings.tsx (onBlur validation) | `validate(field, value)`, `errors` record, `revert(field)` for invalid input rollback |
 
-| Approach | Storage | Survives Refresh | Size Impact |
-|----------|---------|------------------|-------------|
-| In-memory `Map<contractId, File>` | RAM | No | None on localStorage |
-| Base64 in localStorage alongside contract | localStorage | Yes | ~1.3x file size (base64 overhead) on a 10MB max PDF |
+**What is needed:** New `*.ts` files in `src/hooks/`. Custom hooks are plain React functions using `useState`, `useCallback`, `useMemo`, `useRef` — all already available from `react`. No hook utility libraries (e.g., `react-use`, `ahooks`) are needed or appropriate here.
 
-**Recommendation:** In-memory `Map<string, File>`. Re-analyze is a session-level action (user changes company profile, then re-runs analysis). Persisting multi-megabyte base64 strings in localStorage would quickly hit the ~5MB browser quota and conflict with the existing contract data storage. If the user refreshes, they can re-upload -- this matches the current UX expectations where data persistence is a convenience, not a guarantee.
+**New dependencies required:** None.
 
-### Finding Actions (Resolve/Annotate): No new dependencies
+---
+
+## Recommended Stack
+
+### Core Technologies (unchanged)
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| Existing stack | N/A | Mark findings resolved, add annotations | Pure data model extension + UI. Add `resolved?: boolean`, `resolution?: string`, `annotations?: string[]` to the `Finding` interface. UI built with existing Tailwind + Framer Motion. Persisted via existing localStorage mechanism through `useContractStore`. |
+| React 18 | ^18.3.1 | UI rendering, hooks | Validated, stable |
+| TypeScript | ^5.5.4 | Type safety | Strict mode already enforced |
+| Vite | ^5.2.0 | Bundler, dev server | Validated, no changes needed |
+| Zod v3 | ^3.25.76 | Schema validation | Already installed; now extend to client-side use |
+
+### Supporting Libraries (unchanged)
+
+| Library | Version | Purpose | Notes |
+|---------|---------|---------|-------|
+| Tailwind CSS | 3.4.17 | Styling | No changes; severity palette consolidation is TypeScript-only |
+| Framer Motion | ^11.5.4 | Animations | No changes |
+| Lucide React | 0.522.0 | Icons | No changes |
+| jsPDF + autotable | ^4.2.0 / ^5.0.7 | PDF export | No changes |
+
+### Development Tools (unchanged)
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| ESLint + @typescript-eslint | Linting | Already configured; `noUnusedLocals` and `noUnusedParameters` will catch dead code during decomposition |
+| Prettier | Formatting | Already configured with `lint-staged` |
+| TypeScript strict mode | Type checking | `strict: true`, `noUnusedLocals: true`, `noUnusedParameters: true` in tsconfig.json — these flags actively help the refactor by surfacing stale imports and unused parameters as components are split |
+
+---
 
 ## What NOT to Add
 
-| Library | Why Not |
-|---------|---------|
-| react-hook-form / formik | One form in the app (Settings). Native controlled inputs with a validate function is simpler and consistent with existing patterns. |
-| papaparse | Designed for parsing complex CSVs, not generating simple ones. Native generation is trivial. |
-| file-saver | The `saveAs` pattern is 5 lines of code: `const blob = new Blob([data]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click()`. |
-| html2canvas | Produces image-based PDFs. Not suitable for professional text-based reports. |
-| @react-pdf/renderer | Elegant API but ~400KB+ bundle. jsPDF + autotable covers the use case at 1/5 the cost. |
-| react-router / react-router-dom v7 | Evolved into a framework (Remix merger). ~14KB gzipped, complex API surface, loader/action patterns. 10x the bundle size of wouter for features this app does not need. |
-| tanstack-router | Type-safe but ~30KB gzipped. Designed for complex nested routing with search param management. Overkill for 5 flat routes. |
-| zustand / jotai / redux | State management is fine with useState + props. The app has 5 views, one store hook, and straightforward data flow. Adding a state library is premature. |
-| zod (client-side) | Already a server dependency but adds ~13KB to client bundle. Not worth it for ~20 simple field checks. |
+| Library | Why Not | What to Use Instead |
+|---------|---------|---------------------|
+| `react-use` | Provides `useLocalStorage`, `useToggle`, etc. Adds dependency for patterns the codebase already implements or should implement itself. 310KB minified. | Native `useState` + typed storage wrappers |
+| `ahooks` | Large hook collection (~200+ hooks). Importing one hook brings the full bundle. | Custom hooks, ~30-80 LOC each |
+| `immer` | Immutable state updates. Useful for deeply nested state mutations, but ClearContract's state is shallow arrays of contracts with flat finding objects. | Spread operators + `structuredClone` (already used in codebase) |
+| `xstate` | State machines for complex UI state. Finding filters and inline edit have simple finite states not needing a machine model. | `useState` + `useReducer` |
+| `react-error-boundary` | Adds a declarative error boundary component. The codebase uses imperative error handling (try/catch + toast). The refactor centralizes imperative handling — no boundary component needed. | Centralized `errors.ts` utility |
+| `zod-to-json-schema` (client) | Already used server-side. Should stay server-only — client code does not need JSON Schema output, only Zod parse/safeParse. | `import { z } from 'zod'` directly on client |
+| Any additional ESLint plugins | Current setup (`@typescript-eslint`, `react-hooks`, `react-refresh`) covers the refactoring surface. Adding `eslint-plugin-import` for import ordering or `eslint-plugin-sonarjs` for complexity checks would help but are optional quality-of-life additions, not required for the refactor to succeed. | Existing ESLint config |
+
+---
+
+## Optional Quality-of-Life Tools (not required, lower priority)
+
+These tools would help but are not required for v1.5 success. Mention here for awareness; include only if a phase has bandwidth.
+
+| Tool | Purpose | Cost | When Useful |
+|------|---------|------|-------------|
+| `eslint-plugin-import` | Enforces import ordering, detects unused imports | Dev-only, zero bundle | After decomposition, to keep import hygiene in new files |
+| TypeScript `noUncheckedIndexedAccess` | Adds `undefined` to all array/object index access return types | Zero bundle, config change | If Zod/TS reconciliation reveals index-access bugs |
+
+---
+
+## Version Compatibility
+
+| Concern | Status |
+|---------|--------|
+| Zod v3 client-side import | Safe. Vite tree-shakes per bundle. Client and serverless function are separate outputs. No conflict. |
+| TypeScript strict + new hooks files | `noUnusedLocals` will error if a hook is created but not imported. Create hooks only when the consuming component is refactored in the same phase. |
+| React Context for toast | React 18's `createContext` works with concurrent mode. No compatibility issues. |
+| `useReducer` for filter state | Ships with React 18. No library needed, no compatibility concern. |
+
+---
 
 ## Installation
 
 ```bash
-# New dependencies for v1.3
-npm install jspdf@^4.2.0 jspdf-autotable@^5.0.7 wouter@^3.9.0
+# No new dependencies for v1.5.
+# All refactoring uses the existing stack.
 ```
 
-**Bundle impact estimate:**
+---
 
-| Package | Minified | Gzipped | Notes |
-|---------|----------|---------|-------|
-| jspdf | ~200KB | ~65KB | Lazy-load via dynamic `import()` -- zero impact on initial page load |
-| jspdf-autotable | ~45KB | ~14KB | Loaded alongside jspdf only when user clicks Export |
-| wouter | ~4KB | ~1.5KB | Loaded on every page (routing is always needed) |
-| **Total** | **~249KB** | **~80.5KB** | Only ~1.5KB affects initial load; ~79KB is lazy-loaded on export |
+## Alternatives Considered
 
-**Lazy loading strategy for PDF export:**
-```typescript
-async function exportToPdf(contract: Contract) {
-  const { default: jsPDF } = await import('jspdf');
-  await import('jspdf-autotable'); // side-effect import extends jsPDF prototype
-  const doc = new jsPDF();
-  // ... generate report
-  doc.save(`${contract.name}-report.pdf`);
-}
-```
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| Toast context | React `createContext` + `useContext` | `react-hot-toast` (~5KB) | Adds a dependency for state that already exists in the app; the v1.5 goal is consolidation, not library addition |
+| Filter hook state | `useState` + `useReducer` | `use-immer` | Overkill; filter state is a Set of strings and a sort field, not deeply nested |
+| Type guards | Hand-written type guard functions | `ts-is-present` / `zod.safeParse` | Zod is already present; use `z.safeParse()` with existing schemas rather than adding a type guard library |
 
-This keeps the ~79KB PDF bundle out of the critical path entirely. Users who never export pay zero cost.
-
-## TypeScript Considerations
-
-All three new dependencies ship with built-in TypeScript declarations. No `@types/*` packages needed.
-
-- **jspdf**: Full type support for document creation, text, images, and save methods.
-- **jspdf-autotable**: Extends the `jsPDF` class with a typed `autoTable()` method. Import side-effect augments the jsPDF type.
-- **wouter**: Route params are type-inferred from path pattern strings (e.g., `/review/:id` infers `{ id: string }`).
-
-## Vercel Deployment Impact
-
-None of the new dependencies affect the serverless function. jsPDF and wouter are client-side only. The `api/analyze.ts` endpoint remains unchanged. No new environment variables needed.
-
-**Critical: Vercel rewrite rule for client-side routing.** With wouter using the History API, direct navigation to `/review/c-123456` would return a Vercel 404 because no file exists at that path. Add a catch-all rewrite to `vercel.json`:
-
-```json
-{
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
-}
-```
-
-This sends all non-API requests to `index.html`, where wouter picks up the URL and renders the correct view. The negative lookahead `(?!api/)` preserves the existing `/api/analyze` serverless function route.
-
-## Integration Summary
-
-| Feature | New Dependencies | Integration Point | Complexity |
-|---------|-----------------|-------------------|------------|
-| PDF Export | jspdf, jspdf-autotable | New `exportPdf()` utility, lazy-loaded from ContractReview page | Medium -- report layout design, table formatting, multi-page handling |
-| CSV Export | None | New `exportCsv()` utility, called from ContractReview page | Low -- string concatenation + Blob download |
-| URL Routing | wouter | Replace `useContractStore` navigation with wouter routes in `App.tsx` | Medium -- rewire navigation across all components, add Vercel rewrite |
-| Settings Validation | None | New `validateCompanyProfile()` function, toast/inline feedback in Settings page | Low -- format checks on ~20 fields |
-| Re-analyze | None | Store File in memory Map, add re-analyze button to ContractReview, call existing pipeline | Low-Medium -- file retention + UI for re-analysis state |
-| Finding Actions | None | Extend Finding type, add resolve/annotate UI to FindingCard, persist via existing store | Low-Medium -- data model + UI components |
+---
 
 ## Sources
 
-- [jspdf on npm](https://www.npmjs.com/package/jspdf) -- v4.2.0, last published ~21 days ago (HIGH confidence)
-- [jspdf-autotable on npm](https://www.npmjs.com/package/jspdf-autotable) -- v5.0.7, last published ~2 months ago (HIGH confidence)
-- [wouter on npm](https://www.npmjs.com/package/wouter) -- v3.9.0, last published ~3 months ago (HIGH confidence)
-- [wouter GitHub](https://github.com/molefrog/wouter) -- ~2.2KB gzipped, hooks-first API, hash location + History API support (HIGH confidence)
-- [CVE-2025-68428 GitHub Advisory](https://github.com/advisories/GHSA-f8cm-6447-x5h2) -- jsPDF path traversal, fixed in v4.0.0, affects Node.js builds only (HIGH confidence)
-- [jsPDF GitHub](https://github.com/parallax/jsPDF) -- 30.4K stars, actively maintained by yWorks (HIGH confidence)
-- [React Router on npm](https://www.npmjs.com/package/react-router) -- v7.13.1, evaluated and rejected for this use case (HIGH confidence)
-- [TanStack Router](https://tanstack.com/router/latest) -- Evaluated and rejected: overkill for 5 flat routes (MEDIUM confidence)
+- Codebase inspection (2026-03-14) — package.json, tsconfig.json, .eslintrc.cjs, line counts for all refactoring targets — HIGH confidence
+- [React docs: createContext](https://react.dev/reference/react/createContext) — Context API patterns — HIGH confidence
+- [TypeScript strict mode flags](https://www.typescriptlang.org/tsconfig#strict) — `noUnusedLocals`, `noUnusedParameters` — HIGH confidence
+- [Zod v3 docs: safeParse](https://zod.dev/?id=safeparse) — Client-side validation pattern — HIGH confidence
+- [Vite tree-shaking](https://vitejs.dev/guide/features.html#npm-dependency-resolving-and-pre-bundling) — Separate client/server bundles, Zod cost only paid where imported — HIGH confidence
 
 ---
-*Stack research for: ClearContract v1.3 Workflow Completion*
-*Researched: 2026-03-12*
+*Stack research for: ClearContract v1.5 Code Health (refactoring)*
+*Researched: 2026-03-14*
