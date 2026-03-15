@@ -204,5 +204,5 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 27. Foundation Utilities | 2/2 | Complete    | 2026-03-15 | - |
 | 28. Hook Extraction | 2/2 | Complete    | 2026-03-15 | - |
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
-| 30. Type Safety Hardening | 2/3 | Gap closure   | 2026-03-15 | - |
+| 30. Type Safety Hardening | 3/3 | Complete   | 2026-03-15 | - |
 | 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |
