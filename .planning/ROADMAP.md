@@ -86,7 +86,7 @@ See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 - [x] **Phase 29: Component Decomposition + Toast Context** - LegalMetaBadge split, ScopeMetaBadge split, toast context, ContractReview wired to hooks (completed 2026-03-15)
 - [x] **Phase 30: Type Safety Hardening** - Zod/TS reconciliation, client response validation, merge.ts type guards (completed 2026-03-15)
 - [x] **Phase 31: Server-side API Modularization** - analyze.ts split into passes/lib/conversion, merge.ts extraction (completed 2026-03-15)
-- [ ] **Phase 32: Type Safety Gap Closure** - Fix updateFindingNote TS2322 and unused variable tech debt [GAP CLOSURE]
+- [x] **Phase 32: Type Safety Gap Closure** - Fix updateFindingNote TS2322 and unused variable tech debt [GAP CLOSURE] (completed 2026-03-15)
 
 ## Phase Details
 
@@ -220,4 +220,4 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
 | 30. Type Safety Hardening | 3/3 | Complete   | 2026-03-15 | - |
 | 31. Server-side API Modularization | 1/1 | Complete    | 2026-03-15 | - |
-| 32. Type Safety Gap Closure | 0/1 | Not Started | - | - |
+| 32. Type Safety Gap Closure | 1/1 | Complete   | 2026-03-15 | - |
