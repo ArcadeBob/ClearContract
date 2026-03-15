@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: in-progress
+status: completed
 stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-03-15T07:13:51.313Z"
+last_updated: "2026-03-15T07:15:00.364Z"
 last_activity: 2026-03-15 -- Completed 29-02 ToastProvider context and useToast hook
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -52,6 +52,8 @@ Recent decisions affecting v1.5:
 - [Phase 27]: Added border classes to getRiskBadgeColor for ContractComparison compatibility (inert without border-width)
 - [Phase 28]: Kept useFieldValidation validate callback generic (not tied to FieldType) for reusability
 - [Phase 28]: Added setFilterSet to useContractFiltering for MultiSelectDropdown full-Set onChange compatibility
+- [Phase 29]: Duplicated pillBase in LegalMetaBadge/shared.ts and ScopeMetaBadge/shared.ts rather than cross-directory import
+- [Phase 29]: Used Record<DiscriminantType, FC<{meta: any}>> dispatcher pattern for MetaBadge decomposition
 - [Phase 29]: Toast.tsx changed from absolute to fixed positioning; auto-dismiss timer moved to ToastProvider (3s)
 
 ### Pending Todos
@@ -68,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T07:13:51.311Z
-Stopped at: Completed 29-02-PLAN.md
-Resume with: `/gsd:execute-phase 28` (complete remaining plans or advance to 29)
+Last session: 2026-03-15T07:14:30Z
+Stopped at: Completed 29-01-PLAN.md (MetaBadge decomposition)
+Resume with: `/gsd:execute-phase 29` (complete remaining plan 29-03)
