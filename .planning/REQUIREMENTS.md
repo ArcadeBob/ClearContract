@@ -27,7 +27,7 @@ Requirements for code health milestone. Each maps to roadmap phases.
 - [x] **PATN-01**: Centralize localStorage access — single storage manager with consistent error handling replaces 4 scattered locations
 - [x] **PATN-02**: Centralize error handling — shared error classification and formatting utility used by App.tsx, analyze.ts, and storage layer
 - [x] **PATN-03**: Centralize color/severity mapping — replace ~30 scattered ternary chains with a shared palette map using complete Tailwind class strings
-- [ ] **PATN-04**: Extract toast to useToast context — eliminate prop drilling from App.tsx through page components
+- [x] **PATN-04**: Extract toast to useToast context — eliminate prop drilling from App.tsx through page components
 
 ### Hook Extraction
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DECOMP-01 | Phase 29 | Pending |
 | DECOMP-02 | Phase 29 | Pending |
 | DECOMP-03 | Phase 29 | Pending |
-| PATN-04 | Phase 29 | Pending |
+| PATN-04 | Phase 29 | Complete |
 | TYPE-01 | Phase 30 | Pending |
 | TYPE-02 | Phase 30 | Pending |
 | TYPE-03 | Phase 30 | Pending |

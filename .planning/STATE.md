@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: completed
-stopped_at: Phase 29 context gathered
-last_updated: "2026-03-15T06:54:56.995Z"
-last_activity: 2026-03-15 -- Completed 28-02 useFieldValidation hook extraction
+status: in-progress
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-03-15T07:13:51.313Z"
+last_activity: 2026-03-15 -- Completed 29-02 ToastProvider context and useToast hook
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 28 Hook Extraction
+**Current focus:** v1.5 Code Health -- Phase 29 Component Decomposition + Toast Context
 
 ## Current Position
 
-Phase: 28 of 31 (Hook Extraction) -- second of 5 phases in v1.5
-Plan: 2 of 2 in current phase
-Status: 28-02 complete
-Last activity: 2026-03-15 -- Completed 28-02 useFieldValidation hook extraction
+Phase: 29 of 31 (Component Decomposition + Toast Context) -- third of 5 phases in v1.5
+Plan: 2 of 3 in current phase
+Status: 29-02 complete
+Last activity: 2026-03-15 -- Completed 29-02 ToastProvider context and useToast hook
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Recent decisions affecting v1.5:
 - [Phase 27]: Added border classes to getRiskBadgeColor for ContractComparison compatibility (inert without border-width)
 - [Phase 28]: Kept useFieldValidation validate callback generic (not tied to FieldType) for reusability
 - [Phase 28]: Added setFilterSet to useContractFiltering for MultiSelectDropdown full-Set onChange compatibility
+- [Phase 29]: Toast.tsx changed from absolute to fixed positioning; auto-dismiss timer moved to ToastProvider (3s)
 
 ### Pending Todos
 
@@ -67,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T06:54:56.993Z
-Stopped at: Phase 29 context gathered
+Last session: 2026-03-15T07:13:51.311Z
+Stopped at: Completed 29-02-PLAN.md
 Resume with: `/gsd:execute-phase 28` (complete remaining plans or advance to 29)
