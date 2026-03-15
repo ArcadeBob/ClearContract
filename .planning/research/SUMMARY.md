@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** ClearContract v1.5 Code Health
-**Domain:** React 18 + TypeScript SPA refactoring — component decomposition, hook extraction, type safety hardening, pattern consolidation
-**Researched:** 2026-03-14
+**Project:** ClearContract v1.6 Quality & Validation
+**Domain:** Test infrastructure for existing React+Vite+TypeScript AI contract review app
+**Researched:** 2026-03-15
 **Confidence:** HIGH
 
 ## Executive Summary
 
-ClearContract v1.5 is a code health milestone for an existing ~9,700 LOC React 18 + TypeScript + Vite application used by a sole user. No new user-facing features are being added. The work addresses four categories of technical debt: god-component decomposition (ContractReview.tsx at 608 lines, LegalMetaBadge.tsx at 417 lines, api/analyze.ts at 1,510 lines), hook extraction to isolate reusable state clusters, type system correctness gaps between Zod schemas and TypeScript interfaces, and scattered patterns (localStorage access in 4 files, severity color mapping in 9 files, toast prop-drilling). All research was conducted via direct codebase inspection — no assumptions about unseen code.
+ClearContract v1.6 adds a comprehensive test suite to a shipped 10,809-LOC application that currently has zero test infrastructure. The project has a clean three-layer architecture (pure logic / React components+hooks / Vercel API handlers) that is already highly testable without modifying any production code. The recommended approach is Vitest 3.2.4 (constrained to 3.x by the existing Vite 5 dependency) with React Testing Library, jsdom, and direct handler import for API tests — a total of 7 dev-only dependencies with zero runtime impact.
 
-The recommended approach is incremental extraction rather than wholesale rewrite. The dependency graph divides naturally into a Foundation phase (utility files with no cross-cutting risk), a Hook Extraction phase (unlocks ContractReview decomposition), a Component Decomposition phase (leverages extracted hooks), a Type Safety phase (can run in parallel with decomposition), and a Server-side Modularization phase (highest regression risk, must come last). No new runtime dependencies are needed — all refactoring uses the existing stack: React 18, TypeScript strict mode, Vite, Zod v3 (already installed), Tailwind CSS, and Framer Motion.
+The central challenge is the 17-pass AI analysis pipeline: it calls Claude 17 times per analysis run, is non-deterministic, and costs real money per invocation. The correct solution is a strict separation between fast/free/deterministic mock-based regression tests (which run on every change) and a separate manual live-API test suite (which runs before releases). This separation must be established in Phase 1 and maintained throughout; blurring it is the most costly mistake possible in this milestone.
 
-The key risks are concentrated in three areas: (1) server-side changes to api/analyze.ts can break the entire analysis pipeline if the Vercel `export const config` is displaced from the entry-point file; (2) Zod/TypeScript optionality reconciliation must be paired with a localStorage migration or existing stored contracts will load with silent undefined fields that corrupt filter behavior; (3) Tailwind's JIT purge will strip severity color classes in production if the palette map stores fragmented strings rather than complete class names. Each risk has a clear prevention strategy and a low-cost recovery path if it occurs.
+The work must be phased strictly: infrastructure first, pure logic tests second, component and hook tests third, API integration tests last. Attempting to configure Vitest and write tests simultaneously is the leading cause of wasted time when retrofitting test coverage onto an existing codebase. The existing architecture (pure functions for scoring/merge, Zod schemas as runtime validators, hooks using plain useState) makes this work straightforward once infrastructure is proven with a trivial passing test.
 
 ---
 
@@ -19,127 +19,128 @@ The key risks are concentrated in three areas: (1) server-side changes to api/an
 
 ### Recommended Stack
 
-The existing stack requires zero additions for v1.5. Zod v3 (already installed at `^3.25.76`) can be imported client-side at no extra configuration cost — Vite tree-shakes per bundle, so the Zod cost is only paid where it is imported. TypeScript strict mode flags (`noUnusedLocals`, `noUnusedParameters`) actively help the refactor by surfacing stale imports as components are split. The only optional additions worth considering post-refactor are `eslint-plugin-import` for import hygiene in new files, and enabling `noUncheckedIndexedAccess` if the Zod/TS audit reveals array index-access bugs.
+Vitest 3.2.4 is the only viable test runner choice: it reuses the existing Vite 5 transform pipeline so TypeScript, JSX, and path aliases work identically between tests and production. Vitest 4.x requires Vite 6 and is out of scope. The full testing stack is 7 dev dependencies with zero runtime additions and zero production bundle impact.
 
-**Core technologies (unchanged):**
-- React 18 (`^18.3.1`): UI rendering and hooks — validated, stable
-- TypeScript (`^5.5.4`): Strict mode already enforced; `noUnusedLocals` catches dead code during decomposition
-- Vite (`^5.2.0`): Bundler; separate client/server outputs mean Zod client use is safe
-- Zod v3 (`^3.25.76`): Already installed; extend to client-side API response validation with no install work
-- Tailwind CSS (3.4.17), Framer Motion (`^11.5.4`), Lucide React (0.522.0): No changes
+**Core technologies:**
+- `vitest@^3.2.4`: Test runner and assertion library — native Vite integration, Jest-compatible API, zero separate transform config needed
+- `@vitest/coverage-v8@^3.2.4`: Code coverage — V8-native, zero-config, accurate AST remapping; must match vitest major.minor
+- `jsdom@^20.8.4`: DOM environment for component tests — more complete ARIA implementation than happy-dom; `byRole` queries work correctly
+- `@testing-library/react@^16.3.2`: Component rendering and queries — React 18 compatible, industry standard
+- `@testing-library/jest-dom@^6.9.1`: DOM assertion matchers (`.toBeInTheDocument()`, `.toHaveTextContent()`, etc.)
+- `@testing-library/user-event@^14.6.1`: Realistic user interaction simulation for drag-and-drop, form inputs, keyboard
+- `msw@^2.12.11`: Network-level API mocking for component tests — exercises the full fetch pipeline including headers, status codes, and error handling
 
-**What not to add:** `react-use`, `ahooks`, `immer`, `xstate`, `react-error-boundary`, `react-hot-toast`. Each solves a problem the planned refactoring addresses with existing primitives at lower bundle weight and no new dependency surface.
+**What not to add:** Jest (separate transform pipeline), Playwright/Cypress (E2E out of scope), Storybook (design system tool, not a test framework), happy-dom (incomplete ARIA breaks Testing Library), supertest (Express-specific, not applicable to Vercel functions).
 
-### Expected Features (Refactoring Work Items)
+### Expected Features
 
-This milestone has no user-facing features. All work items are developer-facing refactoring tasks drawn from direct source inspection. The prioritization is P1 (correctness gaps), P2 (structural decomposition), P3 (deferred/high-risk).
+The "features" of this milestone are test suites and infrastructure, not user-facing functionality. The critical organizing principle is the mock-based / live-API split.
 
-**Must do (P1 — close correctness gaps):**
-- POST body request validation schema — `api/analyze.ts` validates `companyProfile` via Zod but `pdfBase64` and `fileName` are unvalidated; missing fields cause opaque crashes instead of clean 400 responses
-- Zod/TS optionality reconciliation — fields like `actionPriority` are `required` in Zod schemas but `optional` in `src/types/contract.ts` interfaces; the runtime contract doesn't match the static type
-- Client-side Zod validation of `/api/analyze` response — `analyzeContract.ts` returns raw `response.json()` with zero validation; silent bad data surfaces at render time
-- `useInlineEdit` hook extraction — self-contained rename state cluster; pure extraction, zero behavioral risk
-- `useContractFiltering` hook extraction — 5 useState calls + complex useMemo in ContractReview; extracting reduces the file by ~100 lines and unlocks further decomposition
-- Storage manager centralization — localStorage accessed in 4 files with inconsistent error handling; unified wrapper eliminates duplicate QuotaExceeded detection
-- Severity palette centralization — severity-to-Tailwind-class mapping duplicated across 9 files; single source of truth before drift compounds
+**Must have (table stakes):**
+- Vitest + RTL setup with vitest.config.ts — unblocks everything; nothing runs without this
+- Test fixtures module (`src/test-utils/factories.ts`) — type-safe Contract/Finding builders; prevents test data rot across all subsequent tests
+- Unit tests: `computeRiskScore` + `applySeverityGuard` — most important business logic in the app
+- Unit tests: `computeBidSignal`, `classifyError`, `storageManager` — pure functions, high value, low complexity
+- Unit tests: `mergePassResults` — most complex pure logic; requires fixture data for all 16 pass schemas
+- Unit tests: `contractStorage` — migration logic (v1->v2) and first-visit seeding behavior
+- Unit tests: Zod schema validation — discriminated unions (11 LegalMeta + 4 ScopeMeta variants), invalid input rejection
+- Component tests: SeverityBadge, FindingCard, RiskScoreDisplay, BidSignalWidget, FilterToolbar
+- API endpoint integration tests (mocked Claude) — validates request/response pipeline, all error paths (400/401/405/422/429)
+- Manual UAT checklist — structured human verification document replacing ad-hoc testing
+- `npm run test` and `npm run test:coverage` scripts
 
-**Should do (P2 — structural decomposition after P1 verified):**
-- `LegalMetaBadge` subcomponent split — 417 lines, 11 clauseType branches; extract one component per branch; TypeScript discriminated union narrowing eliminates all casts automatically
-- `ScopeMetaBadge` subcomponent split — 199 lines, 4 passType branches; same pattern at smaller scale
-- `useFieldValidation` hook extraction — Settings.tsx ProfileField mixes validation, revert-on-invalid, and saved-flash timer in 120 lines; extracting makes it a reusable pattern
-- `useToast` context — eliminates `onShowToast` prop drilling one level through ContractReview into CSV export handler
-- `merge.ts` type guards — replace ~40 `as` casts against `Record<string, unknown>` with type guards derived from existing Zod schemas; highest regression risk in P2
+**Should have (differentiators):**
+- Hook tests: `useContractFiltering`, `useContractStore` — state management with localStorage side effects
+- Live API integration test suite (manual trigger, `npm run test:live`) — real API, validates end-to-end against schema drift
+- Coverage threshold enforcement in vitest.config.ts — fail CI below conservative thresholds; ratchet up over time
+- Snapshot tests for API response shapes — catches accidental schema drift automatically
+- `test/fixtures/*.json` — captured real API responses validated against Zod schemas at test time
 
-**Defer to P3 / v1.6:**
-- `api/analyze.ts` modularization — server-side, 1,510 lines, highest regression risk in the entire milestone; requires full manual UAT of all 16 analysis passes
-- Test framework setup — no test runner is configured; this is a separate milestone (v1.6 candidate), not in-scope for this refactor
-- `ContractReview.tsx` UI subcomponent splits (ReviewHeader, FindingsPanel, FilterToolbar) — only worthwhile after hook extractions reduce the file to a manageable size
-
-**Anti-features to avoid:** wholesale ContractReview rewrite in one pass, consolidating all localStorage keys into one blob, adding Zustand/Redux, migrating localStorage to IndexedDB, writing tests during this refactor.
+**Defer to later:**
+- Component tests for upload flow — react-dropzone event mocking is finicky; manual UAT covers this adequately
+- Routing hook tests — History API in jsdom is unreliable; navigation covered by UAT
+- PDF export verification — jsPDF in jsdom is smoke-test only; visual inspection is more valuable
+- E2E tests (Playwright/Cypress) — browser automation overhead for marginal value on a sole-developer tool
+- Visual regression testing — overkill; sole developer sees every UI change before deploying
 
 ### Architecture Approach
 
-The post-refactor architecture introduces no new patterns — it applies the codebase's existing patterns (hooks for state clusters, discriminated union dispatch, typed utility functions) consistently to the files that currently violate them. The result is a directory tree where each file has a single responsibility, natural boundaries between client and server are honored, and circular import risk is eliminated by a documented dependency boundary table. All public import paths are preserved via barrel exports, so no call sites outside the refactored files need to change.
+The test architecture maps directly to the existing three-layer production structure. A separate `vitest.config.ts` (using `mergeConfig` from `vite.config.ts`) keeps test concerns out of the production build config and inherits the React plugin without duplication. The `environmentMatchGlobs` config assigns jsdom to `src/**` and node to `api/**`, resolving the dual-environment requirement without per-file annotations.
 
-**Major new components and responsibilities:**
+**Major components:**
+1. `vitest.config.ts` — test runner config extending vite.config.ts; environmentMatchGlobs splits jsdom (src) from node (api); coverage targets focus on utils/hooks/schemas
+2. `test/setup.ts` — global jest-dom matchers, RTL cleanup afterEach, localStorage.clear() afterEach
+3. `src/test-utils/` — custom render wrapping ToastProvider context, type-safe factories for Contract/Finding, localStorage seed helpers
+4. `test/fixtures/*.json` — captured real API responses; Zod-validated in a dedicated test so schema drift breaks tests automatically
+5. `src/__tests__/` and `api/__tests__/` — test files in `__tests__/` directories mirroring production structure; keeps production source tree clean
 
-1. `src/hooks/` (3 new hooks): `useInlineEdit`, `useContractFiltering`, `useFieldValidation` — self-contained state clusters extracted from ContractReview and Settings with typed return APIs
-2. `src/utils/` (3 new utilities): `storage.ts` (typed localStorage wrapper), `errorHandling.ts` (error classification), `severityColors.ts` (palette map replacing inline ternaries)
-3. `src/contexts/ToastContext.tsx` (new): provides `useToast()` hook; App.tsx still owns the Toast render and state, but any component calls `showToast()` without prop threading
-4. `src/components/LegalMetaBadge/` (refactored to directory): barrel-exported `index.tsx` dispatcher + 11 focused subcomponents; all existing import paths resolve unchanged
-5. `api/passes/` + `api/lib/` + `api/conversion/` (P3, new directories): decomposes the 1,510-line `analyze.ts` monolith; handler and `export const config` remain in `api/analyze.ts` (Vercel entry-point constraint)
-
-**Non-negotiable dependency boundaries:**
-- `api/passes/` must not import from `api/lib/` — pass configs are static data objects, not behavior
-- `src/storage/` must not import from `src/hooks/` — storage is a utility layer consumed by hooks, not vice versa
-- `src/types/` must not import from `src/components/` — domain types must be UI-agnostic
-- `api/analyze.ts` must always be the Vercel route entry point — never convert it to a re-export barrel
+**Key patterns:**
+- Vercel handlers tested by direct import with mock VercelRequest/VercelResponse objects — no HTTP overhead, no supertest
+- Anthropic SDK mocked at class level via `vi.mock('@anthropic-ai/sdk')` — all 17 pass calls intercepted with `mockResolvedValueOnce()` chains
+- localStorage spied via `Storage.prototype` (not `localStorage` directly) — jsdom proxies through prototype; direct spies miss calls
+- All fixture data validated against Zod schemas in their own test — stale fixtures break tests rather than silently passing
 
 ### Critical Pitfalls
 
-1. **Vercel `export const config` location** — If `api/analyze.ts` becomes a re-export barrel during modularization, Vercel loses the 15MB body parser config and silently reverts to 1MB. Base64 PDFs (average 3-5MB) will fail with 413 errors. Prevention: keep `export const config` and the handler default export in `api/analyze.ts`; extract only logic outward. Verification: deploy a Vercel preview and upload a 3-5MB PDF before marking Phase 5 complete.
+1. **Infrastructure and tests in the same phase** — Attempting to configure Vitest and write real tests simultaneously makes failures ambiguous. Prove infrastructure with a trivial test (`expect(1+1).toBe(2)` plus one component render) before writing any business logic tests. If your first real test has more than 5 lines of setup imports, infrastructure is not ready.
 
-2. **Zod/TS optionality reconciliation deletes localStorage data** — Making a TS interface field non-optional while existing stored contracts lack that field causes silent `undefined` at render time. TypeScript compiles clean but filters produce wrong counts (e.g., action priority filter excludes all pre-v1.4 findings). Prevention: always pair a type change with a schema version bump and migration function in `contractStorage.ts`. Use `z.infer<typeof Schema>` to derive TS types from Zod directly — eliminates the possibility of drift.
+2. **Framer Motion crashes in jsdom** — The project uses Framer Motion extensively (staggered FindingCard animations, AnimatePresence on filtered lists). jsdom lacks Web Animations API, causing `requestAnimationFrame is not defined` errors or test hangs. Create a global mock in `src/__mocks__/framer-motion.ts` replacing `motion.*` with plain elements and making `AnimatePresence` a pass-through. Must exist before any component test.
 
-3. **Tailwind JIT purge strips palette map classes in production** — Moving severity color strings into a JavaScript object breaks Tailwind's static scan unless complete class strings are preserved. Fragmented strings like `'bg-' + colorName + '-100'` are never included in the production CSS bundle. Prevention: map values must be complete strings (`'bg-red-100 text-red-700'`); verify with `npm run build` not `npm run dev` (purge only runs at build time).
+3. **Single Vitest environment for both client and server code** — `src/` needs jsdom; `api/` needs Node. A single environment breaks one or the other. Fix with `environmentMatchGlobs` in vitest.config.ts: `['src/**/*.test.{ts,tsx}', 'jsdom']` and `['api/**/*.test.ts', 'node']`.
 
-4. **AnimatePresence exit animations break after component splits** — Wrapping `<motion.*>` children in a React Fragment during ContractReview decomposition breaks key tracking; AnimatePresence loses the keyed child it needs and exit animations silently stop firing. Prevention: never wrap motion elements in fragments when they are direct children of AnimatePresence; move AnimatePresence inside the sub-component if needed. Test by toggling a filter and verifying items animate out after every structural split.
+4. **Mocking Anthropic SDK at the wrong level** — The SDK uses nested chained calls (`client.files.upload()` then `client.messages.create()` × 17). Mock at the class level with `vi.mock('@anthropic-ai/sdk')`. Validate all mock fixture objects against their Zod schemas — if a fixture fails `schema.safeParse()`, the test is testing a fiction, not the real code path.
 
-5. **useMemo dependencies go stale inside extracted hooks** — ESLint's `exhaustive-deps` rule cannot validate dependencies inside a custom hook from the caller's scope. A missing dependency in `useContractFiltering`'s internal `useMemo` produces stale filter results on specific toggle sequences — no TypeScript error, intermittent bug. Prevention: run `npm run lint` immediately after every hook extraction and treat dependency warnings as blocking. Design hooks to accept all filter inputs as parameters rather than closing over them.
+5. **Tests that cannot fail (false confidence)** — Retrofitting tests on working code means every test passes on first run. After writing a critical test, temporarily break the code under test and verify the test fails. Assert specific values (`expect(score).toBe(67)`), not existence (`expect(score).toBeDefined()`). Most important for `computeRiskScore` and `mergePassResults`.
+
+6. **localStorage timing in hook tests** — `useContractStore` calls `loadContracts()` inside its `useState` initializer. Pre-populate localStorage BEFORE calling `renderHook`, not after. Spy via `Storage.prototype.getItem`, not `localStorage.getItem` directly — jsdom proxies through the prototype and direct spies miss calls.
 
 ---
 
 ## Implications for Roadmap
 
-Based on combined research, the work divides into 5 phases ordered by dependency and regression risk. The architecture research (build order Phase A through G) maps directly onto these roadmap phases.
+Based on combined research, the milestone maps cleanly into four phases with strict dependency ordering. Each phase produces a proven foundation the next phase depends on.
 
-### Phase 1: Foundation Utilities
-**Rationale:** Pure new files with no imports from any code that is changing. Zero regression risk. These give later phases stable, tested primitives to depend on — specifically, `utils/storage.ts` is a prerequisite for `useContractFiltering` (which reads `HIDE_RESOLVED_KEY` from localStorage) and the Tailwind palette must be implemented correctly from the start to avoid the production purge pitfall.
-**Delivers:** `utils/storage.ts`, `utils/errorHandling.ts`, `utils/severityColors.ts`, `schemas/companyProfile.ts`, POST body request validation in `api/analyze.ts`
-**Addresses (FEATURES.md P1):** Storage manager centralization, severity palette centralization, POST body validation
-**Avoids:** Tailwind purge pitfall (palette implemented correctly first), localStorage key fragmentation pitfall
+### Phase 1: Infrastructure Foundation
+**Rationale:** Nothing else runs without this. Every subsequent test depends on Vitest config, the environment split, the Framer Motion mock, the global setup file, and the test utilities. Ambiguous failures compound if infrastructure is not isolated and proven first. This phase ends with one trivial passing test and a confirmed `npm run test` that exits cleanly.
+**Delivers:** `vitest.config.ts` (mergeConfig + environmentMatchGlobs), `tsconfig.test.json`, `test/setup.ts` (jest-dom + cleanup + localStorage.clear), `src/test-utils/factories.ts` + `render.tsx` + `storage-mock.ts`, `.gitignore coverage/` entry, package.json scripts, Framer Motion global mock.
+**Addresses:** Table stakes — "Vitest + RTL setup", "test scripts", "test fixtures module"
+**Avoids:** Pitfall 1 (infrastructure/tests mixed), Pitfall 2 (Framer Motion), Pitfall 3 (dual environments), Pitfall 7 (vite config conflicts), Pitfall 11 (CI secrets — mock SDK at module level so tests cannot reach real API), Pitfall 12 (CI runner performance — VITEST_MAX_FORKS=2 in CI config)
 
-### Phase 2: Hook Extraction
-**Rationale:** Hook extraction is the prerequisite for all component decomposition. Extracting `useContractFiltering` first reduces ContractReview from 608 lines to ~500 and isolates the most complex state logic before any JSX surgery. `useInlineEdit` is zero-risk and ships in the same phase. `useFieldValidation` is fully isolated to Settings.tsx with no cross-cutting dependencies.
-**Delivers:** `hooks/useInlineEdit.ts`, `hooks/useContractFiltering.ts`, `hooks/useFieldValidation.ts`
-**Addresses (FEATURES.md P1):** `useInlineEdit` and `useContractFiltering` hook extractions, `useFieldValidation`
-**Avoids:** useMemo dependency pitfall (run lint after each extraction), useInlineEdit ref focus pitfall (test rename flow: click pencil, verify auto-focus + select-all, type name, press Enter)
+### Phase 2: Pure Logic Tests
+**Rationale:** Pure functions (no DOM, no React) are the highest-value, lowest-complexity tests. They validate the core business logic driving every user-visible output. Writing these first builds confidence in the test infrastructure before adding DOM or mock complexity. They also produce the fixture data shapes all subsequent phases depend on.
+**Delivers:** Unit tests for `computeRiskScore`, `applySeverityGuard`, `computeBidSignal`, `classifyError`, `storageManager`, `contractStorage`, Zod schemas (`finding.ts`, `analysisResult.ts`), and `mergePassResults`. Fixture data covering all 16 pass schemas, validated against Zod schemas.
+**Addresses:** All "Must have" unit tests from FEATURES.md
+**Avoids:** Pitfall 6 (false confidence — mutation testing mindset established here; temporarily break code and verify test fails), Pitfall 13 (api/ side effects — test scoring/merge in isolation, not through analyze.ts), Pitfall 14 (Zod tests duplicating TypeScript — focus on invalid inputs and discriminated union dispatch)
 
-### Phase 3: Component Decomposition + Toast Context
-**Rationale:** With hooks extracted, ContractReview and the badge components can be split along natural seams without shared state between siblings. LegalMetaBadge decomposes by discriminated union branch — TypeScript narrowing eliminates all `as` casts automatically in each sub-component. Toast context moves here because ContractReview's prop interface shrinks in the same refactor pass, making both changes coherent.
-**Delivers:** `components/LegalMetaBadge/` (11 subcomponents + barrel), `components/ScopeMetaBadge/` (4 subcomponents + barrel), `contexts/ToastContext.tsx`, ContractReview wired to Phase 2 hooks, `onShowToast` prop removed from ContractReview interface
-**Addresses (FEATURES.md P2):** LegalMetaBadge split, ScopeMetaBadge split, useToast context
-**Avoids:** AnimatePresence pitfall (test filter toggle after every ContractReview split), toast context re-render pitfall (memoize provider value with `useMemo`, profile with React DevTools Profiler before marking complete)
+### Phase 3: Component and Hook Tests
+**Rationale:** Component tests depend on the custom render wrapper, fixture factories, and proven Framer Motion mock from Phases 1-2. Hook tests depend on proven localStorage mock patterns from Phase 2 storage tests. Writing these after pure logic tests means any RTL setup issues are isolated to this phase rather than intermingled with business logic failures.
+**Delivers:** Component tests for SeverityBadge, FindingCard, RiskScoreDisplay, BidSignalWidget, FilterToolbar, ConfirmDialog. Hook tests for `useContractFiltering` and `useContractStore` (CRUD + localStorage persistence verification).
+**Addresses:** "Must have" component tests; "Should have" hook tests from FEATURES.md
+**Avoids:** Pitfall 8 (localStorage timing — pre-populate before renderHook, pattern proven in Phase 2 storage tests), Pitfall 10 (coverage target pressure — defer threshold configuration until Phase 3 baseline is complete)
 
-### Phase 4: Type Safety Hardening
-**Rationale:** Type safety work touches both client and server data shapes. Running it after component decomposition ensures the canonical type is stable before guards are written. The Zod/TS reconciliation must include a migration to protect existing localStorage contracts — this cannot ship without the migration or filter counts break for pre-v1.5 data.
-**Delivers:** Zod/TS optionality reconciliation with schema version migration, `src/api/analyzeContract.ts` Zod response parse (`MergedAnalysisResultSchema.parse()`), `api/merge.ts` type guard replacements for `as` casts
-**Addresses (FEATURES.md P1/P2):** Client-side API response validation, merge.ts type guards, Zod/TS reconciliation
-**Avoids:** Optionality reconciliation localStorage data loss pitfall (migration paired with every non-optional change, tested manually with old-shape data), client Zod validation rejecting valid data pitfall (use `.safeParse()` on all untrusted paths; never create a separate "strict" client schema)
-
-### Phase 5: Server-side API Modularization
-**Rationale:** Highest regression risk of the entire milestone. A mistake here breaks the entire analysis pipeline for all users. All client-side phases must be verified in production before touching this. The `export const config` entry-point constraint is non-negotiable. Pass name string coupling must be resolved before any pass is renamed.
-**Delivers:** `api/passes/` (riskOverview, legalPasses, scopePasses — extracted from analyze.ts), `api/lib/` (runAnalysisPass, runSynthesisPass, zodToOutputFormat), `api/conversion/` (legalFindingConverter, scopeFindingConverter), `api/analyze.ts` reduced from 1,510 to ~150-line handler
-**Addresses (FEATURES.md P3):** api/analyze.ts modularization
-**Avoids:** Vercel config export location pitfall (keep handler + config in entry file, verify with Vercel preview + 3-5MB PDF upload), pass name string coupling pitfall (extract pass names as shared `as const` object before reorganizing any pass)
+### Phase 4: Integration Tests + Validation Artifacts
+**Rationale:** API handler tests require the most elaborate mock setup (Anthropic SDK class mock, 17 `mockResolvedValueOnce()` calls, VercelRequest/Response factories). Writing these last means all mock patterns are proven and fixture data exists. The UAT checklist and live API test suite complete the validation milestone.
+**Delivers:** `api/__tests__/analyze.test.ts` (mocked Claude, all validation paths: 400/401/405/422/429), captured `test/fixtures/*.json` with schema-validation regression tests, manual UAT checklist document in `.planning/`, live API test suite (`npm run test:live`, manual trigger only, never in CI), coverage thresholds configured.
+**Addresses:** "Must have" API integration tests; "Should have" live suite and coverage enforcement from FEATURES.md
+**Avoids:** Pitfall 5 (Anthropic SDK mock depth — class-level mock, fixture Zod-validation), Pitfall 9 (VercelRequest/Response complexity — reusable factory pattern applied from Phase 1 established convention)
 
 ### Phase Ordering Rationale
 
-- Utilities before hooks: `useContractFiltering` imports from `utils/storage.ts` for `HIDE_RESOLVED_KEY` persistence. Building the dependency first avoids a partial extraction.
-- Hooks before component splits: ContractReview's 608 lines is safe to decompose only after its state clusters are encapsulated in hooks. Splitting JSX first would require prop-drilling the same state that hooks were going to own.
-- Type safety in parallel with or after decomposition: Guards must be written against stable schemas. Running type changes during decomposition adds confounding variables and makes regressions harder to isolate.
-- Server modularization last: Highest regression risk, no dependency on client-side work. Client phases should be verified in production before any server changes are made. A bug at this layer breaks the entire analysis pipeline.
+- Infrastructure before everything: no test of any kind runs without vitest.config.ts, jsdom, and the Framer Motion mock. One trivial test verifies the full chain before any real test is written.
+- Pure functions before components: pure functions have no DOM or mock dependencies. They find infrastructure bugs cheaply (wrong path alias, missing type, broken import) without introducing RTL or animation complexity.
+- Fixtures during Phase 2: `mergePassResults` requires fixture data for all 16 pass schemas; component tests use realistic Contract/Finding data. Building fixtures once during Phase 2 eliminates copy-paste across all later test files.
+- API handler tests last: they require the most elaborate mock chains. By Phase 4, every pattern used (vi.mock module level, fixture factories, mock factories for req/res) has been proven at a simpler level in earlier phases.
+- Live API tests always manual: this is a hard architectural constraint, not a convenience deferral. Tests that call the real Anthropic API must never run in CI.
 
 ### Research Flags
 
-Phases with well-documented patterns — standard execution, no additional research needed:
-- **Phase 1 (Foundation Utilities):** Pure TypeScript utility files; standard patterns fully documented in research; zero UI impact
-- **Phase 2 (Hook Extraction):** React custom hook pattern is well-established; research identifies all state clusters and their exact signatures with line-number references
+Phases likely needing extra time — budget accordingly:
+- **Phase 2 (mergePassResults):** Rated HIGH complexity in FEATURES.md. The merge function handles 16 pass schemas, deduplication by clauseReference+category, severity ranking preference, specialized-pass preference over generic, and failed-pass-to-Critical-finding conversion. Fixture data must cover all 16 schema variants as valid Zod-parseable objects. The test file alone may be 200+ lines. Budget at least a full day.
+- **Phase 4 (API handler tests):** Rated HIGH complexity in FEATURES.md. The Anthropic mock must handle 17 sequential calls returning different schema shapes. Use `mockResolvedValueOnce()` chained × 17 or a stateful mock dispatching on system prompt content. VercelRequest/Response mock factories must cover all tested code paths (method check, body validation, CORS headers, error classification).
 
-Phases that may need targeted investigation during planning:
-- **Phase 3 (Component Decomposition):** AnimatePresence behavior after structural changes has documented community bug patterns (framer/motion#2554, #2023). If exit animations break in unexpected ways during ContractReview decomposition, consult Framer Motion docs for `mode` prop and layout animation interactions before committing to a structural approach.
-- **Phase 4 (Type Safety):** The exact fields that have drifted between Zod schemas and TS interfaces will only be fully known during the audit. The migration strategy may need adjustment based on how many fields are affected. Budget extra time if the audit reveals systemic drift (5+ fields).
-- **Phase 5 (Server Modularization):** Vercel serverless function bundling behavior with multi-module imports warrants a preview deployment check before marking the phase complete. The undici fetch override (required for Anthropic Files API) must remain co-located with the handler module scope — moving it to `api/lib/` risks the override firing after module initialization.
+Phases with well-documented patterns — standard execution:
+- **Phase 1 (infrastructure):** The mergeConfig pattern, environmentMatchGlobs, jsdom setup, and Framer Motion mock are all official features with extensive documentation and community examples.
+- **Phase 3 (component/hook tests):** React Testing Library `renderHook` and custom render wrappers are standard documented patterns. No novel approaches required.
 
 ---
 
@@ -147,47 +148,50 @@ Phases that may need targeted investigation during planning:
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All findings from direct package.json + tsconfig.json inspection; zero new dependencies confirmed |
-| Features | HIGH | All work items identified from direct source file reading with line-number references; complexity estimates grounded in actual code structure |
-| Architecture | HIGH | Build order derived from actual import dependency graph; all boundary rules verified against source files |
-| Pitfalls | HIGH | 5 of 10 pitfalls verified against official docs (Vercel, Framer Motion, Tailwind, React); 5 from direct codebase inspection |
+| Stack | HIGH | All version constraints verified against npm registry (2026-03-15 direct queries) and official changelogs. Vitest 3.x / Vite 5 compatibility confirmed via Vitest 4.0 announcement. All 7 libraries version-compatible with existing deps. |
+| Features | HIGH | Feature scope derived from direct codebase inspection of all 23 components, 7 hooks, and 10 utility modules. Zero assumptions about unseen code. Complexity ratings grounded in actual LOC and dependency depth. |
+| Architecture | HIGH | Patterns from official Vitest and RTL docs cross-referenced against direct production code inspection. The three-layer separation (pure logic / React / Vercel handler) already exists in production and maps cleanly to test tooling. |
+| Pitfalls | HIGH | All 6 critical pitfalls verified against codebase: Framer Motion usage confirmed in FindingCard/ContractReview, localStorage in useState initializer confirmed in useContractStore, dual environments confirmed by api/ vs src/ split, Anthropic SDK nested API confirmed in api/analyze.ts. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Zod/TS drift scope:** Research identified the pattern and specific examples (`actionPriority`, `negotiationPosition`). The full count of drifted fields will only emerge during the Phase 4 audit. If the drift is widespread (10+ fields), the migration complexity increases and Phase 4 should be scoped conservatively.
-- **ContractReview UI subcomponent splits:** Research recommends deferring ReviewHeader, FindingsPanel, and FilterToolbar subcomponent extraction to post-hook phases. The roadmap should explicitly gate these on Phase 2 hook extractions being complete and verified — if Phase 2 is delayed, Phase 3 UI splits should be scoped back.
-- **Toast context cost/benefit:** The pitch for toast context is modest (eliminates one level of prop drilling). If React DevTools Profiler shows the memoized context causes re-render issues that can't be solved simply, the research recommends reverting to prop-passing (already working). The roadmap should treat `useToast` as a conditional: implement, profile, revert if needed. Do not block other P2 work on this item.
+- **MSW vs. vi.fn() for component tests:** STACK.md recommends MSW; FEATURES.md lists it as an anti-feature for a single-endpoint app. The resolution: use MSW for component tests that exercise `analyzeContract.ts` (verifies the full fetch pipeline including error codes); use `vi.spyOn(globalThis, 'fetch')` for simpler cases. Pick one convention in Phase 1 and document it in a comment in the setup file.
+
+- **Test file co-location vs. `__tests__/` directories:** ARCHITECTURE.md recommends `__tests__/` directories; PITFALLS.md recommends co-location. Both work with Vitest's default glob. Decide in Phase 1 before any test files are created. Recommendation: `__tests__/` directories keep the production source tree visually clean — existing source files are familiar without test files interspersed.
+
+- **Coverage threshold values:** Research recommends starting conservative (60% statements/functions, 50% branches) and ratcheting up. Actual achievable thresholds depend on how much animation code, icon/palette constants, and static mock data is excluded from coverage scope. Set thresholds after Phase 3 baseline is established, not before.
+
+- **Fixture capture timing:** `test/fixtures/*.json` requires running a real analysis via `vercel dev` to capture. This should happen during or after Phase 4, not before. Until then, Phase 2 uses factory-built in-memory fixture objects; Phase 4 uses both in-memory factories and at least one captured real-response fixture.
 
 ---
 
 ## Sources
 
-### Primary (HIGH confidence — direct codebase inspection)
-- `src/pages/ContractReview.tsx` (608 lines) — filter state cluster, inline edit, localStorage access
-- `src/components/LegalMetaBadge.tsx` (417 lines) — 11 clauseType branches, nested ternary chains
-- `src/components/ScopeMetaBadge.tsx` (199 lines) — 4 passType branches
-- `api/analyze.ts` (1,510 lines) — 16 pass definitions, orchestrator, Vercel config export
-- `api/merge.ts` (405 lines) — ~40 `as` casts, convertLegalFinding, convertScopeFinding
-- `src/pages/Settings.tsx` (308 lines) — ProfileField with inline validation
-- `src/schemas/` (4 schema files) — Zod schemas for all pass outputs
-- `package.json`, `tsconfig.json`, `.eslintrc.cjs` — stack verification
+### Primary (HIGH confidence)
+- Vitest official docs (configuration, environments, mocking, coverage) — https://vitest.dev/guide/
+- Vitest 4.0 announcement (Vite >= 6 requirement) — https://vitest.dev/blog/vitest-4
+- Vitest coverage guide (V8 vs Istanbul) — https://vitest.dev/guide/coverage.html
+- MSW Node.js integration docs — https://mswjs.io/docs/integrations/node
+- Testing Library install and setup — https://testing-library.com/docs/dom-testing-library/install/
+- npm registry version checks (direct `npm view` queries) — 2026-03-15
+- Direct codebase inspection: api/analyze.ts (443 lines), api/merge.ts (555 lines), api/scoring.ts (107 lines), src/utils/bidSignal.ts (138 lines), src/utils/errors.ts (113 lines), src/storage/storageManager.ts (127 lines), src/storage/contractStorage.ts (105 lines), src/schemas/finding.ts (175 lines), all 23 components, all 7 hooks, package.json (zero test deps confirmed)
 
-### Primary (HIGH confidence — official documentation)
-- [Vercel Functions docs](https://vercel.com/docs/functions) — `config` export must be in route entry file
-- [Tailwind JIT dynamic class names](https://tailwindcss.com/docs/content-configuration#dynamic-class-names) — safelist requirement for runtime-determined classes
-- [React hooks/exhaustive-deps](https://react.dev/learn/reusing-logic-with-custom-hooks) — custom hook dependency visibility scope
-- [Zod v3 safeParse docs](https://zod.dev/?id=safeparse) — client-side validation pattern
-- [Vite tree-shaking](https://vitejs.dev/guide/features.html#npm-dependency-resolving-and-pre-bundling) — separate client/server bundles confirm Zod client import is safe
+### Secondary (MEDIUM confidence)
+- Vitest/jsdom vs. happy-dom byRole issues — https://github.com/vitest-dev/vitest/discussions/1607
+- framer/motion + RTL issues — https://github.com/framer/motion/issues/285, https://github.com/framer/motion/issues/1690
+- Mock VercelRequest/VercelResponse — https://gist.github.com/unicornware/2a1b03ef53dfc55e6fc16265dabaf056
+- Vitest localStorage testing — https://runthatline.com/vitest-mock-localstorage/
+- Node v25 Web Storage API conflict — https://github.com/vitest-dev/vitest/issues/8757
+- Slow CI thread pool — https://github.com/vitest-dev/vitest/discussions/6223
+- Mocking framer-motion v9 — https://dev.to/pgarciacamou/mocking-framer-motion-v9-7jh
 
-### Secondary (MEDIUM confidence — community verified)
-- Framer Motion GitHub issues [#2554](https://github.com/framer/motion/issues/2554), [#2023](https://github.com/framer/motion/issues/2023) — AnimatePresence desync patterns
-- [Pitfalls of overusing React Context](https://blog.logrocket.com/pitfalls-of-overusing-react-context/) — re-render behavior of context consumers
-- [Optimizing React Context for Performance](https://www.tenxdeveloper.com/blog/optimizing-react-context-performance) — split context read/write pattern
-- [Refactoring components in React with custom hooks](https://codescene.com/blog/refactoring-components-in-react-with-custom-hooks) — hook extraction patterns
+### Tertiary (LOW confidence)
+- Coverage for legacy applications — https://about.codecov.io/blog/how-to-incorporate-code-coverage-for-a-legacy-application/ — general guidance, not project-specific
+- Code coverage paradox — https://stackoverflow.blog/2025/12/22/making-your-code-base-better-will-make-your-code-coverage-worse/ — universal pitfall context
 
 ---
-*Research completed: 2026-03-14*
-*Supersedes: 2026-03-12 v1.3 research summary (v1.3 shipped; this is v1.5 research)*
+*Research completed: 2026-03-15*
+*Supersedes: 2026-03-14 v1.5 research summary (v1.5 shipped; this is v1.6 research)*
 *Ready for roadmap: yes*

@@ -1,512 +1,606 @@
-# Architecture Research
+# Architecture Patterns: Test Framework Integration
 
-**Domain:** React SPA refactoring — god-component decomposition, API layer modularization, type safety hardening
-**Researched:** 2026-03-14
-**Confidence:** HIGH (direct codebase inspection, all targets read in full)
+**Domain:** Testing infrastructure for Vite+React+TypeScript contract review app
+**Researched:** 2026-03-15
+**Confidence:** HIGH (direct codebase inspection + official Vitest/RTL docs)
 
-## Standard Architecture
+## Recommended Architecture
 
-### System Overview
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                          Client (React SPA)                               │
-├──────────────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │  Dashboard   │  │ContractReview│  │  Settings    │  │AllContracts  │ │
-│  │  (page)      │  │  (608 lines) │  │  (page)      │  │  (page)      │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘ │
-│         │                 │                  │                  │         │
-│  ┌──────┴─────────────────┴──────────────────┴──────────────────┴──────┐  │
-│  │                     App.tsx (orchestrator)                           │  │
-│  │  useContractStore · useRouter · toast state · analyze orchestration  │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐   │
-│  │  useContractStore  │  │  useCompanyProfile  │  │    useRouter       │   │
-│  │  (contracts CRUD)  │  │  (profile + save)   │  │  (History API)     │   │
-│  └─────────┬──────────┘  └─────────┬──────────┘  └────────────────────┘   │
-│            │                       │                                        │
-│  ┌─────────┴──────────┐  ┌─────────┴──────────┐                            │
-│  │ contractStorage.ts │  │ profileLoader.ts    │   <- localStorage layer    │
-│  └────────────────────┘  └────────────────────┘                            │
-├──────────────────────────────────────────────────────────────────────────┤
-│  Client API boundary: src/api/analyzeContract.ts (base64 + POST)          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                       Vercel Serverless Functions                          │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │  api/analyze.ts (1510 lines — currently monolithic)                 │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────────┐ │  │
-│  │  │ PASS CONFIGS │  │ ORCHESTRATOR │  │  zodToOutputFormat util    │ │  │
-│  │  │ (16 objects) │  │ handler()    │  │  runAnalysisPass()        │ │  │
-│  │  │  ~900 lines  │  │  ~200 lines  │  │  runSynthesisPass()       │ │  │
-│  │  └──────────────┘  └──────────────┘  └───────────────────────────┘ │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │  api/merge.ts (405 lines)                                           │  │
-│  │  convertLegalFinding() · convertScopeFinding() · mergePassResults() │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │  api/pdf.ts · api/scoring.ts                                        │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-├──────────────────────────────────────────────────────────────────────────┤
-│                     Shared Schemas + Knowledge                             │
-│  src/schemas/ (4 files)  ·  src/knowledge/ (16 modules + registry)       │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-### Component Responsibilities
-
-| Component | Responsibility | Current State |
-|-----------|----------------|---------------|
-| `App.tsx` | Route orchestration, upload/reanalyze logic, toast + storageWarning state | Reasonable — 303 lines, intentionally fat orchestrator |
-| `ContractReview.tsx` | Findings display, filter/sort, inline rename, export, dialogs | Overloaded — 608 lines, 14 `useState` calls |
-| `LegalMetaBadge.tsx` | Render legal clause metadata pills by clauseType | Pure rendering, 417 lines, no state — structural problem only |
-| `ScopeMetaBadge.tsx` | Render scope metadata pills by passType | Same structural pattern, 199 lines, more manageable |
-| `Settings.tsx` | Company profile form with onBlur persistence and inline validation | ProfileField inlined with field validation — candidate for hook extraction |
-| `api/analyze.ts` | 16-pass orchestration + CompanyProfileSchema + pass configs + utilities | 1510 lines — all concern types co-located in one file |
-| `api/merge.ts` | Finding conversion (legal+scope) + dedup + staleness check + merge | 405 lines — 3 logical concerns: conversion, dedup, orchestration |
-| `useContractStore` | contracts CRUD + localStorage persistence | Clean — 82 lines, well-bounded |
-| `useCompanyProfile` | Profile read/write with localStorage + error state | Clean — 32 lines, direct localStorage call is the only smell |
-| `contractStorage.ts` | loadContracts + saveContracts with schema versioning | Solid — handles seeding, migration, quota errors |
-| `src/schemas/` | Zod v3 schemas for all 16+ analysis pass outputs | Split across 4 files by domain — current split is already correct |
-| `src/knowledge/` | 16 TypeScript knowledge modules + central registry | Map-based registry, per-pass selective loading — well-designed |
-
-## Recommended Project Structure (Post-Refactor)
+The testing architecture integrates with the existing codebase without modifying any production code. The key insight: ClearContract has three distinct testable layers, each requiring different tooling and mock strategies.
 
 ```
-src/
-├── types/
-│   └── contract.ts              # (unchanged) Domain types — single source of truth
-├── schemas/                     # (unchanged) Zod schemas by domain
-│   ├── analysis.ts
-│   ├── legalAnalysis.ts
-│   ├── scopeComplianceAnalysis.ts
-│   ├── synthesisAnalysis.ts
-│   └── companyProfile.ts        # NEW — move CompanyProfileSchema here (shared server+client)
-├── knowledge/                   # (unchanged) Knowledge modules + registry
-│   ├── registry.ts
-│   ├── index.ts
-│   └── regulatory/ trade/ standards/
-├── storage/
-│   └── contractStorage.ts       # (unchanged) loadContracts/saveContracts
-├── hooks/
-│   ├── useContractStore.ts      # (unchanged)
-│   ├── useCompanyProfile.ts     # (unchanged)
-│   ├── useRouter.ts             # (unchanged)
-│   ├── useInlineEdit.ts         # NEW — extracted from ContractReview rename state
-│   ├── useContractFiltering.ts  # NEW — extracted from ContractReview useMemo/filter state
-│   └── useFieldValidation.ts    # NEW — extracted from Settings.tsx ProfileField
-├── utils/
-│   ├── storage.ts               # NEW — centralized localStorage wrapper (get/set/remove)
-│   ├── errorHandling.ts         # NEW — isNetworkError() + error classification
-│   ├── severityColors.ts        # NEW — palette map replacing inline ternary chains
-│   ├── exportContractCsv.ts     # (unchanged)
-│   ├── exportContractPdf.ts     # (unchanged)
-│   ├── bidSignal.ts             # (unchanged)
-│   └── settingsValidation.ts    # (unchanged)
-├── contexts/
-│   └── ToastContext.tsx          # NEW — useToast context removing onShowToast prop drilling
-├── components/
-│   ├── LegalMetaBadge/
-│   │   ├── index.tsx            # Barrel export — public API unchanged, same import path
-│   │   ├── IndemnificationBadge.tsx
-│   │   ├── PaymentContingencyBadge.tsx
-│   │   ├── LiquidatedDamagesBadge.tsx
-│   │   ├── RetainageBadge.tsx
-│   │   ├── InsuranceBadge.tsx
-│   │   ├── TerminationBadge.tsx
-│   │   ├── FlowDownBadge.tsx
-│   │   ├── NoDamageDelayBadge.tsx
-│   │   ├── LienRightsBadge.tsx
-│   │   ├── DisputeResolutionBadge.tsx
-│   │   └── ChangeOrderBadge.tsx
-│   ├── ScopeMetaBadge/
-│   │   ├── index.tsx            # Barrel export
-│   │   ├── ScopeOfWorkBadge.tsx
-│   │   ├── DatesDeadlinesBadge.tsx
-│   │   ├── VerbiageBadge.tsx
-│   │   └── LaborComplianceBadge.tsx
-│   └── [all other components unchanged]
-├── pages/
-│   ├── ContractReview/
-│   │   ├── index.tsx            # Thin shell: composes subcomponents, delegates to hooks
-│   │   ├── ReviewHeader.tsx     # Header bar: back nav, rename, delete/reanalyze/export buttons
-│   │   ├── FindingsPanel.tsx    # Left column: filter controls + findings display
-│   │   ├── ReviewSidebar.tsx    # Right column: DateTimeline + Risk Summary
-│   │   └── FilterToolbar.tsx    # MultiSelectDropdown row + hide-resolved toggle
-│   └── Settings.tsx             # (stays as single file — cleaner with useFieldValidation hook)
-└── api/
-    └── analyzeContract.ts       # MODIFIED: add Zod parse of API response before returning
+Layer 1: Pure Logic (no DOM, no React)
+  api/scoring.ts, api/merge.ts, src/utils/*, src/storage/*, src/schemas/*
 
-api/
-├── analyze.ts                   # MODIFIED: ~150 lines — handler + imports only
-├── passes/
-│   ├── index.ts                 # Exports ANALYSIS_PASSES array
-│   ├── riskOverview.ts          # Pass config for risk-overview
-│   ├── legalPasses.ts           # 11 legal pass config objects
-│   └── scopePasses.ts           # 4 scope/compliance pass config objects
-├── lib/
-│   ├── zodToOutputFormat.ts     # Extracted pure utility function
-│   ├── runAnalysisPass.ts       # Extracted pass executor
-│   └── runSynthesisPass.ts      # Extracted synthesis executor
-├── merge.ts                     # MODIFIED: imports from conversion/, orchestrates merge only
-├── conversion/
-│   ├── legalFindingConverter.ts # convertLegalFinding() — switch per clauseType
-│   └── scopeFindingConverter.ts # convertScopeFinding() — switch per passType
-├── pdf.ts                       # (unchanged)
-└── scoring.ts                   # (unchanged)
+Layer 2: React Components + Hooks (jsdom, RTL)
+  src/hooks/*, src/components/*, src/pages/*
+
+Layer 3: Vercel API Handlers (Node.js, mocked Anthropic SDK)
+  api/analyze.ts, api/passes.ts, api/pdf.ts
 ```
 
-### Structure Rationale
+The existing architecture is already highly testable:
+- Pure functions (`computeRiskScore`, `classifyError`, `computeBidSignal`) take typed input, return typed output
+- Hooks (`useContractStore`) use `useState` with no global state -- `renderHook` works directly
+- Zod schemas (`MergedFindingSchema`, `AnalysisResultSchema`) are importable validators
+- Storage layer (`storageManager.ts`) wraps localStorage with typed API -- spyable in jsdom
+- Server code imports shared schemas from `src/schemas/` -- testable in same TypeScript environment
 
-- **`api/passes/`:** Separates prompt text (pass configs) from orchestration logic. Each pass file is independently readable. Reduces analyze.ts from 1510 to ~150 lines. The 16 pass objects are static data — moving them does not change behavior.
-- **`api/lib/`:** Three extracted pure functions currently inline in analyze.ts. `zodToOutputFormat` is used by `runAnalysisPass`; keeping them in the same directory avoids circular imports.
-- **`api/conversion/`:** `convertLegalFinding` and `convertScopeFinding` are the longest portion of merge.ts (lines 32-213 of 405). Extracting them makes merge.ts a clean 190-line orchestrator.
-- **`components/LegalMetaBadge/`:** 11 clause types in one 417-line switch-based JSX file. One file per clause type, barrel-exported. TypeScript narrows the discriminated union type automatically in each subcomponent — no `as` casts needed.
-- **`pages/ContractReview/`:** Decompose 608 lines into 4 layout components + 2 hooks. The index becomes a composition surface. Each subcomponent has a single layout/data responsibility.
-- **`contexts/ToastContext.tsx`:** Toast is currently prop-drilled through ContractReview via `onShowToast`. Moving to context removes the prop from ContractReview's interface entirely.
-- **`utils/storage.ts`:** Three places call `localStorage` directly with inline try/catch: `contractStorage.ts`, `useCompanyProfile.ts`, and the `hideResolved` initializer in `ContractReview.tsx`. A shared wrapper removes duplicated error handling.
-- **`src/schemas/companyProfile.ts`:** `CompanyProfileSchema` is currently defined inline in `api/analyze.ts` and duplicates the shape of `CompanyProfile` from `src/knowledge/types.ts`. Moving to a shared schema file lets both share the Zod-inferred type and prevents drift.
+### Directory Structure
 
-## Architectural Patterns
+```
+clearcontract/
+  src/
+    __tests__/                # Client-side test files
+      hooks/                  # Hook tests
+        useContractStore.test.ts
+        useContractFiltering.test.ts
+        useFieldValidation.test.ts
+        useInlineEdit.test.ts
+        useRouter.test.ts
+      components/             # Component tests
+        FindingCard.test.tsx
+        UploadZone.test.tsx
+        FilterToolbar.test.tsx
+        SeverityBadge.test.tsx
+        RiskScoreDisplay.test.tsx
+        BidSignalWidget.test.tsx
+        ConfirmDialog.test.tsx
+      pages/                  # Page-level integration tests
+        Dashboard.test.tsx
+        ContractReview.test.tsx
+        Settings.test.tsx
+      utils/                  # Pure utility tests
+        errors.test.ts
+        bidSignal.test.ts
+        exportContractCsv.test.ts
+        palette.test.ts
+      schemas/                # Zod schema validation tests
+        finding.test.ts
+        analysisResult.test.ts
+      storage/                # Storage utility tests
+        storageManager.test.ts
+        contractStorage.test.ts
+    test-utils/               # Shared test infrastructure
+      render.tsx              # Custom render with ToastProvider wrapper
+      factories.ts            # Type-safe fixture factories for Contract, Finding
+      storage-mock.ts         # localStorage seed/clear helpers
+  api/
+    __tests__/                # Server-side test files
+      scoring.test.ts
+      merge.test.ts
+      analyze.test.ts
+  test/
+    fixtures/                 # Captured API response fixtures
+      analysis-response-simple.json
+      analysis-response-complex.json
+      pass-result-legal.json
+      pass-result-scope.json
+      synthesis-result.json
+    setup.ts                  # Global Vitest setup (cleanup, matchers)
+  vitest.config.ts            # Vitest configuration (separate from vite.config.ts)
+  tsconfig.test.json          # Test-specific TypeScript config
+```
 
-### Pattern 1: Hook Extraction for Component State Clusters
+**Why `__tests__/` directories mirroring `src/` structure:** Co-location by layer. Tests for `src/hooks/useContractStore.ts` live at `src/__tests__/hooks/useContractStore.test.ts`. This keeps the source tree clean. The alternative (`.test.ts` files next to source) clutters the existing tree and shows up in file glob patterns that currently target only production code.
 
-**What:** Group 3+ related `useState` calls + their handlers into a custom hook. Return a typed API object. The component imports and destructures what it needs.
+**Why `test/fixtures/` at project root:** Fixtures are shared between client and server tests. API response fixtures captured from real analysis runs are used by both `api/__tests__/merge.test.ts` (verifying merge logic) and `src/__tests__/pages/ContractReview.test.tsx` (verifying UI rendering with realistic data).
 
-**When to use:** When state only exists to support one logical concern (filtering, inline editing, field validation) and that concern is testable independent of JSX.
+**Why separate `vitest.config.ts`:** Keeps test concerns (jsdom environment, setup files, coverage targets) out of the production `vite.config.ts`. Uses `mergeConfig` to inherit Vite plugins without duplicating them.
 
-**Trade-offs:** Reduces component line count significantly; makes state logic grep-able; adds one level of indirection that is minor compared to the benefit.
+### Component Boundaries
 
-**Example — useInlineEdit extracted from ContractReview:**
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| `vitest.config.ts` | Test runner config, environment, setup files | vite.config.ts (extends plugins) |
+| `test/setup.ts` | Global matchers, cleanup, localStorage reset | All test files (via setupFiles) |
+| `src/test-utils/render.tsx` | Custom RTL render wrapping ToastProvider | Component/page tests |
+| `src/test-utils/factories.ts` | Type-safe test data builders | All test files needing Contract/Finding data |
+| `src/test-utils/storage-mock.ts` | localStorage seed/clear helpers | Hook and storage tests |
+| `test/fixtures/*.json` | Captured real API responses | API, merge, and integration tests |
+
+### Data Flow
+
+**Unit tests (pure logic):** Direct import -> call function -> assert return value. No mocking needed for `scoring.ts`, `bidSignal.ts`, `errors.ts`, `palette.ts`. These functions accept typed arguments and return typed results.
+
+**Schema tests:** Import Zod schema -> call `safeParse()` with valid/invalid data -> assert success/failure and error messages. No DOM or React involvement.
+
+**Hook tests:** `renderHook()` from RTL -> interact via `act()` -> assert returned state values. localStorage seeded before render, verified after mutations.
+
+**Component tests:** Custom `render()` wrapping ToastProvider -> `screen.getByRole()` queries -> `userEvent` interactions -> assert DOM changes. Real hooks with controlled localStorage state.
+
+**API handler tests:** Mock `VercelRequest`/`VercelResponse` objects -> import handler directly -> assert response status and body. Anthropic SDK mocked via `vi.mock()`.
+
+**Fixture-based tests:** Load JSON fixture -> pass to merge functions or render in components -> assert output matches expectations. Zod validation catches stale fixtures automatically.
+
+## Patterns to Follow
+
+### Pattern 1: Separate Vitest Config via mergeConfig
+
+**What:** A dedicated `vitest.config.ts` that extends Vite config using `mergeConfig`.
+**When:** Always -- avoids polluting production build config with test concerns.
+
 ```typescript
-// src/hooks/useInlineEdit.ts
-export function useInlineEdit(initialValue: string, onCommit: (value: string) => void) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+// vitest.config.ts
+import { defineConfig, mergeConfig } from 'vitest/config';
+import viteConfig from './vite.config';
 
-  const startEditing = () => { setEditValue(initialValue); setIsEditing(true); };
-  const commitEdit = () => {
-    const trimmed = inputRef.current?.value.trim() ?? editValue.trim();
-    if (trimmed && trimmed !== initialValue) onCommit(trimmed);
-    setIsEditing(false);
+export default mergeConfig(
+  viteConfig,
+  defineConfig({
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./test/setup.ts'],
+      include: [
+        'src/**/*.test.{ts,tsx}',
+        'api/**/*.test.ts',
+      ],
+      coverage: {
+        provider: 'v8',
+        include: [
+          'src/utils/**',
+          'src/hooks/**',
+          'src/storage/**',
+          'src/schemas/**',
+          'api/scoring.ts',
+          'api/merge.ts',
+        ],
+      },
+    },
+  })
+);
+```
+
+**Why mergeConfig instead of inline:** The existing `vite.config.ts` configures the React plugin and dev server proxy. `mergeConfig` inherits the React plugin (needed for JSX transform in tests) without duplicating it.
+
+### Pattern 2: Global Setup File
+
+**What:** A `test/setup.ts` that extends Vitest matchers with jest-dom and cleans up after each test.
+**When:** Always -- loaded via `setupFiles` in vitest config.
+
+```typescript
+// test/setup.ts
+import '@testing-library/jest-dom/vitest';
+import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
+```
+
+**Key detail:** `@testing-library/jest-dom/vitest` is the correct import for Vitest (not `@testing-library/jest-dom` which targets Jest). This provides `toBeInTheDocument()`, `toHaveTextContent()`, etc.
+
+The `localStorage.clear()` in `afterEach` ensures tests start with clean storage state. jsdom provides a working `localStorage` implementation -- no external mock package needed.
+
+### Pattern 3: TypeScript Config for Tests
+
+**What:** A `tsconfig.test.json` extending the base config with test-specific type references.
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "noUnusedLocals": false
+  },
+  "include": ["src", "api", "test"]
+}
+```
+
+**Why needed:** The base `tsconfig.json` has `"include": ["src"]` only -- tests in `api/__tests__/` and `test/` would be excluded. It also has `"noUnusedLocals": true` which is unnecessarily strict for test files where you may import helpers speculatively. The `"types"` array provides global type declarations for `describe`, `it`, `expect`, `vi` (from Vitest globals) and `.toBeInTheDocument()` (from jest-dom).
+
+### Pattern 4: Custom Render with Providers
+
+The app uses `ToastProvider` context. Every component test needs this wrapper.
+
+**What:** A custom `render` function that wraps components in required providers, re-exported alongside all RTL utilities.
+
+```typescript
+// src/test-utils/render.tsx
+import { render, type RenderOptions } from '@testing-library/react';
+import { ToastProvider } from '../contexts/ToastProvider';
+import type { ReactElement } from 'react';
+
+function AllProviders({ children }: { children: React.ReactNode }) {
+  return <ToastProvider>{children}</ToastProvider>;
+}
+
+function customRender(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+  return render(ui, { wrapper: AllProviders, ...options });
+}
+
+export * from '@testing-library/react';
+export { customRender as render };
+```
+
+Test files import from `../test-utils/render` instead of `@testing-library/react`. This is the standard RTL pattern for apps with providers.
+
+### Pattern 5: Type-Safe Fixture Factories
+
+The codebase has complex nested types: `Finding` has discriminated unions for `LegalMeta` (11 variants) and `ScopeMeta` (4 variants), plus required fields like `actionPriority`, `negotiationPosition`, `resolved`, `note`. Factories prevent test data rot and ensure type safety.
+
+**What:** Builder functions that produce valid typed objects with sensible defaults, overridable per-test.
+
+```typescript
+// src/test-utils/factories.ts
+import type { Finding, Contract, ContractDate, Severity, Category } from '../types/contract';
+
+let findingCounter = 0;
+
+export function buildFinding(overrides: Partial<Finding> = {}): Finding {
+  findingCounter++;
+  return {
+    id: `test-f-${findingCounter}`,
+    severity: 'Medium' as Severity,
+    category: 'Legal Issues' as Category,
+    title: `Test Finding ${findingCounter}`,
+    description: 'Test description',
+    recommendation: 'Test recommendation',
+    clauseReference: 'Section 1.1',
+    negotiationPosition: '',
+    actionPriority: 'monitor',
+    resolved: false,
+    note: '',
+    ...overrides,
   };
-  const cancelEdit = () => setIsEditing(false);
+}
 
-  useEffect(() => {
-    if (isEditing) { inputRef.current?.focus(); inputRef.current?.select(); }
-  }, [isEditing]);
+export function buildContract(overrides: Partial<Contract> = {}): Contract {
+  return {
+    id: `test-c-${Date.now()}`,
+    name: 'Test Contract',
+    client: 'Test Client',
+    type: 'Subcontract',
+    uploadDate: '2026-01-15',
+    status: 'Reviewed',
+    riskScore: 50,
+    findings: [buildFinding()],
+    dates: [],
+    ...overrides,
+  };
+}
 
-  return { isEditing, editValue, setEditValue, inputRef, startEditing, commitEdit, cancelEdit };
+// Specialized builders for discriminated union variants
+export function buildLegalFinding(
+  clauseType: 'indemnification',
+  overrides: Partial<Finding> = {}
+): Finding {
+  return buildFinding({
+    category: 'Legal Issues',
+    legalMeta: {
+      clauseType: 'indemnification',
+      riskType: 'broad',
+      hasInsuranceGap: false,
+    },
+    ...overrides,
+  });
 }
 ```
 
-**State cluster extracted from ContractReview that becomes useContractFiltering:**
-- `selectedSeverities` (Set<Severity> + useState)
-- `selectedCategories` (Set<Category> + useState)
-- `selectedPriorities` (Set<string> + useState)
-- `hasNegotiationOnly` (boolean + useState)
-- `hideResolved` (boolean + useState + localStorage init + toggle handler)
-- `visibleFindings` (useMemo over 5 filter predicates)
-- `groupedFindings` (derived from visibleFindings)
-- `flatFindings` (derived from visibleFindings)
+**Why factories over raw object literals:** The `Finding` type has 11 required fields. Typing them out per test is error-prone and breaks when the schema changes. A factory encodes the required shape once. Adding a new required field to `MergedFindingSchema` only requires updating one factory function, not dozens of test files.
 
-All 8 of these form a single coherent filtering concern and belong in one hook.
+### Pattern 6: localStorage Isolation via jsdom
 
-### Pattern 2: Palette Map Instead of Nested Ternary Chains
+**What:** jsdom provides a working `localStorage` implementation. Clear it in `afterEach`. Seed it before tests that depend on stored data.
 
-**What:** Replace nested ternaries that map domain values to Tailwind classes with a typed record object. The record is the source of truth; components index into it.
-
-**When to use:** When the same value-to-class mapping appears in more than one JSX expression, or when a mapping chain exceeds 3 levels deep. LegalMetaBadge has approximately 30 such chains.
-
-**Trade-offs:** Removes ternary nesting; makes color logic grep-able and reusable across components. The map is a constant — it can be defined once in `utils/severityColors.ts` and shared by LegalMetaBadge subcomponents, SeverityBadge, and any other component needing severity-conditional classes.
-
-**Example:**
 ```typescript
-// src/utils/severityColors.ts
-export const SEVERITY_PILL: Record<Severity, string> = {
-  Critical: 'bg-red-100 text-red-700',
-  High:     'bg-amber-100 text-amber-700',
-  Medium:   'bg-yellow-100 text-yellow-700',
-  Low:      'bg-blue-100 text-blue-700',
-  Info:     'bg-slate-100 text-slate-700',
-};
-// Usage: className={SEVERITY_PILL[finding.severity]}
-```
+// src/test-utils/storage-mock.ts
+import type { Contract } from '../types/contract';
 
-### Pattern 3: API Layer Vertical Slicing by Responsibility
-
-**What:** Split a monolithic serverless function by responsibility axis, not by line count. The handler file becomes a thin orchestrator that imports from co-located modules. No behavioral change — pure extraction.
-
-**When to use:** When a single file serves 3+ distinct responsibilities that change at different rates. Pass configs change when adding clause types; the handler changes when Vercel timeout or CORS configuration changes; utilities change when Anthropic SDK evolves.
-
-**Trade-offs:** Reduces cognitive load when editing individual passes (no scrolling past 900 lines of prompt text to reach the handler). Adds file count. Module boundaries must be clean to avoid circular imports.
-
-**Critical constraint:** `api/passes/*.ts` files must only import from `src/schemas/`. They must not import from `api/lib/` or `api/merge.ts` to keep the dependency graph acyclic. The `zodToOutputFormat` call happens inside `runAnalysisPass()` — not inside the pass config definition.
-
-### Pattern 4: Discriminated Union Badge Decomposition
-
-**What:** Replace a single large component with a `meta.clauseType` switch by extracting each case into its own component. The parent component does the dispatch; each subcomponent receives only the narrowed type for its case.
-
-**When to use:** When each branch of a discriminated union renders fundamentally different JSX, shares no internal state with sibling branches, and the overall file exceeds ~150 lines.
-
-**Trade-offs:** TypeScript narrows the type in each subcomponent automatically — no casts needed. Each badge is independently readable and editable. Downside: 11 new files for LegalMetaBadge, though most are 20-40 lines each.
-
-**Example dispatch pattern:**
-```typescript
-// src/components/LegalMetaBadge/index.tsx
-export function LegalMetaBadge({ meta }: { meta: LegalMeta }) {
-  switch (meta.clauseType) {
-    case 'indemnification':      return <IndemnificationBadge meta={meta} />;
-    case 'payment-contingency':  return <PaymentContingencyBadge meta={meta} />;
-    case 'liquidated-damages':   return <LiquidatedDamagesBadge meta={meta} />;
-    // ... one case per clauseType
-  }
+export function seedContracts(contracts: Contract[]) {
+  localStorage.setItem('clearcontract:contracts', JSON.stringify(contracts));
+  localStorage.setItem('clearcontract:schema-version', '2');
 }
-// Each subcomponent: meta: Extract<LegalMeta, { clauseType: 'indemnification' }>
-// TypeScript narrowing is automatic — zero as-casts in subcomponents
+
+export function seedCompanyProfile(profile: Record<string, string>) {
+  localStorage.setItem('clearcontract:company-profile', JSON.stringify(profile));
+}
 ```
 
-### Pattern 5: Type Guard Extraction for API Boundary Validation
+**Critical detail:** When spying on localStorage in jsdom, attach spies to `Storage.prototype`:
 
-**What:** Replace `finding.field as SomeType` casts in `api/merge.ts` with narrow type guards. Add Zod schema parse of the full API response in the client `analyzeContract.ts` before passing data into application state.
-
-**When to use:** Whenever server data crosses a trust boundary into strongly-typed application state. Also required for the "Validate API response on client with Zod" requirement in v1.5.
-
-**Trade-offs:** Adds runtime validation cost (negligible for finding arrays of ~50 items). Converts silent type errors into explicit thrown errors that surface during development. A schema parse error becomes a caught exception in App.tsx's `.catch()` block, not a silent partial update.
-
-**Integration point:** `src/api/analyzeContract.ts` receives the JSON response and currently returns it typed by assertion. Post-refactor, it pipes through `MergedAnalysisResultSchema.parse(responseJson)` before returning. The existing error handler in App.tsx catches parse failures.
-
-## Data Flow
-
-### Analysis Pipeline Flow
-
-```
-User selects PDF
-    |
-App.tsx: handleUploadComplete()
-    | creates placeholder contract, navigates to review
-useContractStore.addContract(placeholder)
-    |
-analyzeContract(file) [src/api/analyzeContract.ts]
-    | base64 encode + POST /api/analyze with companyProfile
-api/analyze.ts handler
-    | validate CompanyProfileSchema [POST-REFACTOR: from src/schemas/companyProfile.ts]
-    | preparePdfForAnalysis() -> Files API upload -> fileId
-    | Promise.allSettled(ANALYSIS_PASSES.map(runAnalysisPass))  [16 parallel]
-    | mergePassResults() [api/merge.ts, uses api/conversion/]
-    | runSynthesisPass() [17th pass]
-    | computeBidSignal()
-    | return JSON
-analyzeContract() receives response
-    | [POST-REFACTOR: MergedAnalysisResultSchema.parse(responseJson)]
-App.tsx: updateContract(id, result)
-    |
-useContractStore: persistAndSet -> saveContracts -> localStorage
-    |
-ContractReview re-renders with completed contract
+```typescript
+const getSpy = vi.spyOn(Storage.prototype, 'getItem');
+const setSpy = vi.spyOn(Storage.prototype, 'setItem');
 ```
 
-### Finding Workflow Flow
+Do NOT spy on `localStorage.getItem` directly -- jsdom proxies through the prototype, and direct spies miss calls.
 
-```
-ContractReview renders
-    |
-useContractFiltering hook [POST-REFACTOR: extracted]
-    | useMemo: filters by hideResolved, severity, category, priority, negotiation
-visibleFindings array
-    | fed to groupedFindings (by-category view)
-    | fed to flatFindings (by-severity view)
-    | fed directly to CSV export handler (filter-awareness preserved)
-FindingCard / CategorySection render
-    |
-User toggles resolved / adds note
-    |
-onToggleResolved / onUpdateNote props -> App.tsx
-    |
-useContractStore.toggleFindingResolved / updateFindingNote
-    |
-persistAndSet -> saveContracts -> localStorage
-```
+### Pattern 7: Testing Hooks Without Components
 
-### Toast Flow (Current vs. Post-Refactor)
+`useContractStore` uses `useState` directly (no Redux, no Context). Test with `renderHook` from `@testing-library/react`.
 
-```
-CURRENT:
-App.tsx [toast state]
-    | onShowToast prop
-ContractReview [receives prop, passes to CSV handler]
-    | calls onShowToast({ type, message })
+**What:** Import hook, render in isolation, interact via returned API.
 
-POST-REFACTOR:
-ToastContext.Provider [wraps app in App.tsx, App still owns Toast render]
-    |
-ContractReview's CSV handler -> useToast().showToast() directly
-    (no prop threading, prop removed from ContractReview interface)
+```typescript
+import { renderHook, act } from '@testing-library/react';
+import { useContractStore } from '../../hooks/useContractStore';
+import { buildContract } from '../../test-utils/factories';
+
+test('addContract persists to localStorage', () => {
+  const { result } = renderHook(() => useContractStore());
+  const contract = buildContract({ id: 'new-1' });
+
+  act(() => {
+    result.current.addContract(contract);
+  });
+
+  expect(result.current.contracts).toHaveLength(1);
+  expect(result.current.contracts[0].id).toBe('new-1');
+  // Verify persistence side effect
+  const stored = JSON.parse(localStorage.getItem('clearcontract:contracts')!);
+  expect(stored).toHaveLength(1);
+});
 ```
 
-### State Management
+**No wrapper needed:** `useContractStore` does not consume any Context. The default RTL `renderHook` wrapper suffices. If a hook consumes `ToastProvider`, wrap with the custom render's `AllProviders`.
+
+### Pattern 8: Vercel Handler Testing via Direct Import
+
+Vercel serverless functions export a default handler `(req: VercelRequest, res: VercelResponse) => void`. Test by constructing minimal mock request/response objects.
+
+**What:** Create mock req/res matching the Vercel interface shape, call handler directly, assert on `res.status()` and `res.json()` calls.
+
+```typescript
+// api/__tests__/analyze.test.ts
+import { vi, describe, it, expect } from 'vitest';
+
+// Mock Anthropic SDK BEFORE importing handler
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    files: { upload: vi.fn().mockResolvedValue({ id: 'file-123' }) },
+    messages: { create: vi.fn() },
+  })),
+}));
+
+// Mock PDF parsing
+vi.mock('../pdf', () => ({
+  preparePdfForAnalysis: vi.fn().mockResolvedValue({
+    fileId: 'file-123',
+    textContent: 'Sample contract text',
+  }),
+}));
+
+function createMockReq(overrides = {}) {
+  return {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+    body: { pdfBase64: 'dGVzdA==', fileName: 'test.pdf' },
+    ...overrides,
+  } as unknown as import('@vercel/node').VercelRequest;
+}
+
+function createMockRes() {
+  const res = {
+    status: vi.fn().mockReturnThis(),
+    json: vi.fn().mockReturnThis(),
+    setHeader: vi.fn().mockReturnThis(),
+    end: vi.fn(),
+  };
+  return res as unknown as import('@vercel/node').VercelResponse;
+}
+```
+
+**Why not supertest/MSW for handler tests:** Supertest needs an HTTP server. MSW intercepts at the network level but the handler is a plain function -- direct invocation is simpler, faster, and tests the actual handler code without HTTP overhead.
+
+**When to use MSW instead:** For component tests where `analyzeContract.ts` calls `fetch('/api/analyze')`. MSW intercepts that fetch and returns fixture data without needing a running server.
+
+### Pattern 9: Fixture Capture and Maintenance
+
+Real API responses are large (50+ findings, complex nested structures with LegalMeta/ScopeMeta discriminated unions). Captured fixtures ensure tests exercise realistic data shapes.
+
+**Capture process:**
+1. Run a real analysis via `vercel dev` against a test PDF
+2. Copy response JSON from browser DevTools Network tab
+3. Save to `test/fixtures/analysis-response-{descriptor}.json`
+4. Validate fixture: add a test that runs `AnalysisResultSchema.safeParse(fixture)` -- this catches schema drift automatically
+
+**Maintenance strategy:** Fixtures are versioned with the codebase. When schema changes (new required fields on Finding, new pass types), `safeParse` tests fail first, signaling that fixtures need regeneration. This is intentional -- stale fixtures should break tests, not silently pass.
+
+```typescript
+// src/__tests__/schemas/analysisResult.test.ts
+import fixture from '../../../test/fixtures/analysis-response-simple.json';
+import { AnalysisResultSchema } from '../../schemas/analysisResult';
+
+test('fixture validates against current schema', () => {
+  const result = AnalysisResultSchema.safeParse(fixture);
+  expect(result.success).toBe(true);
+});
+```
+
+### Pattern 10: Handling Framer Motion in Tests
+
+Several components use Framer Motion for animations (`AnimatePresence`, `motion.div` with stagger delays). This can cause `waitFor` timing issues in tests.
+
+**What:** Mock framer-motion to render plain elements without animation delays.
+
+```typescript
+// In test/setup.ts or per-file vi.mock:
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) =>
+      createElement('div', filterMotionProps(props), children),
+    // Add other elements as needed
+  },
+  AnimatePresence: ({ children }: any) => children,
+}));
+```
+
+**When needed:** Only mock if animations cause test flakiness or `waitFor` timeouts. Try without the mock first -- jsdom processes animations synchronously in many cases. Add the mock only if a specific test proves flaky.
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Testing Implementation Details of Hooks
+**What:** Spying on internal `useState` calls or checking `setContracts` was called.
+**Why bad:** Tests break on any refactor (e.g., moving to `useReducer`). The hook's public API is its return value.
+**Instead:** Assert on returned state values and side effects (localStorage writes). Test what the hook does, not how.
+
+### Anti-Pattern 2: Mocking Everything in Component Tests
+**What:** Mocking `useContractStore`, `useRouter`, every child component.
+**Why bad:** Tests verify mocks, not behavior. Misses integration bugs between components and state.
+**Instead:** Use real hooks with controlled initial state (seed localStorage before render). Mock only external boundaries (fetch, Anthropic SDK). Let internal component composition work naturally.
+
+### Anti-Pattern 3: Snapshot-Heavy Component Tests
+**What:** `expect(container).toMatchSnapshot()` on large component trees.
+**Why bad:** Snapshots break on any Tailwind class change. Large snapshots go unreviewed. ClearContract uses ~50 Tailwind utilities per component.
+**Instead:** Assert specific behaviors: "displays risk score 78", "shows 5 findings", "filter removes Critical". Use inline snapshots only for small computed text output.
+
+### Anti-Pattern 4: Testing Zod Schemas with Valid Data Only
+**What:** Only testing that valid data passes validation.
+**Why bad:** Misses the primary value of schema validation -- rejecting bad data.
+**Instead:** Test boundary cases: missing required fields, wrong discriminant values (`clauseType: 'nonexistent'`), invalid enums. These are the regressions that matter when API responses evolve.
+
+### Anti-Pattern 5: Merging Test Config into vite.config.ts
+**What:** Adding `test: {}` block directly to `vite.config.ts`.
+**Why bad:** Mixes concerns. TypeScript may complain about the `test` property if `vitest/config` types are not loaded in the main config. Test dependencies (jsdom, RTL types) conceptually pollute the build config.
+**Instead:** Separate `vitest.config.ts` using `mergeConfig`.
+
+### Anti-Pattern 6: Using vitest-localstorage-mock Package
+**What:** Installing `vitest-localstorage-mock` npm package.
+**Why bad:** jsdom already provides a working localStorage. An extra package adds a dependency for something that works out of the box. The package also replaces localStorage entirely, preventing tests of the actual jsdom storage behavior.
+**Instead:** Use jsdom's built-in localStorage. Clear in `afterEach`. Spy via `Storage.prototype` when asserting specific calls.
+
+### Anti-Pattern 7: Testing the Anthropic API in Unit/Integration Tests
+**What:** Making real API calls in the test suite.
+**Why bad:** Slow (60s+ per analysis), costs money ($0.50+ per run), flaky (rate limits, network issues), non-deterministic (Claude output varies).
+**Instead:** Mock the Anthropic SDK entirely. Real API testing is a separate manual/triggered suite (UAT checklist) that runs outside the automated test suite.
+
+## Integration Points: New vs Modified Files
+
+### New Files (test infrastructure)
+
+| File | Purpose | Depends On |
+|------|---------|-----------|
+| `vitest.config.ts` | Test runner configuration | vite.config.ts (plugins) |
+| `tsconfig.test.json` | Test TypeScript config | tsconfig.json (extends) |
+| `test/setup.ts` | Global setup: matchers, cleanup, localStorage clear | @testing-library/jest-dom/vitest |
+| `src/test-utils/render.tsx` | Custom RTL render with ToastProvider | src/contexts/ToastProvider |
+| `src/test-utils/factories.ts` | Type-safe test data builders | src/types/contract.ts |
+| `src/test-utils/storage-mock.ts` | localStorage seed/clear helpers | None (pure localStorage calls) |
+| `test/fixtures/*.json` | Captured API response data | None (static JSON) |
+| `src/__tests__/**/*.test.{ts,tsx}` | All client test files | Production modules + test-utils |
+| `api/__tests__/*.test.ts` | All server test files | Production modules |
+
+### Modified Files (minimal changes only)
+
+| File | Change | Why |
+|------|--------|-----|
+| `package.json` | Add devDependencies + `"test"` script | vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event |
+| `.gitignore` | Add `coverage/` directory | Vitest v8 coverage output |
+
+### Files NOT Modified
+
+| File | Why Left Alone |
+|------|---------------|
+| `vite.config.ts` | Test config is separate via mergeConfig |
+| `tsconfig.json` | Base config unchanged; test config extends it |
+| All `src/**/*.ts(x)` | Zero production code changes needed for testability |
+| All `api/*.ts` | Server code unchanged; handlers tested via direct import |
+
+This is critical: the existing architecture (hooks returning state, pure utility functions, Zod schemas as validation gates, storageManager with typed API) is already highly testable without modification.
+
+## Build Order (Dependency-Aware)
+
+Each phase produces tested infrastructure the next phase depends on.
 
 ```
-useContractStore (React useState)
-    | (contracts + CRUD operations)
-App.tsx
-    | (pass-through props to pages)
-Pages + Components
+Phase 1: Foundation (no test files yet)
+  1. npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event
+  2. Create vitest.config.ts (mergeConfig from vite.config.ts)
+  3. Create tsconfig.test.json (extends tsconfig.json)
+  4. Create test/setup.ts (jest-dom matchers + cleanup + localStorage.clear)
+  5. Add "test" and "test:run" scripts to package.json
+  6. Add coverage/ to .gitignore
+  7. Verify: `npm run test:run` exits cleanly with 0 tests found
+  Dependencies: None
 
-useCompanyProfile (React useState)
-    | (profile + saveField)
-Settings.tsx, ContractReview.tsx (read-only for profile completeness check)
+Phase 2: Test Utilities (shared infrastructure)
+  8. Create src/test-utils/factories.ts (depends on types/contract.ts)
+  9. Create src/test-utils/storage-mock.ts (depends on nothing)
+  10. Create src/test-utils/render.tsx (depends on contexts/ToastProvider)
+  Dependencies: Phase 1 (vitest must be installed)
 
-useRouter (React useState + History API)
-    | (activeView, activeContractId, compareIds, navigateTo)
-App.tsx only — pages receive only what they need via props
+Phase 3: Pure Logic Tests (no DOM, no React -- fastest to write, highest value)
+  11. src/__tests__/utils/errors.test.ts (classifyError: 5 error types)
+  12. src/__tests__/utils/bidSignal.test.ts (computeBidSignal: factor weights)
+  13. src/__tests__/utils/palette.test.ts (severity color mapping)
+  14. src/__tests__/schemas/finding.test.ts (MergedFindingSchema valid + invalid)
+  15. src/__tests__/schemas/analysisResult.test.ts (AnalysisResultSchema)
+  16. src/__tests__/storage/storageManager.test.ts (load/save/loadRaw/saveRaw)
+  17. api/__tests__/scoring.test.ts (computeRiskScore, applySeverityGuard)
+  18. api/__tests__/merge.test.ts (mergePassResults with fixture data)
+  Dependencies: Phase 2 (factories for building test data)
+
+Phase 4: Hook Tests (React + jsdom, no components)
+  19. src/__tests__/hooks/useContractStore.test.ts (CRUD + persistence)
+  20. src/__tests__/hooks/useContractFiltering.test.ts (filter logic)
+  21. src/__tests__/hooks/useFieldValidation.test.ts (onBlur validation)
+  22. src/__tests__/hooks/useInlineEdit.test.ts (edit lifecycle)
+  Dependencies: Phase 2 (storage-mock for seeding), Phase 3 proves storage layer works
+
+Phase 5: Component Tests (RTL + jsdom)
+  23. src/__tests__/components/SeverityBadge.test.tsx (simple, validates pattern)
+  24. src/__tests__/components/FindingCard.test.tsx (complex, uses LegalMeta)
+  25. src/__tests__/components/UploadZone.test.tsx (file drop interaction)
+  26. src/__tests__/components/FilterToolbar.test.tsx (multi-select state)
+  27. src/__tests__/components/ConfirmDialog.test.tsx (modal interaction)
+  Dependencies: Phase 2 (custom render), Phase 3 (factories proven)
+
+Phase 6: Page-Level Integration Tests
+  28. src/__tests__/pages/Dashboard.test.tsx (seed contracts, verify stats)
+  29. src/__tests__/pages/ContractReview.test.tsx (seed contract, verify findings)
+  30. src/__tests__/pages/Settings.test.tsx (profile persistence)
+  Dependencies: Phases 2-5 (all test utilities and patterns proven)
+
+Phase 7: API Handler Tests
+  31. api/__tests__/analyze.test.ts (mocked SDK, validation, error paths)
+  Dependencies: Phase 3 (scoring/merge proven), fixtures captured
+
+Phase 8: Fixture Capture (manual, one-time after automated tests work)
+  32. Run real analysis via vercel dev, capture response JSON
+  33. Save to test/fixtures/, add validation test
+  34. Wire fixture into merge and component tests
+  Dependencies: Working test infrastructure from Phases 1-7
 ```
 
-## Integration Points
+**Ordering rationale:** Pure logic tests (Phase 3) are the highest-value, lowest-cost tests -- they validate the core business logic (risk scoring, error classification, schema validation) with no mocking complexity. Hook tests (Phase 4) build on proven storage mocking. Component tests (Phase 5) build on the proven custom render wrapper. Each phase proves its tooling before the next phase relies on it.
 
-### New vs. Modified — Explicit List
+## Mock Strategy Summary
 
-| Item | Status | Integration Change |
-|------|--------|--------------------|
-| `hooks/useInlineEdit.ts` | NEW | ContractReview drops 5 state vars + 3 handlers + 1 useEffect; imports 1 hook |
-| `hooks/useContractFiltering.ts` | NEW | ContractReview drops 8 state/derived vars; CSV export reads `visibleFindings` from hook return (no behavioral change) |
-| `hooks/useFieldValidation.ts` | NEW | Settings.tsx ProfileField drops its internal useState cluster; imports hook |
-| `contexts/ToastContext.tsx` | NEW | App.tsx wraps children in Provider; ContractReview drops `onShowToast` prop; calls `useToast()` at call site |
-| `utils/storage.ts` | NEW | `contractStorage.ts`, `useCompanyProfile.ts`, ContractReview `hideResolved` init all import from here |
-| `utils/errorHandling.ts` | NEW | App.tsx `isNetworkError()` moves here; import replaces inline definition |
-| `utils/severityColors.ts` | NEW | LegalMetaBadge subcomponents + any component with severity-conditional classes import palette map |
-| `schemas/companyProfile.ts` | NEW | Moves `CompanyProfileSchema` out of `api/analyze.ts`; both analyze.ts and client can import the shared type |
-| `api/passes/index.ts` | NEW | Exports `ANALYSIS_PASSES` array; `api/analyze.ts` imports instead of defining inline |
-| `api/passes/riskOverview.ts` | NEW | Single pass config object extracted from analyze.ts |
-| `api/passes/legalPasses.ts` | NEW | 11 legal pass config objects extracted from analyze.ts |
-| `api/passes/scopePasses.ts` | NEW | 4 scope pass config objects extracted from analyze.ts |
-| `api/lib/zodToOutputFormat.ts` | NEW | Pure function extracted from analyze.ts; used by `runAnalysisPass.ts` |
-| `api/lib/runAnalysisPass.ts` | NEW | Function extracted from analyze.ts; depends on zodToOutputFormat + AnalysisPass type |
-| `api/lib/runSynthesisPass.ts` | NEW | Function extracted from analyze.ts; standalone, no circular risk |
-| `api/conversion/legalFindingConverter.ts` | NEW | `convertLegalFinding()` extracted from merge.ts lines 53-159 |
-| `api/conversion/scopeFindingConverter.ts` | NEW | `convertScopeFinding()` extracted from merge.ts lines 161-213 |
-| `components/LegalMetaBadge/` | MODIFIED (dir) | Existing import `'../LegalMetaBadge'` resolves to `index.tsx` — zero call-site changes |
-| `components/ScopeMetaBadge/` | MODIFIED (dir) | Same barrel pattern — zero call-site changes |
-| `pages/ContractReview/` | MODIFIED (dir) | App.tsx import `'./pages/ContractReview'` resolves to `index.tsx` — no App.tsx changes |
-| `api/analyze.ts` | MODIFIED | Imports pass configs, lib functions; handler shrinks to ~150 lines; CORS/validation/cleanup logic unchanged |
-| `api/merge.ts` | MODIFIED | Imports from `api/conversion/`; merge orchestration logic unchanged; type guard replacements for `as` casts |
-| `src/api/analyzeContract.ts` | MODIFIED | Add `MergedAnalysisResultSchema.parse()` before returning result |
-| `contractStorage.ts` | MODIFIED | Internal `localStorage` calls replaced with `utils/storage.ts` wrapper |
-| `useCompanyProfile.ts` | MODIFIED | Internal `localStorage.setItem` replaced with storage wrapper |
+| What to Mock | How | Why |
+|-------------|-----|-----|
+| localStorage | jsdom provides it natively; `localStorage.clear()` in `afterEach`; spy via `Storage.prototype` | Hooks read on init; tests need clean state |
+| `fetch` | `vi.fn()` for simple cases; MSW for component tests calling `analyzeContract()` | Network boundary; control response shape |
+| Anthropic SDK | `vi.mock('@anthropic-ai/sdk')` in API handler tests | External service; expensive, slow, non-deterministic |
+| `window.history` | Not needed; jsdom supports `location.pathname` and `pushState` | `useRouter` reads location which jsdom handles |
+| PDF parsing (`unpdf`) | `vi.mock('unpdf')` in API tests returning extracted text | Binary dependency; returns text string |
+| `FileReader` | jsdom provides it; works with react-dropzone in tests | No mock needed for basic file reading |
+| `jsPDF` | Mock only if testing PDF export output; otherwise skip | PDF generation is output-only, hard to assert on content |
+| Framer Motion | Mock only if animations cause test flakiness | Try without first; jsdom often handles it fine |
 
-### Build Order (Dependency-Driven)
+## Scalability Considerations
 
-Phase A through G are ordered so each is independently shippable and does not break unrelated work in parallel.
-
-**Phase A — Foundation utilities (no dependencies on anything being refactored):**
-1. `utils/storage.ts` — pure new file, no imports from changing modules
-2. `utils/errorHandling.ts` — pure new file
-3. `utils/severityColors.ts` — imports only from `types/contract.ts`
-4. `schemas/companyProfile.ts` — move schema here; update import in `api/analyze.ts`
-
-**Phase B — Hook extraction (depends on Phase A for storage wrapper):**
-5. `hooks/useInlineEdit.ts` — no deps beyond React
-6. `hooks/useContractFiltering.ts` — depends on `types/contract.ts` and Phase A `utils/storage.ts` for `hideResolved` init
-7. `hooks/useFieldValidation.ts` — depends on `utils/settingsValidation.ts` only
-
-**Phase C — Toast context (no new deps):**
-8. `contexts/ToastContext.tsx` — new file; App.tsx adds Provider wrapper; ContractReview drops `onShowToast` prop
-
-**Phase D — Component decomposition (depends on Phase A colors, Phase B hooks, Phase C context):**
-9. `components/LegalMetaBadge/` — split into 11 subcomponents; barrel export; `pillBase` constant shared via internal import
-10. `components/ScopeMetaBadge/` — split into 4 subcomponents; same pattern
-11. `pages/ContractReview/` — decompose into ReviewHeader, FindingsPanel, ReviewSidebar, FilterToolbar; wire useInlineEdit + useContractFiltering; drop onShowToast prop (uses useToast from Phase C)
-
-**Phase E — Type safety (can run in parallel with Phase D):**
-12. Reconcile Zod/TS optionality drift in `src/schemas/analysis.ts` vs `src/types/contract.ts` (FindingSchema has `clauseText?: string` optional; Finding interface matches — verify all fields)
-13. Add `MergedAnalysisResultSchema.parse()` in `src/api/analyzeContract.ts`
-14. Replace `as SomeType` casts in `api/merge.ts` with type guards; replace request body type assertion in `api/analyze.ts` handler with Zod parse
-
-**Phase F — API layer modularization (depends on Phase E type guards being in place):**
-15. Extract `api/lib/zodToOutputFormat.ts`, `api/lib/runAnalysisPass.ts`, `api/lib/runSynthesisPass.ts`
-16. Extract `api/passes/riskOverview.ts`, `api/passes/legalPasses.ts`, `api/passes/scopePasses.ts`, `api/passes/index.ts`
-17. Extract `api/conversion/legalFindingConverter.ts`, `api/conversion/scopeFindingConverter.ts`
-18. Update `api/analyze.ts` and `api/merge.ts` to import from new locations; verify TypeScript compiles
-
-**Phase G — Storage consolidation (depends on Phase A utils):**
-19. Wire `utils/storage.ts` into `contractStorage.ts`
-20. Wire `utils/storage.ts` into `useCompanyProfile.ts`
-21. ContractReview `hideResolved` init already moved to `useContractFiltering` in Phase B — no further action
-
-### Internal Boundaries (Non-Negotiable)
-
-| Boundary | Rule | Consequence of Violation |
-|----------|------|--------------------------|
-| `api/passes/` -> `src/schemas/` | Allowed | Pass configs hold Zod schema references |
-| `api/passes/` -> `api/lib/` | Forbidden | Pass configs are data objects; utilities are behavior |
-| `api/passes/` -> `api/merge.ts` | Forbidden | Would create circular dependency |
-| `api/lib/` -> `api/passes/` | Allowed for `AnalysisPass` type only | runAnalysisPass needs the pass interface |
-| `api/merge.ts` -> `api/conversion/` | Allowed | Converters are pure functions; no SDK imports |
-| `src/hooks/` -> `src/storage/` | Allowed | Hooks may read/write storage |
-| `src/storage/` -> `src/hooks/` | Forbidden | Storage is a utility, not a consumer |
-| `src/contexts/` -> `src/hooks/` | Forbidden | Context is consumed by hooks, not vice versa |
-| `src/components/` -> `src/types/` | Allowed | Components consume domain types |
-| `src/types/` -> `src/components/` | Forbidden | Domain types must be UI-agnostic |
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Splitting by File Size Rather than Responsibility
-
-**What people do:** Split a 608-line component into roughly equal thirds without identifying natural seams.
-**Why it's wrong:** Results in subcomponents with shared state that must be prop-drilled downward, creating more prop surface than the original component had. The problem moves rather than resolves.
-**Do this instead:** Split ContractReview by layout column (ReviewHeader, FindingsPanel, ReviewSidebar) and by data concern (useContractFiltering for filter state, useInlineEdit for rename state). Each child should own its domain completely with no shared state between siblings.
-
-### Anti-Pattern 2: Computing JSON Schema Inside Pass Config Objects
-
-**What people do:** When extracting `api/passes/legalPasses.ts`, call `zodToOutputFormat(SomeSchema)` at the top level of each pass config object definition.
-**Why it's wrong:** Pass configs are meant to be static data objects that are cheap to import. `zodToOutputFormat` involves `zodToJsonSchema` computation; it belongs at call time inside `runAnalysisPass`, not at module parse time.
-**Do this instead:** Store the raw Zod schema in the pass config's `schema` field. Call `zodToOutputFormat(pass.schema)` inside `runAnalysisPass()` when the pass actually executes.
-
-### Anti-Pattern 3: Multi-Level Barrel Exports
-
-**What people do:** `LegalMetaBadge/index.tsx` re-exports from subcomponents that re-export from `utils/severityColors.ts`, creating 3+ barrel levels.
-**Why it's wrong:** Slows TypeScript language server; makes tree-shaking unpredictable; creates circular export risk.
-**Do this instead:** One level of barrel export only. `LegalMetaBadge/index.tsx` imports directly from `./IndemnificationBadge.tsx` etc., not through intermediate barrels.
-
-### Anti-Pattern 4: Zod Schema Duplication Across Trust Boundaries
-
-**What people do:** Keep `CompanyProfileSchema` inline in `api/analyze.ts` and the `CompanyProfile` TypeScript interface in `src/knowledge/types.ts`, letting them diverge over time.
-**Why it's wrong:** An optional field added to the TypeScript interface but not the Zod schema passes server validation silently and then mismatches downstream. When the same data shape exists in two places, they will drift.
-**Do this instead:** Move `CompanyProfileSchema` to `src/schemas/companyProfile.ts`. Export both `CompanyProfileSchema` (for runtime validation) and `type CompanyProfile = z.infer<typeof CompanyProfileSchema>` (for static typing). Import from this file in `src/knowledge/types.ts` and `api/analyze.ts`.
-
-### Anti-Pattern 5: Wiring Toast Through Prop Chains
-
-**What people do:** Add `onShowToast` as a prop to every component that might display a toast notification.
-**Why it's wrong:** ContractReview currently receives `onShowToast` solely to pass it to the CSV export button handler — ContractReview itself does not call it. This is prop drilling of UI infrastructure, not data.
-**Do this instead:** `ToastContext` with `useToast()` hook. App.tsx still owns the Toast render and the toast state, but any component can call `useToast().showToast()` directly. ContractReview's prop interface shrinks by one field.
-
-### Anti-Pattern 6: Type-Asserting API Responses Without Parse
-
-**What people do:** Cast the API JSON response to the expected type: `const result = responseJson as AnalysisResult`.
-**Why it's wrong:** If the Anthropic API returns an unexpected shape (a new field, a changed enum value, a missing required field), the application silently receives malformed data. This causes runtime errors far from the source.
-**Do this instead:** `MergedAnalysisResultSchema.parse(responseJson)` in `analyzeContract.ts`. A Zod parse error is thrown, caught by App.tsx's existing `.catch()` handler, and presented as an analysis failure toast. Fail loud at the boundary, not silently downstream.
-
-## Scaling Considerations
-
-ClearContract is a sole-user app with localStorage as the only store. Traditional scaling concerns (concurrent users, database load) are irrelevant. The relevant maintenance scaling is **how easily can a developer (including future-self) add or modify features as the codebase grows**.
-
-| Concern | Current (1510-line analyze.ts) | Post-Refactor |
-|---------|-------------------------------|---------------|
-| Add a new legal clause pass | Edit 1510-line file, find correct insertion point | Add pass config to `api/passes/legalPasses.ts`, add Zod schema to `legalAnalysis.ts`, add case to `legalFindingConverter.ts` |
-| Debug specific clause badge rendering | Navigate 417-line LegalMetaBadge | Open `IndemnificationBadge.tsx` (30 lines) directly |
-| Add a filter type to ContractReview | Add useState + useMemo modification in 608-line component | Add to `useContractFiltering` hook (~80 lines post-extraction) |
-| Show a toast from a new component | Wire `onShowToast` prop through parent chain | Call `useToast()` at the call site |
-| Fix a localStorage quota error | Three files have their own try/catch copies | Fix in `utils/storage.ts` once |
+| Concern | Now (v1.6) | If suite grows to 200+ tests | If adding E2E/Playwright later |
+|---------|------------|------------------------------|-------------------------------|
+| Test speed | <5s for full suite with Vitest | Enable `--pool=threads` (default), `--reporter=verbose` only in CI | E2E in separate config, separate npm script |
+| Fixture size | 2-3 JSON files, ~50KB each | Extract common fixture data into factory compositions | E2E uses real API (manual trigger only) |
+| Coverage | Focus on utils/hooks/schemas | Add `--coverage` threshold in CI (70% lines for targeted dirs) | E2E coverage not meaningful |
+| CI integration | `npm run test:run` in build pipeline | Same command, parallelism is built into Vitest | Playwright needs separate job with browser install |
 
 ## Sources
 
-- Direct codebase inspection: `ContractReview.tsx` (608 lines, 14 `useState` calls), `LegalMetaBadge.tsx` (417 lines, ~30 nested ternary chains), `api/analyze.ts` (1510 lines), `api/merge.ts` (405 lines), `useContractStore.ts`, `useCompanyProfile.ts`, `contractStorage.ts`, `App.tsx`, `src/types/contract.ts`, `src/schemas/analysis.ts`, `ScopeMetaBadge.tsx`, `Toast.tsx`, `Settings.tsx`
-- Project requirements: `.planning/PROJECT.md` v1.5 Code Health milestone targets
-- React documentation: hooks API, Context API, discriminated union pattern with TypeScript
-- Confidence: HIGH — all architectural claims derive from direct file reading; no assumptions about unseen code
+- [Vitest Getting Started](https://vitest.dev/guide/) -- configuration, globals, environment setup
+- [Vitest Mocking Guide](https://vitest.dev/guide/mocking) -- vi.mock, vi.spyOn, module mocking
+- [Vitest Snapshot Testing](https://vitest.dev/guide/snapshot) -- toMatchSnapshot, toMatchInlineSnapshot
+- [Mocking localStorage in Vitest](https://dylanbritz.dev/writing/mocking-local-storage-vitest/) -- Storage.prototype spy pattern for jsdom
+- [Configuring Vitest with TypeScript and RTL](https://johnsmilga.com/articles/2024/10/15) -- mergeConfig, tsconfig integration
+- [MSW with Vitest](https://stevekinney.com/courses/testing/testing-with-mock-service-worker) -- network-level fetch mocking for component tests
+- [React Testing Library setup](https://testing-library.com/docs/svelte-testing-library/setup/) -- custom render pattern, renderHook
+- Direct codebase inspection of all production files referenced above (HIGH confidence)
 
 ---
-*Architecture research for: ClearContract v1.5 refactoring*
-*Researched: 2026-03-14*
+*Architecture research for: ClearContract v1.6 test framework integration*
+*Researched: 2026-03-15*

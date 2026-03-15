@@ -1,352 +1,462 @@
-# Pitfalls Research
+# Domain Pitfalls: Adding Test Coverage to Untested React+Vite+TypeScript Codebase
 
-**Domain:** Refactoring a React 18 + TypeScript SPA — component decomposition, hook extraction, type safety hardening, pattern consolidation
-**Researched:** 2026-03-14
-**Confidence:** HIGH (codebase read directly; patterns verified against React/TypeScript/Vercel official docs and community post-mortems)
-**Applies to:** v1.5 Code Health milestone for ClearContract
+**Domain:** Test infrastructure and coverage for existing 10,800 LOC app
+**Researched:** 2026-03-15
+**Overall confidence:** HIGH (Vitest/RTL well-documented; project-specific pitfalls verified against codebase)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Hook Extraction Breaks Framer Motion Exit Animations via AnimatePresence
+Mistakes that cause wasted days, broken CI, or tests that provide false confidence.
 
-**What goes wrong:**
-ContractReview.tsx renders `<AnimatePresence>` wrapping filtered finding lists. When the filter logic moves into `useContestFiltering` and the filtered array is returned as a stable reference, AnimatePresence still works — BUT if component decomposition wraps the motion children in a fragment or extra div, AnimatePresence loses the keyed child it needs to track unmount. Exit animations silently stop firing. The list items appear and disappear without animation, which looks broken compared to the rest of the UI.
+### Pitfall 1: Testing Infrastructure and Tests in the Same Phase
 
-**Why it happens:**
-AnimatePresence requires direct children to be keyed `<motion.*>` elements. React Fragments (`<>...</>`) do not propagate keys at the level AnimatePresence inspects. When splitting a large component into sub-components, developers often wrap return values in a fragment for "clean" JSX, destroying the direct-child contract that AnimatePresence relies on.
+**What goes wrong:** Trying to configure Vitest, jsdom, RTL, mocks, CI, and write tests all at once. When tests fail, you cannot tell if the problem is your test logic, your mock setup, your Vitest config, or your CI environment.
 
-This is a documented bug pattern in the Framer Motion GitHub issues (framer/motion#2554, framer/motion#2023) — fast state changes or structural changes around AnimatePresence cause it to desync.
+**Why it happens:** Natural impulse to "just start writing tests." Without a known-good infrastructure, every failure is ambiguous.
 
-**How to avoid:**
-- When extracting sub-components that contain `<motion.*>` elements, ensure the parent's `<AnimatePresence>` wrapper maps over the motion elements directly, not over the sub-component wrapper.
-- Test: toggle a filter and verify items animate out, not just disappear.
-- Alternative pattern: move AnimatePresence inside the extracted component rather than keeping it in the parent.
-- Never wrap a motion element in a Fragment when it is a direct child of AnimatePresence.
+**Consequences:** Hours debugging a test that is actually a config issue. False confidence when tests pass for wrong reasons (e.g., mock returning undefined silently).
 
-**Warning signs:**
-- Filtered list items disappear without animation after a refactor.
-- `key` prop warnings appear in the console for list items.
-- AnimatePresence props like `mode="wait"` stop having any visible effect.
+**Prevention:** Phase the work strictly:
+1. **Infrastructure first:** Vitest config, jsdom/happy-dom, RTL setup, global mocks, CI pipeline -- all verified with ONE trivial test (e.g., `expect(1+1).toBe(2)` and one simple component render).
+2. **Core logic tests second:** Pure functions (scoring, merge, bidSignal, storage) that need no DOM.
+3. **Component tests third:** Only after mocks and environment are proven.
+4. **Integration tests last:** API endpoint tests with full mock chains.
 
-**Phase to address:** Component Decomposition phase (ContractReview split). Must be verified after every split.
+**Detection:** If your first real test file has more than 5 lines of setup/config imports, infrastructure is not ready.
+
+**Phase:** Address in Phase 1 (infrastructure setup), before any test writing.
 
 ---
 
-### Pitfall 2: useMemo Dependencies Silently Break After Hook Extraction
+### Pitfall 2: Framer Motion Crashes in jsdom/happy-dom
 
-**What goes wrong:**
-ContractReview.tsx has a `useMemo` for `visibleFindings` (line 174-192) with six dependencies: `contract.findings`, `hideResolved`, `selectedSeverities`, `selectedCategories`, `selectedPriorities`, `hasNegotiationOnly`. If filter state moves into `useContractFiltering`, the returned filtered array is still computed inside the hook — but the hook's internal dependencies are now invisible to ESLint's exhaustive-deps rule running in the parent. If a new filter is added to the hook but the hook's internal `useMemo` dependency array is incomplete, filtering silently returns stale results on some state transitions.
+**What goes wrong:** Components using `motion.div`, `AnimatePresence`, and `useAnimation` throw errors or hang in test environments because jsdom lacks Web Animations API, `requestAnimationFrame` behaves differently, and `AnimatePresence` exit animations never complete.
 
-**Why it happens:**
-The ESLint `react-hooks/exhaustive-deps` rule only validates dependencies within the same function scope. Once logic moves into a custom hook, the caller has no visibility into the hook's internal dependency correctness. Without a test suite, a missing dependency produces a bug that only manifests in specific filter-toggle sequences — not on every render.
+**Why it happens:** Framer Motion relies on browser animation APIs that jsdom/happy-dom do not fully implement. This project uses Framer Motion extensively -- staggered animations on `FindingCard`, `AnimatePresence` on filtered lists, page transitions.
 
-**How to avoid:**
-- Verify the ESLint `react-hooks/exhaustive-deps` rule is enabled and applied to custom hook files (check `.eslintrc`).
-- After extracting `useContractFiltering`, run `npm run lint` and treat dependency warnings as blocking, not optional.
-- The hook should accept all filter state as parameters (not read from closures) so dependencies are explicit: `useContractFiltering(findings, { hideResolved, selectedSeverities, selectedCategories, selectedPriorities, hasNegotiationOnly })`.
-- Manually test: apply each filter in isolation after extraction. Verify the count changes correctly.
+**Consequences:** Every component test that renders an animated component fails or hangs. Developers waste time debugging "why does my component not render" when it is actually the animation library.
 
-**Warning signs:**
-- Filter count badges show wrong numbers intermittently.
-- Toggling a filter once does nothing; toggling twice works.
-- The `visibleFindings` array doesn't update when `hideResolved` changes.
+**Prevention:** Create a global Framer Motion mock in `src/__mocks__/framer-motion.ts` that:
+- Replaces `motion.div` (and all `motion.*`) with plain HTML elements
+- Makes `AnimatePresence` a pass-through wrapper
+- Stubs `useAnimation`, `useInView`, etc.
 
-**Phase to address:** Hook Extraction phase (useContractFiltering). Run lint after extraction.
+```typescript
+// src/__mocks__/framer-motion.ts
+import React from 'react';
 
----
+const actual = await vi.importActual('framer-motion');
 
-### Pitfall 3: Vercel Serverless Function Splitting Breaks the `export const config` Requirement
+// Replace all motion.* with plain elements
+const motion = new Proxy({}, {
+  get: (_target, prop: string) =>
+    React.forwardRef((props: any, ref: any) =>
+      React.createElement(prop, { ...props, ref })
+    ),
+});
 
-**What goes wrong:**
-`api/analyze.ts` has `export const config = { api: { bodyParser: { sizeLimit: '15mb' } } }` at the top. This Vercel-specific config export must live in the entry-point file for the route — the file Vercel maps to a function. If `analyze.ts` is refactored so the actual handler logic moves to a module (e.g., `api/handlers/analyze.ts`) and `api/analyze.ts` becomes a thin re-export, Vercel will NOT pick up the `config` if it's not in the file the route maps to.
+const AnimatePresence = ({ children }: { children: React.ReactNode }) => children;
 
-The consequence is that the 15MB body parser limit reverts to Vercel's default (1MB). Base64-encoded PDFs averaging 3-5MB will be silently truncated or rejected with a 413, and users will see upload failures for files that worked before. This does not show up in `vercel dev` if the local dev server doesn't enforce the same limit.
+export { motion, AnimatePresence };
+export const useAnimation = () => ({ start: vi.fn(), stop: vi.fn() });
+// Re-export everything else from actual
+```
 
-**Why it happens:**
-Vercel's routing maps `api/*.ts` files directly. The `config` export is tied to file location, not module exports. If `analyze.ts` becomes `export { handler as default } from './handlers/analyze'`, the config in the re-exported file is invisible to Vercel's build tooling.
+Register via `vi.mock('framer-motion')` in setup file or per-test.
 
-**How to avoid:**
-- Keep `export const config` and the default export handler in `api/analyze.ts`. Extract only logic (pass definitions, schema conversion, orchestration helpers) into modules that `analyze.ts` imports — not the other way around.
-- Never convert `api/analyze.ts` into a re-export barrel.
-- After any restructuring, deploy a Vercel preview and test uploading a PDF between 1MB and 5MB to verify the body limit is still in effect.
+**Detection:** Component tests throw `ReferenceError: requestAnimationFrame is not defined` or tests hang indefinitely.
 
-**Warning signs:**
-- Upload failures in Vercel preview for files that work locally.
-- 413 errors from the `/api/analyze` endpoint.
-- `Failed to parse body` or truncated JSON responses from the analysis endpoint.
+**Phase:** Address in Phase 1 (infrastructure). This mock must exist before any component test.
 
-**Phase to address:** Serverless function modularization (analyze.ts decomposition). Must be checked in preview deployment.
+**Confidence:** HIGH -- well-documented issue ([framer/motion#285](https://github.com/framer/motion/issues/285), [framer/motion#1690](https://github.com/framer/motion/issues/1690)).
 
 ---
 
-### Pitfall 4: Zod/TypeScript Optionality Reconciliation Deletes Runtime Data
+### Pitfall 3: Two Test Environments Needed (jsdom for Client, node for Server)
 
-**What goes wrong:**
-The codebase has a documented pattern (PROJECT.md key decisions) of making fields `required` in Zod schemas and `optional` on TypeScript interfaces for backward compatibility with old localStorage contracts. If the reconciliation work makes a field required on the TS interface (to fix optionality drift), it silently breaks loading of contracts stored before that field existed. `JSON.parse` returns the field as `undefined`; TypeScript says it's required; nothing errors at runtime, but the field is `undefined` where code expects a string. Downstream nullish coalescing (`??`) masks the issue until a code path that doesn't use `??` throws.
+**What goes wrong:** Running all tests with `environment: 'jsdom'` causes server-side code (api/analyze.ts, api/merge.ts, api/scoring.ts) to break because they use Node APIs (Buffer, fs-like operations via unpdf, undici fetch). Running all with `environment: 'node'` breaks component tests that need DOM.
 
-Concrete example: if `actionPriority` is made required on `Finding` (to match the Zod schema), all contracts analyzed before v1.4 that lack `actionPriority` on their findings will silently have `undefined` for that field. The action priority filter in ContractReview (line 185-187) would then exclude ALL findings when the `pre-bid` filter is active.
+**Why it happens:** This project has a clear client/server split: `src/` is browser code, `api/` is Vercel serverless (Node). Vitest defaults to a single environment.
 
-**Why it happens:**
-localStorage is a schemaless store. There is no migration gate. Each time the data model evolves, existing stored data has the old shape. TypeScript strict mode catches structural incompatibilities at compile time but NOT at the `JSON.parse` boundary, where everything is `unknown` and the code casts with `as Contract[]` (contractStorage.ts line 44).
+**Consequences:** Either server tests or client tests fail. Developers add hacks (conditional imports, polyfills) that pollute the test setup.
 
-**How to avoid:**
-- Before making any TS interface field non-optional, add a migration in `contractStorage.ts` that normalizes the shape after `JSON.parse`. The existing schema version key (`clearcontract:schema-version`) supports this — bump it and add a migration function.
-- Use `z.infer<typeof FindingSchema>` to derive the TypeScript type, NOT a hand-written interface. This ensures TS type and Zod schema cannot drift.
-- After any type change, manually test by loading a contract that was saved with the previous data shape (copy old JSON into localStorage manually).
+**Prevention:** Use Vitest's per-file environment control:
+- Set default to `node` in vitest.config.ts
+- Add `// @vitest-environment jsdom` at top of every component/hook test file
+- OR use `environmentMatchGlobs` in config:
 
-**Warning signs:**
-- Filter counts drop to zero after a type change but findings are visible.
-- Components show "undefined" as rendered text.
-- TypeScript compiles clean but runtime behavior is wrong.
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    environment: 'node', // default for api/ tests
+    environmentMatchGlobs: [
+      ['src/**/*.test.{ts,tsx}', 'jsdom'],
+    ],
+  },
+});
+```
 
-**Phase to address:** Type Safety phase (Zod/TS reconciliation). Must include migration before shipping.
+**Detection:** Tests fail with `document is not defined` (missing jsdom) or `Buffer is not defined` (jsdom interfering with Node globals).
+
+**Phase:** Address in Phase 1 (infrastructure).
+
+**Confidence:** HIGH -- [Vitest docs: Test Environment](https://vitest.dev/guide/environment).
 
 ---
 
-### Pitfall 5: Toast Context Re-renders Kill Filter Dropdown Performance
+### Pitfall 4: localStorage Mocking Inconsistencies Between Environments
 
-**What goes wrong:**
-Extracting toast state to a `useToast` context means every component that calls `useToast()` re-renders when any toast is shown or dismissed. ContractReview renders the multi-select dropdowns (MultiSelectDropdown.tsx) — if those consume the toast context (even indirectly via a parent), showing a toast during analysis causes the entire filter panel to re-render. At 50+ findings with Framer Motion stagger animations, this produces a visible frame drop.
+**What goes wrong:** Tests for `storageManager.ts`, `contractStorage.ts`, and `useContractStore.ts` behave differently depending on the test environment. In jsdom, `localStorage` exists but `vi.spyOn(localStorage, 'getItem')` throws. In happy-dom, direct spying works. In Node, `localStorage` may not exist at all (or behaves differently in Node 25+).
 
-The more direct version: if `useToast` is added to App.tsx as a context provider wrapping everything, and the toast context value object is recreated on every render (the default when using `useState` directly in a provider), every context consumer re-renders on any toast event.
+**Why it happens:** This project's `storageManager.ts` directly calls `localStorage.getItem/setItem/removeItem`. The `StorageResult<T>` wrapper means tests need to verify both success and error paths. The `contractStorage.ts` does JSON parse/stringify with migration logic.
 
-**Why it happens:**
-React Context has no built-in memoization. When the provider's value changes (e.g., `toast` state goes from `null` to `{type: 'success', ...}`), every component that called `useContext(ToastContext)` re-renders. The current architecture passes toast as a prop chain (`onShowToast` in ContractReview props), which is actually more efficient — only the prop recipient re-renders.
+**Consequences:** Tests pass locally but fail in CI (different Node version), or localStorage state leaks between tests causing order-dependent failures.
 
-**How to avoid:**
-- Memoize the context value object: `useMemo(() => ({ showToast, dismissToast }), [])` — keep the dispatch functions stable with `useCallback`.
-- Split toast context into two contexts: one for toast state (read), one for dispatch (write). Components that only show toasts consume dispatch context; the Toast component itself consumes state context.
-- Alternatively: keep the current prop-passing pattern for `onShowToast`. It is already working and prop-drilling one level is fine for this app's size. Context adds complexity without benefit if the prop chain is short.
-- Do not add toast context until profiling shows prop-drilling is actually causing maintenance problems.
+**Prevention:**
+1. **Spy on `Storage.prototype`**, not `localStorage` directly (works in both jsdom and happy-dom):
+   ```typescript
+   vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+   ```
+2. **Clear localStorage in `afterEach`:**
+   ```typescript
+   afterEach(() => { localStorage.clear(); });
+   ```
+3. **For `storageManager.ts` unit tests:** Test the pure functions by mocking `Storage.prototype` methods. Verify `StorageResult` shapes for success, parse errors, and `QuotaExceededError`.
+4. **Pin Node version in CI** to avoid Node 25+ Web Storage API conflicts (use Node 20 LTS or 22 LTS).
 
-**Warning signs:**
-- Filter dropdowns stutter or re-render when a toast appears.
-- React DevTools Profiler shows ContractReview re-rendering on toast dismissal.
-- Framer Motion animations restart unexpectedly during toast transitions.
+**Detection:** Tests fail with `TypeError: Cannot spy on localStorage.getItem` or tests pass individually but fail when run together.
 
-**Phase to address:** Pattern Consolidation phase (toast context extraction). Profile before and after.
+**Phase:** Address in Phase 1 (infrastructure -- setup file with localStorage cleanup) and Phase 2 (storage unit tests).
+
+**Confidence:** HIGH -- verified against codebase's `storageManager.ts` using `localStorage` directly. [Vitest localStorage testing](https://runthatline.com/vitest-mock-localstorage/), [Node 25 issue](https://github.com/vitest-dev/vitest/issues/8757).
+
+---
+
+### Pitfall 5: Mocking the Anthropic SDK Incorrectly
+
+**What goes wrong:** Tests for `api/analyze.ts` mock `@anthropic-ai/sdk` at the wrong level -- either too shallow (mock the class but not the chained method calls like `client.messages.create()`) or too deep (mock internal HTTP calls, breaking on SDK updates). The 17-pass pipeline means the mock must handle being called 17+ times with different structured output schemas.
+
+**Why it happens:** The Anthropic SDK has a nested API: `new Anthropic() -> client.messages.create()` (and in this project, also `client.files.upload()` for the Files API). Additionally, the project uses `zodToJsonSchema()` to convert Zod schemas to JSON Schema for structured outputs, so mock responses must match the expected schema shapes.
+
+**Consequences:** Tests silently return undefined instead of proper mock data, causing downstream code to throw on property access. Or tests are so tightly coupled to SDK internals that any SDK update breaks all tests.
+
+**Prevention:**
+1. **Mock at the SDK class level:**
+   ```typescript
+   vi.mock('@anthropic-ai/sdk', () => ({
+     default: vi.fn().mockImplementation(() => ({
+       files: { upload: vi.fn().mockResolvedValue({ id: 'file-mock-123' }) },
+       messages: {
+         create: vi.fn().mockResolvedValue({
+           content: [{ type: 'text', text: JSON.stringify(mockPassResult) }],
+         }),
+       },
+     })),
+   }));
+   ```
+2. **Create fixture factory functions** that produce valid `PassResult`, `RiskOverviewResult`, and `SynthesisPassResult` objects matching the Zod schemas. Validate fixtures against schemas in a dedicated test:
+   ```typescript
+   expect(PassResultSchema.safeParse(mockPassResult).success).toBe(true);
+   ```
+3. **Do NOT mock `undici` or `fetch` inside the SDK.** Mock the SDK's public API only.
+4. **For the 17-pass pipeline:** Use `mockResolvedValueOnce()` chained 17 times, or a stateful mock that returns different responses based on the system prompt content.
+
+**Detection:** Tests pass but with `undefined` values propagating silently. Or tests break on Anthropic SDK minor version bumps.
+
+**Phase:** Address in Phase 2 (API test fixtures) and Phase 4 (integration tests).
+
+**Confidence:** HIGH -- verified against `api/analyze.ts` which uses `client.files.upload()` then `client.messages.create()` in a loop.
+
+---
+
+### Pitfall 6: Writing Tests That Cannot Fail (False Confidence)
+
+**What goes wrong:** When adding tests to an existing working codebase, every test passes on first run. Developers never verify the test can actually catch a regression. Tests assert on implementation details that are always true, or assertions are too loose (e.g., `expect(result).toBeDefined()` on a function that always returns an object).
+
+**Why it happens:** Unlike TDD where you write a failing test first, retrofitting tests means the code already works. The "red" phase is skipped entirely. Combined with complex mocks, it is easy to write tests where the mock silently satisfies the assertion without the real code path being exercised.
+
+**Consequences:** 100% passing test suite that catches zero regressions. False confidence leads to removing manual verification too early.
+
+**Prevention:**
+1. **Mutation testing mindset:** After writing a test, temporarily break the code under test and verify the test fails. For critical paths (risk scoring, merge logic), this is mandatory.
+2. **Assert on specific values, not existence:**
+   ```typescript
+   // BAD: always passes
+   expect(computeRiskScore(findings)).toBeDefined();
+   // GOOD: catches regressions
+   expect(computeRiskScore(findings).score).toBe(67);
+   ```
+3. **For Zod validation tests:** Test both valid AND invalid inputs. Verify that `.safeParse()` returns `success: false` for malformed data.
+4. **Coverage alone is not enough.** A line can be "covered" by a test that never asserts on it.
+
+**Detection:** Run `vitest --coverage` and look for files with high coverage but only `toBeDefined`/`toBeTruthy` assertions.
+
+**Phase:** Ongoing discipline, but establish the pattern in Phase 2 (first real tests).
+
+**Confidence:** HIGH -- universal testing pitfall, especially acute for retrofit testing. [Stack Overflow: Making your code base better will make your code coverage worse](https://stackoverflow.blog/2025/12/22/making-your-code-base-better-will-make-your-code-coverage-worse/).
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 6: Centralizing localStorage Access Creates a False Single Source of Truth
+### Pitfall 7: Vitest Config Conflicts with Existing Vite Config
 
-**What goes wrong:**
-The plan includes creating a "storage manager" to centralize localStorage access. If this manager is a module-level singleton (not a React hook), it cannot participate in React's render cycle. The `useContractStore` hook currently calls `saveContracts` directly and reflects storage errors back into React state via `setStorageWarning`. A storage manager that lives outside the hook breaks this feedback loop — quota errors are swallowed or require a separate channel to surface to the UI.
+**What goes wrong:** Vitest reads `vite.config.ts` by default and inherits plugins, resolve aliases, and other settings. Some Vite plugins (e.g., ones that inject HTML, or Vercel-specific transforms) break in test context. Or the `define` config injects values that conflict with test globals.
 
-Additionally, `useCompanyProfile` and `contractStorage` currently use different localStorage keys (`clearcontract:profile` vs `clearcontract:contracts`). A centralized manager that wraps both must maintain backward compatibility with those exact key strings — changing them requires a migration.
+**Prevention:**
+- Use `vitest.config.ts` (separate file) that extends `vite.config.ts` with `mergeConfig`:
+  ```typescript
+  import { defineConfig, mergeConfig } from 'vitest/config';
+  import viteConfig from './vite.config';
 
-**How to avoid:**
-- Design the storage manager as a utility layer (pure functions), not a React context or global class with internal state. It should replace the raw `localStorage.*` calls but not own state.
-- Keep the existing key strings exactly as-is. Document them as API contracts.
-- The storage manager's error return format must match what `useContractStore.persistAndSet` and `useCompanyProfile.saveField` already handle.
-- The `HIDE_RESOLVED_KEY` inside ContractReview.tsx (line 134) is a third localStorage key that the storage manager should also cover — don't miss it.
+  export default mergeConfig(viteConfig, defineConfig({
+    test: { /* vitest-specific settings */ },
+  }));
+  ```
+- Exclude problematic plugins from the test config if needed.
+- Verify `resolve.alias` settings work for both `src/` imports and `api/` imports in tests.
 
-**Warning signs:**
-- Storage quota errors stop appearing in the UI banner.
-- Company profile changes don't persist across page refreshes after refactor.
-- The `clearcontract:hide-resolved` key is missing from the centralized manager.
+**Phase:** Phase 1 (infrastructure).
 
-**Phase to address:** Pattern Consolidation phase (localStorage centralization).
-
----
-
-### Pitfall 7: Extracting useInlineEdit Loses ref Focus Behavior
-
-**What goes wrong:**
-The inline rename logic in ContractReview.tsx (lines 92-120) uses `renameInputRef` with a `useEffect` that calls `renameInputRef.current?.focus()` and `renameInputRef.current?.select()` when `isEditing` becomes true. If `useInlineEdit` is extracted and returns the ref, but the consuming component creates a second ref (or uses a forwarded ref incorrectly), the focus effect fires against a ref that doesn't point to the actual DOM node. The input renders but is never focused — the user sees a text box appear but has to click into it manually.
-
-**Why it happens:**
-`useRef` returns the same object on every render, but the `.current` assignment happens during render commit. If the custom hook owns the ref and the component mounts the input with that ref, it works. If the component creates its own ref and doesn't pass it to the hook, the hook's ref is always `null`. The split between "hook owns ref" and "component owns DOM" must be clear.
-
-**How to avoid:**
-- `useInlineEdit` should return the ref object and the component attaches it to the DOM element: `<input ref={editRef} ... />`. The hook owns the ref, the component wires it to the DOM.
-- Test immediately after extraction: start editing (click pencil icon), verify the input auto-focuses and text is pre-selected.
-- The `commitRename` logic (line 102-108) reads `renameInputRef.current?.value` directly from the DOM element — this pattern must be preserved or replaced with controlled input state.
-
-**Warning signs:**
-- After rename refactor, input renders but requires manual click to focus.
-- Select-all on rename start stops working.
-- TypeScript shows ref type mismatch between hook return type and input element.
-
-**Phase to address:** Hook Extraction phase (useInlineEdit).
+**Confidence:** HIGH -- [Vitest docs: Configuring](https://vitest.dev/config/).
 
 ---
 
-### Pitfall 8: Pass Name String Coupling in merge.ts Type Guards
+### Pitfall 8: Testing Custom Hooks That Depend on localStorage
 
-**What goes wrong:**
-`api/merge.ts` has a large switch-on-pass-name block (`convertLegalFinding`, lines 59+) that maps pass name strings like `'legal-indemnification'`, `'legal-payment-contingency'`, etc. to legalMeta shapes. If analysis passes in `api/analyze.ts` are reorganized and any pass is renamed, the merge logic silently stops populating `legalMeta` for that pass — findings appear in the UI without their structured metadata (no clause type badges, no specialized display in LegalMetaBadge). No TypeScript error catches this because both files use string literals.
+**What goes wrong:** `useContractStore` calls `loadContracts()` in its `useState` initializer, which reads from `localStorage`. Testing this hook with `renderHook` requires localStorage to be pre-populated BEFORE the hook renders. Developers mock localStorage AFTER render and wonder why initial state is empty.
 
-**Why it happens:**
-Pass names are stringly typed. The `ANALYSIS_PASSES` array in `analyze.ts` and the switch in `merge.ts` must agree on every string, but TypeScript does not enforce this. When modularizing the pass config, if a pass is renamed for clarity (e.g., `'legal-payment-contingency'` to `'payment-contingency'`) and the rename is not propagated to `merge.ts`, the type guard falls through to the default case and `legalMeta` is undefined.
+**Prevention:**
+- Pre-populate localStorage in `beforeEach` BEFORE calling `renderHook`:
+  ```typescript
+  beforeEach(() => {
+    localStorage.setItem('clearcontract:contracts', JSON.stringify(mockContracts));
+    localStorage.setItem('clearcontract:schema-version', '"2"');
+  });
+  ```
+- Use `renderHook` from `@testing-library/react`, NOT the deprecated `@testing-library/react-hooks` package.
+- Remember: `result.current` is reactive -- do NOT destructure it outside of assertions.
 
-**How to avoid:**
-- Extract pass names as a `const` enum or `as const` object shared between `analyze.ts` and `merge.ts`. Both files import from the same source of truth.
-- When adding the request validation schema (also planned for v1.5), include pass name validation against the same constant list.
-- After any pass restructuring, scan for all occurrences of each pass name string in the codebase and verify consistency.
+**Phase:** Phase 3 (hook tests).
 
-**Warning signs:**
-- LegalMetaBadge stops rendering for a specific clause type after pass restructuring.
-- Finding cards for indemnification (or any legal clause) show no clause type pills.
-- `sourcePass` on findings in the UI shows the new name but `legalMeta` is undefined.
-
-**Phase to address:** Serverless function modularization (analyze.ts, merge.ts decomposition).
-
----
-
-### Pitfall 9: Color/Severity Map Centralization Breaks Tailwind's Static Analysis
-
-**What goes wrong:**
-The plan includes centralizing color/severity mapping into a "palette map." The current pattern uses inline Tailwind class strings like `'bg-red-100 text-red-700'` inside switch statements. If centralization moves these to a JavaScript object like `{ Critical: { bg: 'bg-red-100', text: 'text-red-700' } }`, Tailwind's JIT compiler can no longer statically scan for these class names at build time. The classes are absent from the generated CSS bundle. In production, severity badges render with no background color or text color.
-
-**Why it happens:**
-Tailwind's JIT purge mechanism works by scanning source files for complete class name strings. Dynamic string concatenation (`'bg-' + color + '-100'`) and object lookups where the class names are values in a map are NOT reliably picked up by the scanner. This is a well-known Tailwind pitfall documented in their safelist configuration.
-
-**How to avoid:**
-- Keep complete class strings, never fragment them. The palette map must contain the full Tailwind class strings, not color names: `{ bg: 'bg-red-100', text: 'text-red-700' }` — not `{ color: 'red', shade: '100' }`.
-- After implementing the palette map, run `npm run build` and visually inspect a contract review with all severity levels visible. Do not rely on `npm run dev` — Vite dev mode does not purge.
-- Alternatively, add the severity-related classes to Tailwind's `safelist` in `tailwind.config.js` to guarantee they are always included.
-
-**Warning signs:**
-- SeverityBadge components render as unstyled elements in production builds.
-- `npm run build` output is dramatically smaller than expected (purged legitimate classes).
-- Classes appear in dev but disappear in the Vercel preview deployment.
-
-**Phase to address:** Pattern Consolidation phase (color/severity mapping).
+**Confidence:** HIGH -- verified against `useContractStore.ts` which calls `loadContracts()` in initial `useState`.
 
 ---
 
-### Pitfall 10: Client-side Zod Validation of API Response Rejects Valid Data After Schema Evolution
+### Pitfall 9: VercelRequest/VercelResponse Mocking Complexity
 
-**What goes wrong:**
-Adding client-side Zod validation of the `/api/analyze` response is good for catching malformed responses. However, if `src/schemas/analysis.ts` (the shared schema) is updated during the v1.5 type safety work and an existing contract in localStorage was saved with the old shape, the Zod validator on the client will reject the stored data as invalid when it is passed through any validation path. Additionally, if the server-side Zod schemas and the client-side validation schema are allowed to drift (different optional/required treatment), the client will reject responses that the server considers valid.
+**What goes wrong:** `api/analyze.ts` expects `VercelRequest` and `VercelResponse` objects which are complex Node.js IncomingMessage/ServerResponse extensions. Naive mocks miss properties like `req.method`, `req.body` (already parsed by Vercel), `res.status().json()` chaining, or CORS headers.
 
-**Why it happens:**
-The schemas in `src/schemas/` are shared between client and server (imported by both `api/analyze.ts` and client code). This is correct. But during reconciliation, if the client-side interface (TS type) is separately validated with a stricter schema than what the server produces, valid server responses fail client validation. The shared schema is the contract — it must not be made stricter on one side.
+**Prevention:**
+- Create reusable mock factories:
+  ```typescript
+  function createMockReq(overrides: Partial<VercelRequest> = {}): VercelRequest {
+    return {
+      method: 'POST',
+      body: { contractPdf: 'base64...', fileName: 'test.pdf' },
+      headers: {},
+      ...overrides,
+    } as VercelRequest;
+  }
 
-**How to avoid:**
-- Client-side validation schema = same Zod schema used server-side. Do not create a separate "strict" schema for client validation.
-- Use `.safeParse()` not `.parse()` on the client — unknown shapes from old localStorage data should produce a warning and use the stored data as-is, not throw.
-- Scope the client-side validation to API responses only, not to localStorage read paths.
+  function createMockRes(): VercelResponse & { _json: any; _status: number } {
+    const res = {
+      _json: null,
+      _status: 200,
+      status(code: number) { res._status = code; return res; },
+      json(data: any) { res._json = data; return res; },
+      setHeader: vi.fn(),
+      end: vi.fn(),
+    };
+    return res as any;
+  }
+  ```
+- Test the handler function directly (it is a default export), not through HTTP.
+- For CORS/validation tests, verify specific status codes (400, 401, 405, 422, 429).
 
-**Warning signs:**
-- Contracts loaded from localStorage disappear or show "invalid data" after schema reconciliation.
-- API responses that the server sends correctly are rejected by the client with Zod parse errors.
-- `z.ZodError` appears in the browser console for data that was previously working.
+**Phase:** Phase 4 (API integration tests).
 
-**Phase to address:** Type Safety phase (client validation, Zod/TS reconciliation).
-
----
-
-## Technical Debt Patterns
-
-Shortcuts that seem reasonable but create long-term problems.
-
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| `as SomeType` casts in merge.ts when converting pass results | Avoids verbose type guard boilerplate | Silently wrong types reach the UI; legalMeta fields may be undefined | Never for discriminated union fields; acceptable for primitive fields with runtime-safe fallbacks |
-| Keeping HIDE_RESOLVED_KEY defined inline in ContractReview.tsx | Avoids touching storage layer | Three separate localStorage key definitions scattered across codebase; one missed during centralization | Acceptable until centralization phase, not after |
-| Hardcoded CATEGORY_ORDER array in ContractReview.tsx | Simple, clear ordering | Must be kept in sync with `CATEGORIES` const in contract.ts; new categories added to the type won't appear in review without updating this array | Acceptable, but add a lint/compile check that every CATEGORIES item appears in CATEGORY_ORDER |
-| String literals for pass names in ANALYSIS_PASSES and merge.ts | Fast to add new passes | Renaming a pass breaks metadata extraction silently | Never — should be a shared const |
-| Inline filter logic in ContractReview.tsx useMemo | Co-located with the state it depends on | 6-dependency memoized filter is hard to test or compose | Acceptable until useContractFiltering extraction |
-
----
-
-## Integration Gotchas
-
-Common mistakes when connecting components after refactoring.
-
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| useContractFiltering + ContractReview | Hook returns new array reference every render (no memo) causing all child finding cards to re-render | useMemo inside the hook with stable dependency identity |
-| useInlineEdit + AllContracts + ContractReview | Extracting hook and using it in two places, then making the hook stateful in a way that cross-pollutes (e.g., shared module-level state) | Each component call to useInlineEdit gets isolated state — hooks are instance-scoped, not shared |
-| Storage manager + useContractStore | Storage manager throws on quota exceeded; hook catches only DOMException but manager wraps in a generic Error | Preserve the existing DOMException check or ensure the manager re-throws DOMException, not wraps it |
-| Anthropic Files API + analyze.ts modularization | Moving `preparePdfForAnalysis` import outside the handler function causes the undici fetch override to be called before the module is loaded | Keep import and undici setup in the same module scope as the handler |
-| Zod client validation + analyzeContract.ts | Calling `.parse()` on the raw API response before null-checking `result.findings` causes unhandled throw in the error path | Always call `.safeParse()` on untrusted data; `.parse()` only on data known to be valid |
+**Confidence:** MEDIUM -- based on [mock VercelRequest gist](https://gist.github.com/unicornware/2a1b03ef53dfc55e6fc16265dabaf056) and `api/analyze.ts` code review.
 
 ---
 
-## Performance Traps
+### Pitfall 10: Attempting 80%+ Coverage Too Early
 
-Patterns that work at small scale but fail as usage grows.
+**What goes wrong:** Setting aggressive coverage targets before the testing infrastructure is mature. Teams write low-quality tests to hit numbers, skip edge cases, and avoid testing the hard parts (async API pipeline, error recovery, migration logic).
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Re-rendering all FindingCard components on filter toggle | Brief white flash on filter change; worse with 50+ findings | Memoize FindingCard with React.memo; ensure stable props (callbacks wrapped in useCallback) | 30+ findings with Framer Motion animations |
-| LegalMetaBadge renders 12 sub-components unconditionally | Profiler shows LegalMetaBadge as slow even when clause type doesn't match | Early return pattern — render nothing if `meta.clauseType` doesn't match the sub-component's target; current switch-on-clauseType is correct | Not a current problem; relevant only if clause type count increases further |
-| `getAllModules()` in merge.ts called on every finding conversion | Module store iterated once per finding | Move the call outside the per-finding loop; call once per merge operation | Current: called in `computeRiskScore` (scoring.ts) — verify after merge.ts refactor |
-| localStorage serialization of full Contract array on every finding resolve/note change | Noticeable pause on keystroke when annotating a finding in a large contract | Debounce saves or save only the changed contract, not the full array | 5+ contracts with 50+ findings each (~500KB+ in storage) |
+**Prevention:**
+- **Start with zero target.** Focus on testing the highest-value code first:
+  1. `api/scoring.ts` -- pure function, deterministic, easy to test, high business value
+  2. `api/merge.ts` -- complex logic, dedup, finding unification
+  3. `src/storage/storageManager.ts` -- storage wrapper with error handling
+  4. `src/schemas/finding.ts` -- Zod schema validation
+  5. `src/utils/bidSignal.ts` -- pure function, business logic
+- **Set coverage targets only after Phase 2** (core logic tests) is complete.
+- **Exclude certain files** from coverage initially: knowledge modules (static data), mock data, type-only files.
 
----
+**Phase:** Coverage targets in Phase 3 or later, not Phase 1.
 
-## "Looks Done But Isn't" Checklist
-
-- [ ] **useContractFiltering extraction:** Verify CSV export still uses the same filtered array (not unfiltered) — the filter-aware export is intentional behavior, not a bug.
-- [ ] **LegalMetaBadge decomposition:** Verify each sub-component handles its clause type only and renders null for others — not that it renders an empty div (empty div breaks flex gap spacing).
-- [ ] **Storage manager centralization:** Verify `HIDE_RESOLVED_KEY` (`clearcontract:hide-resolved`) is included alongside contracts and profile keys.
-- [ ] **Color palette map:** Run `npm run build` (not just `npm run dev`) and check SeverityBadge in the production bundle — Tailwind purge runs only at build time.
-- [ ] **Zod/TS reconciliation:** After making any field non-optional in a TS interface, test with localStorage data from the previous schema shape to verify backward compatibility.
-- [ ] **analyze.ts modularization:** Deploy a Vercel preview and test uploading a 3-5MB PDF — verifies 15MB body limit config is still active.
-- [ ] **useInlineEdit extraction:** Test rename flow end-to-end: click pencil, verify auto-focus + select-all, type new name, press Enter, verify contract name updates in both header and sidebar.
-- [ ] **Toast context:** Run React DevTools Profiler during a toast event — verify ContractReview's filter dropdowns do not re-render.
-- [ ] **Pass name constants:** After extracting pass config, search the codebase for any remaining string literals matching pass names that did not use the constant.
+**Confidence:** HIGH -- universal best practice. [Codecov: Legacy Application Coverage](https://about.codecov.io/blog/how-to-incorporate-code-coverage-for-a-legacy-application/).
 
 ---
 
-## Recovery Strategies
+### Pitfall 11: CI Pipeline Secrets and Environment Variables
 
-When pitfalls occur despite prevention, how to recover.
+**What goes wrong:** Tests that touch `api/analyze.ts` fail in CI because `ANTHROPIC_API_KEY` is not set. Or worse, tests accidentally call the real Anthropic API in CI, consuming tokens and being flaky.
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| AnimatePresence broken after component split | LOW | Identify the fragment wrapping motion children; replace with a motion element or move AnimatePresence inside the sub-component |
-| Vercel body limit reverted after analyze.ts restructuring | LOW | Move `export const config` back into `api/analyze.ts` entry file; redeploy |
-| Tailwind purged severity classes in production | LOW | Add affected classes to `safelist` in `tailwind.config.js`; rebuild and redeploy |
-| localStorage data incompatible after type field change | MEDIUM | Bump schema version, add migration function in contractStorage.ts to normalize the field; users will get migration warning once |
-| Pass name mismatch causes legalMeta to be undefined | MEDIUM | Add shared pass name const, update switch in merge.ts, redeploy serverless function |
-| stale useMemo dependency causes wrong filter results | MEDIUM | Re-examine hook's internal dependency array; add missing dep; verify with manual filter toggle test |
-| Toast context causes excessive re-renders | HIGH | Split context into read/write, memoize provider value, or revert to prop-passing pattern |
+**Prevention:**
+- **Never let tests reach the real API.** Mock the Anthropic SDK at module level so it is impossible for a test to make a real API call even if the env var is set.
+- Set `ANTHROPIC_API_KEY=test-key-not-real` in CI environment to prevent "missing key" validation errors in code paths that check for the key's existence before mocking kicks in.
+- For live integration tests (manual trigger), use a separate CI workflow with `workflow_dispatch` and actual secrets.
+- **GitHub Actions secrets:** Add `ANTHROPIC_API_KEY` only to the manual integration test workflow, not the PR check workflow.
+
+**Phase:** Phase 1 (CI setup -- ensure mocked tests never need real keys).
+
+**Confidence:** HIGH -- project has `ANTHROPIC_API_KEY` check in `api/analyze.ts` that returns 401.
 
 ---
 
-## Pitfall-to-Phase Mapping
+### Pitfall 12: GitHub Actions Runner Performance
 
-How roadmap phases should address these pitfalls.
+**What goes wrong:** Tests that run in 5 seconds locally take 45+ seconds in CI. The GitHub-hosted runner has 2 CPU cores vs. your local 8+. Vitest's default thread pool creates too many workers, causing thrashing.
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| AnimatePresence broken by component split (P1) | Component Decomposition | Toggle a filter after each split; verify items animate out |
-| useMemo dependency breaks after hook extraction (P2) | Hook Extraction | Run lint with exhaustive-deps after extraction; manual filter tests |
-| Vercel config export location (P3) | Serverless Modularization | Deploy preview, upload 3-5MB PDF |
-| Zod/TS optionality breaks localStorage data (P4) | Type Safety | Load pre-migration localStorage data manually; verify all findings visible |
-| Toast context re-render performance (P5) | Pattern Consolidation | React DevTools Profiler during toast event |
-| Storage manager breaks quota error feedback (P6) | Pattern Consolidation | Simulate quota exceeded; verify banner appears |
-| useInlineEdit loses ref focus (P7) | Hook Extraction | Test rename flow: click pencil -> auto-focus + select-all |
-| Pass name string coupling in merge.ts (P8) | Serverless Modularization | Search for remaining string literals after extract; visual check of LegalMetaBadge |
-| Tailwind purge removes palette map classes (P9) | Pattern Consolidation | `npm run build` then visual severity badge check in browser |
-| Client Zod validation rejects valid API data (P10) | Type Safety | Verify `.safeParse()` used on all untrusted paths |
+**Prevention:**
+- Set `pool: 'forks'` and limit concurrency in CI:
+  ```yaml
+  - run: npx vitest run --reporter=github-actions
+    env:
+      VITEST_MAX_FORKS: 2
+  ```
+- Use `--reporter=github-actions` for inline annotations on test failures.
+- For large test suites later, consider `--shard` to split across parallel jobs.
+- Cache `node_modules` in GitHub Actions:
+  ```yaml
+  - uses: actions/setup-node@v4
+    with:
+      node-version: 20
+      cache: 'npm'
+  ```
+
+**Phase:** Phase 1 (CI setup).
+
+**Confidence:** HIGH -- [vitest-dev/vitest discussion #6223](https://github.com/vitest-dev/vitest/discussions/6223).
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 13: Importing from `api/` in Tests Pulls in Side Effects
+
+**What goes wrong:** `api/analyze.ts` has top-level side-effect imports (`import '../src/knowledge/regulatory/index'`) that register knowledge modules globally. Importing the merge or scoring functions in a test inadvertently triggers module registration, which may conflict with mocks or cause ordering issues.
+
+**Prevention:**
+- Test `api/scoring.ts` and `api/merge.ts` in isolation -- they do not have side-effect imports.
+- For `api/analyze.ts` integration tests, let the side effects run (they register knowledge modules, which is the correct behavior).
+- If needed, use `vi.resetModules()` between tests that import from `api/analyze.ts`.
+
+**Phase:** Phase 2 (when writing scoring/merge tests) and Phase 4 (API integration tests).
+
+---
+
+### Pitfall 14: Zod Schema Tests Duplicating What TypeScript Already Checks
+
+**What goes wrong:** Writing tests that verify a Zod schema accepts valid data when TypeScript's type system already guarantees the fixture is well-typed. These tests add noise without catching real bugs.
+
+**Prevention:**
+- **DO test:** Invalid inputs, edge cases, discriminated union dispatch, migration compatibility (v1 data through v2 schema).
+- **DO test:** That `MergedFindingSchema.safeParse()` rejects data missing required fields like `actionPriority` (tests the v1-to-v2 boundary).
+- **DO NOT test:** That a correctly-typed TypeScript object passes validation (TypeScript already enforces this at compile time).
+- **High-value Zod tests for this project:**
+  - `LegalMetaSchema` discriminated union: verify each of the 11 clauseType variants
+  - `ScopeMetaSchema` discriminated union: verify each of the 4 passType variants
+  - API response validation: verify that malformed AI responses are caught
+
+**Phase:** Phase 2 (schema tests alongside core logic tests).
+
+---
+
+### Pitfall 15: React Dropzone and File Upload Testing
+
+**What goes wrong:** `UploadZone` uses `react-dropzone` which relies on drag-and-drop events and `File` objects. Creating realistic `File` objects in jsdom is awkward, and `DataTransfer` is not fully implemented.
+
+**Prevention:**
+- Use RTL's `fireEvent.drop()` with a manually constructed file:
+  ```typescript
+  const file = new File(['pdf-content'], 'test.pdf', { type: 'application/pdf' });
+  const dropzone = screen.getByTestId('upload-zone');
+  fireEvent.drop(dropzone, { dataTransfer: { files: [file] } });
+  ```
+- For the 10MB limit validation, create a `File` with a mock `size` property.
+- Consider these tests lower priority -- the upload flow is simple and the interesting logic is in the API, not the dropzone.
+
+**Phase:** Phase 3 (component tests), lower priority.
+
+---
+
+### Pitfall 16: Test File Organization Mirroring Source Structure Too Rigidly
+
+**What goes wrong:** Creating `src/utils/__tests__/bidSignal.test.ts` for every file leads to deeply nested test directories. Developers struggle to find tests or forget to create them for new files.
+
+**Prevention:**
+- **Co-locate test files:** `src/utils/bidSignal.test.ts` next to `src/utils/bidSignal.ts`. Vitest finds `*.test.ts` files anywhere by default.
+- **For api/ tests:** Place in `api/__tests__/` or `api/scoring.test.ts` co-located.
+- **Configure in vitest.config.ts:**
+  ```typescript
+  test: {
+    include: ['src/**/*.test.{ts,tsx}', 'api/**/*.test.ts'],
+  }
+  ```
+
+**Phase:** Phase 1 (convention decision, before any tests are written).
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Infrastructure setup (Phase 1) | Config conflicts with vite.config.ts (#7), dual environments (#3) | Use separate vitest.config.ts, environmentMatchGlobs |
+| Infrastructure setup (Phase 1) | Framer Motion crashes (#2) | Global mock in setup file, verified with one component render |
+| Infrastructure setup (Phase 1) | CI runner perf (#12), secrets leaking (#11) | Pin Node version, cache deps, mock SDK at module level |
+| Core logic tests (Phase 2) | Tests that cannot fail (#6) | Mutation testing mindset, assert on specific values |
+| Core logic tests (Phase 2) | Side-effect imports from api/ (#13) | Test scoring/merge in isolation first |
+| Schema tests (Phase 2) | Duplicating TypeScript checks (#14) | Focus on invalid inputs, discriminated unions, migration |
+| Hook/Component tests (Phase 3) | localStorage timing (#8), renderHook misuse | Pre-populate storage before renderHook |
+| Hook/Component tests (Phase 3) | Coverage target pressure (#10) | Defer targets until core logic is covered |
+| API integration tests (Phase 4) | Anthropic SDK mock depth (#5) | Mock at class level, validate fixtures against Zod schemas |
+| API integration tests (Phase 4) | VercelRequest/Response complexity (#9) | Reusable mock factories |
 
 ---
 
 ## Sources
 
-- Framer Motion GitHub issues: [AnimatePresence stuck on fast state change](https://github.com/framer/motion/issues/2554), [AnimatePresence doesn't update with latest state](https://github.com/framer/motion/issues/2023)
-- [Why Framer Motion Exit Animations Fail](https://medium.com/javascript-decoded-in-plain-english/understanding-animatepresence-in-framer-motion-attributes-usage-and-a-common-bug-914538b9f1d3)
-- [Vercel Serverless Function 250MB size limit](https://vercel.com/kb/guide/troubleshooting-function-250mb-limit) — `config` export location requirements
-- [Vercel Functions docs](https://vercel.com/docs/functions) — bodyParser config must be in route entry file
-- [React hooks/exhaustive-deps rule](https://react.dev/learn/reusing-logic-with-custom-hooks) — custom hook dependency visibility
-- [Tailwind JIT purge and dynamic classes](https://tailwindcss.com/docs/content-configuration#dynamic-class-names) — safelist for runtime-determined classes
-- [Pitfalls of overusing React Context](https://blog.logrocket.com/pitfalls-of-overusing-react-context/) — re-render behavior of context consumers
-- [Optimizing React Context for Performance](https://www.tenxdeveloper.com/blog/optimizing-react-context-performance) — split context read/write pattern
-- [Prevent re-renders with useContext](https://blog.allaroundjavascript.com/prevent-unnecessary-re-renders-of-components-when-using-usecontext-with-react)
-- [Can you refactor JavaScript safely without test coverage?](https://dev.to/p42/can-you-refactor-javascript-safely-without-test-coverage-2hbo) — risk categorization for untested refactors
-- [Refactoring components in React with custom hooks](https://codescene.com/blog/refactoring-components-in-react-with-custom-hooks) — hook extraction patterns
-- Direct codebase reads: `ContractReview.tsx`, `useContractStore.ts`, `useCompanyProfile.ts`, `contractStorage.ts`, `api/analyze.ts`, `api/merge.ts`, `api/scoring.ts`, `src/knowledge/registry.ts`, `src/types/contract.ts`, `src/components/Toast.tsx`
+### Official Documentation (HIGH confidence)
+- [Vitest: Configuring](https://vitest.dev/config/)
+- [Vitest: Test Environment](https://vitest.dev/guide/environment)
+- [Vitest: Mocking](https://vitest.dev/guide/mocking)
+- [Vitest: Mocking Requests](https://vitest.dev/guide/mocking/requests)
 
----
-*Pitfalls research for: v1.5 Code Health — refactoring/component decomposition/type safety*
-*Researched: 2026-03-14*
+### Verified Community Sources (MEDIUM confidence)
+- [React Testing Library + Vitest: Common Mistakes](https://medium.com/@samueldeveloper/react-testing-library-vitest-the-mistakes-that-haunt-developers-and-how-to-fight-them-like-ca0a0cda2ef8)
+- [Vitest localStorage Testing](https://runthatline.com/vitest-mock-localstorage/)
+- [Mocking framer-motion v9](https://dev.to/pgarciacamou/mocking-framer-motion-v9-7jh)
+- [framer/motion#285: AnimatePresence with RTL](https://github.com/framer/motion/issues/285)
+- [Mock VercelRequest/VercelResponse Gist](https://gist.github.com/unicornware/2a1b03ef53dfc55e6fc16265dabaf056)
+- [Codecov: Legacy Application Coverage](https://about.codecov.io/blog/how-to-incorporate-code-coverage-for-a-legacy-application/)
+- [Stack Overflow: Code Coverage Paradox](https://stackoverflow.blog/2025/12/22/making-your-code-base-better-will-make-your-code-coverage-worse/)
+
+### Issue Trackers (MEDIUM confidence)
+- [Node v25 breaks tests with Web Storage API (vitest#8757)](https://github.com/vitest-dev/vitest/issues/8757)
+- [jsdom localStorage opaque origins (vitest#1605)](https://github.com/vitest-dev/vitest/issues/1605)
+- [framer/motion#1690: Feature request for test mocks](https://github.com/framer/motion/issues/1690)
+- [Slow CI test suite (vitest#6223)](https://github.com/vitest-dev/vitest/discussions/6223)
+
+### Codebase Verification (HIGH confidence)
+- `api/analyze.ts` -- verified Anthropic SDK usage pattern, VercelRequest/Response handler, ANTHROPIC_API_KEY check
+- `src/storage/storageManager.ts` -- verified direct localStorage access, StorageResult wrapper
+- `src/hooks/useContractStore.ts` -- verified localStorage read in useState initializer
+- `src/schemas/finding.ts` -- verified Zod discriminated unions (11 LegalMeta + 4 ScopeMeta variants)
+- `api/scoring.ts` -- verified pure function, ideal first test target
