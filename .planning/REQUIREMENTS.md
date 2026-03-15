@@ -71,28 +71,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PATN-01 | TBD | Pending |
-| PATN-02 | TBD | Pending |
-| PATN-03 | TBD | Pending |
-| TYPE-04 | TBD | Pending |
-| HOOK-01 | TBD | Pending |
-| HOOK-02 | TBD | Pending |
-| HOOK-03 | TBD | Pending |
-| DECOMP-02 | TBD | Pending |
-| DECOMP-03 | TBD | Pending |
-| PATN-04 | TBD | Pending |
-| DECOMP-01 | TBD | Pending |
-| TYPE-01 | TBD | Pending |
-| TYPE-02 | TBD | Pending |
-| TYPE-03 | TBD | Pending |
-| DECOMP-04 | TBD | Pending |
-| DECOMP-05 | TBD | Pending |
+| PATN-01 | Phase 27 | Pending |
+| PATN-02 | Phase 27 | Pending |
+| PATN-03 | Phase 27 | Pending |
+| TYPE-04 | Phase 27 | Pending |
+| HOOK-01 | Phase 28 | Pending |
+| HOOK-02 | Phase 28 | Pending |
+| HOOK-03 | Phase 28 | Pending |
+| DECOMP-01 | Phase 29 | Pending |
+| DECOMP-02 | Phase 29 | Pending |
+| DECOMP-03 | Phase 29 | Pending |
+| PATN-04 | Phase 29 | Pending |
+| TYPE-01 | Phase 30 | Pending |
+| TYPE-02 | Phase 30 | Pending |
+| TYPE-03 | Phase 30 | Pending |
+| DECOMP-04 | Phase 31 | Pending |
+| DECOMP-05 | Phase 31 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after initial definition*
+*Last updated: 2026-03-15 after roadmap creation*

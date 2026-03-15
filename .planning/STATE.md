@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-03-15T12:00:00.000Z"
-last_activity: 2026-03-15 -- Milestone v1.5 started
+last_updated: "2026-03-15T14:00:00.000Z"
+last_activity: 2026-03-15 -- Roadmap created for v1.5 Code Health
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health — defining requirements
+**Current focus:** v1.5 Code Health -- Phase 27 Foundation Utilities
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-15 — Milestone v1.5 started
+Phase: 27 of 31 (Foundation Utilities) -- first of 5 phases in v1.5
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-15 -- Roadmap created for v1.5 Code Health milestone
 
 ## Performance Metrics
 
@@ -43,6 +43,11 @@ Last activity: 2026-03-15 — Milestone v1.5 started
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table (37 decisions).
+Recent decisions affecting v1.5:
+
+- Incremental extraction over wholesale rewrite -- safer without test coverage
+- No new runtime dependencies -- all refactoring uses existing stack
+- Server modularization last -- highest regression risk, verify client phases first
 
 ### Pending Todos
 
@@ -50,11 +55,14 @@ None.
 
 ### Blockers/Concerns
 
+- Tailwind JIT purge risk: severity palette map must use complete class strings, not fragments
+- Zod/TS reconciliation requires localStorage migration for existing contracts
+- Vercel `export const config` must stay in api/analyze.ts entry file during modularization
 - Human UAT (live API + real contract) not yet performed (carried forward)
 - vercel.json maxDuration: 300 may require Vercel Pro plan (carried forward)
 
 ## Session Continuity
 
 Last session: 2026-03-15
-Stopped at: Defining v1.5 requirements
-Resume with: continue milestone setup
+Stopped at: Roadmap created for v1.5 milestone
+Resume with: `/gsd:plan-phase 27`
