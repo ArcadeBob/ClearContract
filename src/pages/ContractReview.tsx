@@ -16,7 +16,6 @@ import { exportContractPdf } from '../utils/exportContractPdf';
 import {
   ChevronLeft,
   Download,
-  Share2,
   CheckCircle,
   CheckCircle2,
   LayoutGrid,
@@ -54,6 +53,7 @@ const CATEGORY_ORDER: Category[] = [
   'Important Dates',
   'Technical Standards',
   'Risk Assessment',
+  'Compound Risk',
 ];
 
 const severityRank: Record<Severity, number> = {
@@ -271,14 +271,6 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <span>Delete</span>
           </button>
           <button
-            disabled
-            title="Coming soon"
-            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-400 text-sm font-medium cursor-not-allowed"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>Share</span>
-          </button>
-          <button
             onClick={() => setShowReanalyzeConfirm(true)}
             disabled={isReanalyzing}
             className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
@@ -342,7 +334,7 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
         <ConfirmDialog
           isOpen={showReanalyzeConfirm}
           title="Re-analyze Contract"
-          message="Re-analyzing will replace all current findings, including any resolved status and notes you've added. Select a PDF to continue."
+          message="Re-analyzing will refresh all findings. Resolved status and notes will be preserved where findings match. Select a PDF to continue."
           confirmLabel="Select PDF"
           confirmClassName="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
           icon="info"
