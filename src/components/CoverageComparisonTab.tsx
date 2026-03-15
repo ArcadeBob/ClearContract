@@ -168,7 +168,7 @@ export function CoverageComparisonTab({
           </tr>
         </thead>
         <tbody>
-          {allRows.map((row, i) => {
+          {allRows.map((row) => {
             const style = statusStyles[row.status];
             return (
               <tr

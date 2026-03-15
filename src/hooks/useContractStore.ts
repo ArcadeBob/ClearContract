@@ -57,7 +57,7 @@ export function useContractStore() {
           ? {
               ...c,
               findings: c.findings.map((f) =>
-                f.id === findingId ? { ...f, note } : f
+                f.id === findingId ? { ...f, note: note ?? '' } : f
               ),
             }
           : c
