@@ -175,14 +175,6 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
                   <Plus className="w-5 h-5" />
                   <span>Upload New Contract</span>
                 </button>
-                <button
-                  disabled
-                  title="Coming soon"
-                  className="w-full flex items-center justify-center space-x-2 bg-white border border-slate-200 text-slate-400 py-3 px-4 rounded-lg font-medium cursor-not-allowed"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>Generate Monthly Report</span>
-                </button>
               </div>
 
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
