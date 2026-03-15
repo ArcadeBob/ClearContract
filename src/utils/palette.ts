@@ -27,7 +27,7 @@ export function getRiskScoreColor(score: number): string {
  * Thresholds: >=70 = red, >=40 = amber, otherwise emerald.
  */
 export function getRiskBadgeColor(score: number): string {
-  if (score >= 70) return 'bg-red-100 text-red-700';
-  if (score >= 40) return 'bg-amber-100 text-amber-700';
-  return 'bg-emerald-100 text-emerald-700';
+  if (score >= 70) return 'bg-red-100 text-red-700 border-red-200';
+  if (score >= 40) return 'bg-amber-100 text-amber-700 border-amber-200';
+  return 'bg-emerald-100 text-emerald-700 border-emerald-200';
 }

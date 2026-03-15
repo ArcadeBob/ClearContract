@@ -1,3 +1,5 @@
+import { getRiskScoreColor } from '../utils/palette';
+
 interface RiskScoreDisplayProps {
   riskScore: number;
   scoreBreakdown?: Array<{ name: string; points: number }>;
@@ -9,12 +11,7 @@ export function RiskScoreDisplay({
   scoreBreakdown,
   className = '',
 }: RiskScoreDisplayProps) {
-  const colorClass =
-    riskScore > 70
-      ? 'text-red-600'
-      : riskScore > 40
-        ? 'text-amber-600'
-        : 'text-emerald-600';
+  const colorClass = getRiskScoreColor(riskScore);
 
   return (
     <div className={`relative group inline-flex items-center ${className}`}>

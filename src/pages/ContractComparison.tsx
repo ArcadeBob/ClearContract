@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Contract, Category, Finding } from '../types/contract';
 import { ChevronLeft, ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { SeverityBadge } from '../components/SeverityBadge';
+import { getRiskBadgeColor } from '../utils/palette';
 import { motion } from 'framer-motion';
 
 interface ContractComparisonProps {
@@ -24,12 +25,7 @@ const CATEGORY_ORDER: Category[] = [
 ];
 
 function RiskScoreBadge({ score }: { score: number }) {
-  const colorClass =
-    score >= 70
-      ? 'bg-red-100 text-red-700 border-red-200'
-      : score >= 40
-        ? 'bg-amber-100 text-amber-700 border-amber-200'
-        : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+  const colorClass = getRiskBadgeColor(score);
   return (
     <span className={`text-2xl font-bold px-4 py-2 rounded-xl border ${colorClass}`}>
       {score}

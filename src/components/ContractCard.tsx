@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Contract } from '../types/contract';
 import { FileText, Trash2, CheckCircle2 } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
+import { getRiskBadgeColor } from '../utils/palette';
 import { ConfirmDialog } from './ConfirmDialog';
 
 interface ContractCardProps {
@@ -89,11 +90,7 @@ export function ContractCard({ contract, onClick, onDelete, selectable, selected
           )}
         </div>
         <div className="flex items-center space-x-3">
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-            contract.riskScore >= 70 ? 'bg-red-100 text-red-700' :
-            contract.riskScore >= 40 ? 'bg-amber-100 text-amber-700' :
-            'bg-emerald-100 text-emerald-700'
-          }`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getRiskBadgeColor(contract.riskScore)}`}>
             Risk: {contract.riskScore}/100
           </span>
           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
