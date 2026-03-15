@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-stopped_at: v1.4 milestone completed and archived
-last_updated: "2026-03-15T03:30:00.000Z"
-last_activity: 2026-03-15 -- v1.4 milestone completed
+milestone: v1.5
+milestone_name: Code Health
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-15T12:00:00.000Z"
+last_activity: 2026-03-15 -- Milestone v1.5 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,13 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone
+**Current focus:** v1.5 Code Health — defining requirements
 
 ## Current Position
 
-No active milestone. v1.4 Production Readiness shipped 2026-03-15.
-
-Progress: Idle -- ready for `/gsd:new-milestone`
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-15 — Milestone v1.5 started
 
 ## Performance Metrics
 
@@ -55,5 +56,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-15
-Stopped at: v1.4 milestone completed and archived
-Resume with: `/gsd:new-milestone`
+Stopped at: Defining v1.5 requirements
+Resume with: continue milestone setup

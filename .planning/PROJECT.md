@@ -61,7 +61,29 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(No active requirements -- planning next milestone)
+#### Component Decomposition
+- [ ] Split ContractReview.tsx — extract filter/sort logic to hook
+- [ ] Split LegalMetaBadge.tsx — 12 clause subcomponents
+- [ ] Split ScopeMetaBadge.tsx — scope metadata subcomponents
+- [ ] Modularize api/analyze.ts — schemas, pass config, orchestration
+- [ ] Refactor api/merge.ts — finding conversion + dedup modules
+
+#### Type Safety
+- [ ] Reconcile Zod/TS optionality drift
+- [ ] Validate API response on client with Zod
+- [ ] Replace merge.ts casts with type guards
+- [ ] Create request validation schema for POST body
+
+#### Pattern Consolidation
+- [ ] Centralize localStorage access (storage manager)
+- [ ] Centralize error handling utility
+- [ ] Centralize color/severity mapping (palette map)
+- [ ] Extract toast to useToast context
+
+#### Hook Extraction
+- [ ] Create useInlineEdit hook
+- [ ] Create useContractFiltering hook
+- [ ] Create useFieldValidation hook
 
 ### Out of Scope
 
@@ -151,4 +173,15 @@ Known issues: human UAT pending, vercel.json maxDuration may need Pro plan, Nyqu
 | Compare route transient (no sidebar entry) | Contract comparison is ad-hoc action, not persistent navigation | ✓ Good -- clean navigation |
 
 ---
-*Last updated: 2026-03-15 after v1.4 milestone*
+## Current Milestone: v1.5 Code Health
+
+**Goal:** Broad refactoring sweep — decompose god components, fix type safety gaps, consolidate scattered patterns, extract reusable hooks.
+
+**Target features:**
+- Component decomposition (ContractReview, LegalMetaBadge, ScopeMetaBadge, analyze.ts, merge.ts)
+- Type safety (Zod/TS reconciliation, client validation, type guards, request schema)
+- Pattern consolidation (localStorage, error handling, color mapping, toast context)
+- Hook extraction (useInlineEdit, useContractFiltering, useFieldValidation)
+
+---
+*Last updated: 2026-03-15 after v1.5 milestone started*
