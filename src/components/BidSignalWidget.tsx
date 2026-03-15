@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { BidSignal } from '../types/contract';
+import { useState, useMemo } from 'react';
+import { BidSignal, Finding } from '../types/contract';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { generateFactorReasons } from '../utils/bidSignal';
 
 interface BidSignalWidgetProps {
   signal: BidSignal;
+  findings?: Finding[];
 }
 
 const colorMap: Record<BidSignal['level'], string> = {
@@ -19,8 +21,12 @@ function getBarColor(score: number): string {
   return 'bg-red-500';
 }
 
-export function BidSignalWidget({ signal }: BidSignalWidgetProps) {
+export function BidSignalWidget({ signal, findings }: BidSignalWidgetProps) {
   const [expanded, setExpanded] = useState(false);
+  const reasons = useMemo(
+    () => (findings ? generateFactorReasons(findings) : null),
+    [findings]
+  );
 
   return (
     <div>
@@ -54,22 +60,27 @@ export function BidSignalWidget({ signal }: BidSignalWidgetProps) {
           >
             <div className="mt-3 space-y-2.5 pl-6">
               {signal.factors.map((factor) => (
-                <div key={factor.name} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-600 w-28 shrink-0 truncate" title={factor.name}>
-                    {factor.name}
-                  </span>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${getBarColor(factor.score)}`}
-                      style={{ width: `${Math.round(factor.score)}%` }}
-                    />
+                <div key={factor.name}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-600 w-28 shrink-0 truncate" title={factor.name}>
+                      {factor.name}
+                    </span>
+                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${getBarColor(factor.score)}`}
+                        style={{ width: `${Math.round(factor.score)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-slate-700 w-10 text-right">
+                      {Math.round(factor.score)}%
+                    </span>
+                    <span className="text-xs text-slate-400 w-8 text-right">
+                      {factor.weight}
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-slate-700 w-10 text-right">
-                    {Math.round(factor.score)}%
-                  </span>
-                  <span className="text-xs text-slate-400 w-8 text-right">
-                    {factor.weight}
-                  </span>
+                  {reasons && reasons[factor.name] && (
+                    <p className="text-xs text-slate-500 mt-0.5 pl-28">{reasons[factor.name]}</p>
+                  )}
                 </div>
               ))}
             </div>

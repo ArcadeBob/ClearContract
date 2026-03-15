@@ -54,6 +54,7 @@ export function exportContractCsv(contract: Contract, options?: ExportOptions): 
   // Findings column headers
   lines.push(csvRow([
     'Severity',
+    'Action Priority',
     'Category',
     'Clause Reference',
     'Clause Text',
@@ -72,6 +73,7 @@ export function exportContractCsv(contract: Contract, options?: ExportOptions): 
   for (const f of sortedFindings) {
     lines.push(csvRow([
       f.severity,
+      f.actionPriority ?? '',
       f.category,
       f.clauseReference ?? '',
       f.clauseText ?? '',

@@ -51,7 +51,15 @@ interface FactorDef {
   match: (f: Finding) => boolean;
 }
 
-const FACTOR_DEFS: FactorDef[] = [
+const SEVERITY_RANK: Record<string, number> = {
+  Critical: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3,
+  Info: 4,
+};
+
+export const FACTOR_DEFS: FactorDef[] = [
   { name: 'Bonding', weight: 0.25, match: matchesBonding },
   { name: 'Insurance', weight: 0.25, match: matchesInsurance },
   { name: 'Scope', weight: 0.2, match: matchesScope },
@@ -102,4 +110,28 @@ export function computeBidSignal(findings: Finding[]): BidSignal {
   }
 
   return { level, label, score, factors };
+}
+
+/**
+ * Generate a one-line reason string per bid signal factor based on matched findings.
+ * For each factor, returns the title of the worst-severity matched finding,
+ * or a "no issues found" message if no findings match.
+ */
+export function generateFactorReasons(findings: Finding[]): Record<string, string> {
+  const reasons: Record<string, string> = {};
+
+  for (const def of FACTOR_DEFS) {
+    const matched = findings.filter(def.match);
+
+    if (matched.length === 0) {
+      reasons[def.name] = `No ${def.name.toLowerCase()} issues found`;
+    } else {
+      matched.sort(
+        (a, b) => (SEVERITY_RANK[a.severity] ?? 4) - (SEVERITY_RANK[b.severity] ?? 4)
+      );
+      reasons[def.name] = matched[0].title;
+    }
+  }
+
+  return reasons;
 }

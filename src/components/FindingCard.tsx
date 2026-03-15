@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Finding } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
+import { ActionPriorityBadge } from './ActionPriorityBadge';
 import { ClauseQuote } from './ClauseQuote';
 import { LegalMetaBadge } from './LegalMetaBadge';
 import { ScopeMetaBadge } from './ScopeMetaBadge';
@@ -76,6 +77,7 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
             severity={finding.severity}
             downgradedFrom={finding.downgradedFrom}
           />
+          {finding.actionPriority && <ActionPriorityBadge priority={finding.actionPriority} />}
         </div>
       </div>
 
