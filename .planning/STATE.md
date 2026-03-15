@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Code Health
-status: completed
-stopped_at: Phase 30 context gathered
-last_updated: "2026-03-15T15:37:48.231Z"
-last_activity: 2026-03-15 -- Completed 29-03 ContractReview decomposition + toast wiring
+status: in-progress
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-03-15T16:06:41.000Z"
+last_activity: 2026-03-15 -- Completed 30-01 canonical Finding schema + migration
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.5 Code Health -- Phase 29 complete, next: Phase 30 Type Safety Hardening
+**Current focus:** v1.5 Code Health -- Phase 30 Type Safety Hardening in progress
 
 ## Current Position
 
-Phase: 29 of 31 (Component Decomposition + Toast Context) -- third of 5 phases in v1.5
-Plan: 3 of 3 in current phase (phase complete)
-Status: Phase 29 complete
-Last activity: 2026-03-15 -- Completed 29-03 ContractReview decomposition + toast wiring
+Phase: 30 of 31 (Type Safety Hardening) -- fourth of 5 phases in v1.5
+Plan: 1 of 2 in current phase (30-01 complete)
+Status: Phase 30 in progress
+Last activity: 2026-03-15 -- Completed 30-01 canonical Finding schema + migration
 
 ## Performance Metrics
 
@@ -57,6 +57,9 @@ Recent decisions affecting v1.5:
 - [Phase 29]: Toast.tsx changed from absolute to fixed positioning; auto-dismiss timer moved to ToastProvider (3s)
 - [Phase 29]: Kept useCompanyProfile in ContractReview (profile banner is in main content, not header)
 - [Phase 29]: Exported ViewMode type from FilterToolbar for ContractReview import
+- [Phase 30]: Finding type derived from z.infer<MergedFindingSchema> -- Zod is single source of truth
+- [Phase 30]: LegalMeta/ScopeMeta TS interfaces kept in contract.ts alongside Zod mirrors to avoid circular deps
+- [Phase 30]: localStorage migration fills defaults inline rather than clearing data
 
 ### Pending Todos
 
@@ -65,13 +68,13 @@ None.
 ### Blockers/Concerns
 
 - Tailwind JIT purge risk: severity palette map must use complete class strings, not fragments
-- Zod/TS reconciliation requires localStorage migration for existing contracts
+- Zod/TS reconciliation requires localStorage migration for existing contracts (RESOLVED in 30-01)
 - Vercel `export const config` must stay in api/analyze.ts entry file during modularization
 - Human UAT (live API + real contract) not yet performed (carried forward)
 - vercel.json maxDuration: 300 may require Vercel Pro plan (carried forward)
 
 ## Session Continuity
 
-Last session: 2026-03-15T15:37:48.229Z
-Stopped at: Phase 30 context gathered
-Resume with: `/gsd:execute-phase 30` (Type Safety Hardening)
+Last session: 2026-03-15T16:06:41.000Z
+Stopped at: Completed 30-01-PLAN.md
+Resume with: `/gsd:execute-phase 30` to continue with 30-02

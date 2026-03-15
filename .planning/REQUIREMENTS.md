@@ -17,7 +17,7 @@ Requirements for code health milestone. Each maps to roadmap phases.
 
 ### Type Safety
 
-- [ ] **TYPE-01**: Reconcile Zod schema / TypeScript interface optionality — required fields in schemas match required fields in types
+- [x] **TYPE-01**: Reconcile Zod schema / TypeScript interface optionality — required fields in schemas match required fields in types
 - [ ] **TYPE-02**: Validate API response on client — add Zod parse to analyzeContract.ts response handling
 - [ ] **TYPE-03**: Replace merge.ts assertion casts with type guards — eliminate 13+ `as string` casts using discriminated union narrowing
 - [x] **TYPE-04**: Create request validation schema for /api/analyze POST body — typed end-to-end
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DECOMP-02 | Phase 29 | Complete |
 | DECOMP-03 | Phase 29 | Complete |
 | PATN-04 | Phase 29 | Complete |
-| TYPE-01 | Phase 30 | Pending |
+| TYPE-01 | Phase 30 | Complete |
 | TYPE-02 | Phase 30 | Pending |
 | TYPE-03 | Phase 30 | Pending |
 | DECOMP-04 | Phase 31 | Pending |
