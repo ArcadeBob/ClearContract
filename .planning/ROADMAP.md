@@ -154,19 +154,18 @@ Plans:
 - [ ] 30-03-PLAN.md — Fix tsc --noEmit errors in contract.ts and contractStorage.ts [GAP CLOSURE]
 
 ### Phase 31: Server-side API Modularization
-**Goal**: The 1,510-line api/analyze.ts monolith is decomposed into focused modules while preserving the Vercel entry-point contract
+**Goal**: The 1,478-line api/analyze.ts monolith is decomposed into focused modules while preserving the Vercel entry-point contract
 **Depends on**: Phase 30 (all client-side phases verified before touching server pipeline)
 **Requirements**: DECOMP-04, DECOMP-05
 **Success Criteria** (what must be TRUE):
-  1. api/analyze.ts is under 200 lines and contains only the handler default export, `export const config`, and orchestration calls to extracted modules
-  2. Pass definitions live in api/passes/ as separate modules; schema definitions are co-located or extracted to api/lib/
-  3. Finding conversion functions and deduplication logic from merge.ts live in focused modules under api/conversion/ or similar
-  4. A Vercel preview deployment successfully analyzes a 3-5MB PDF contract through all 16 passes -- the full pipeline works end-to-end after modularization
-**Plans**: TBD
+  1. api/analyze.ts is under 550 lines and contains only the handler default export, `export const config`, constants, run functions, and orchestration calls to extracted modules
+  2. Pass definitions live in api/passes.ts as a flat sibling module; schema definitions remain in src/schemas/
+  3. merge.ts is unchanged -- DECOMP-05 satisfied by Phase 30 type guard refactoring
+  4. `npm run build` succeeds after modularization
+**Plans**: 1 plan
 
 Plans:
-- [ ] 31-01: TBD
-- [ ] 31-02: TBD
+- [ ] 31-01-PLAN.md — Extract 16 pass definitions and SYNTHESIS_SYSTEM_PROMPT to api/passes.ts, update analyze.ts imports
 
 ## Progress
 
@@ -205,4 +204,4 @@ Phases execute in numeric order: 27 -> 28 -> 29 -> 30 -> 31
 | 28. Hook Extraction | 2/2 | Complete    | 2026-03-15 | - |
 | 29. Component Decomposition + Toast Context | 3/3 | Complete    | 2026-03-15 | - |
 | 30. Type Safety Hardening | 3/3 | Complete   | 2026-03-15 | - |
-| 31. Server-side API Modularization | v1.5 | 0/TBD | Not started | - |
+| 31. Server-side API Modularization | v1.5 | 0/1 | Not started | - |
