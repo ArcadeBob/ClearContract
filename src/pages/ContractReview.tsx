@@ -11,6 +11,7 @@ import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
+import { exportContractPdf } from '../utils/exportContractPdf';
 import {
   ChevronLeft,
   Download,
@@ -25,6 +26,7 @@ import {
   RefreshCw,
   Loader2,
   Pencil,
+  FileText,
 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AnimatePresence } from 'framer-motion';
@@ -287,6 +289,15 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
             <span>Re-analyze</span>
           </button>
           <button
+            onClick={() => exportContractPdf(contract)}
+            disabled={isReanalyzing || contract.findings.length === 0}
+            className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download PDF Report"
+          >
+            <FileText className="w-4 h-4" />
+            <span>PDF</span>
+          </button>
+          <button
             onClick={() => {
               const exportFindings = selectedCategory === 'All'
                 ? visibleFindings
@@ -391,7 +402,7 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                     />
                   </div>
                   {contract.bidSignal && (
-                    <BidSignalWidget signal={contract.bidSignal} />
+                    <BidSignalWidget signal={contract.bidSignal} findings={contract.findings} />
                   )}
                 </div>
               </div>
