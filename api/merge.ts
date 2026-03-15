@@ -1,7 +1,29 @@
+import { z } from 'zod';
 import type { PassResult, RiskOverviewResult, MergedAnalysisResult, FindingResult } from '../src/schemas/analysis';
-import type { LegalMeta, ScopeMeta } from '../src/types/contract';
+import type { Severity, Category, LegalMeta, ScopeMeta } from '../src/types/contract';
 import { computeRiskScore, applySeverityGuard, type ScoreBreakdown } from './scoring';
 import { getAllModules } from '../src/knowledge/registry';
+
+import {
+  IndemnificationFindingSchema,
+  PaymentContingencyFindingSchema,
+  LiquidatedDamagesFindingSchema,
+  RetainageFindingSchema,
+  InsuranceFindingSchema,
+  TerminationFindingSchema,
+  FlowDownFindingSchema,
+  NoDamageDelayFindingSchema,
+  LienRightsFindingSchema,
+  DisputeResolutionFindingSchema,
+  ChangeOrderFindingSchema,
+} from '../src/schemas/legalAnalysis';
+
+import {
+  ScopeOfWorkFindingSchema,
+  DatesDeadlinesFindingSchema,
+  VerbiageFindingSchema,
+  LaborComplianceFindingSchema,
+} from '../src/schemas/scopeComplianceAnalysis';
 
 export interface AnalysisPassInfo {
   name: string;
@@ -11,8 +33,8 @@ export interface AnalysisPassInfo {
 }
 
 export interface UnifiedFinding {
-  severity: string;
-  category: string;
+  severity: Severity;
+  category: Category;
   title: string;
   description: string;
   recommendation: string;
@@ -24,193 +46,321 @@ export interface UnifiedFinding {
   scopeMeta?: ScopeMeta;
   sourcePass?: string;
   negotiationPosition?: string;
-  downgradedFrom?: string;
+  downgradedFrom?: Severity;
   isSynthesis?: boolean;
+  actionPriority?: 'pre-bid' | 'pre-sign' | 'monitor';
+}
+
+// ---------------------------------------------------------------------------
+// Base finding builder -- accepts any object with the common finding fields
+// ---------------------------------------------------------------------------
+
+interface BaseFindingFields {
+  severity: string;
+  category: string;
+  title: string;
+  description: string;
+  recommendation: string;
+  clauseReference: string;
+  clauseText?: string;
+  explanation?: string;
+  crossReferences?: string[];
+  negotiationPosition?: string;
+  downgradedFrom?: string;
   actionPriority?: string;
 }
 
 function buildBaseFinding(
-  finding: FindingResult & Record<string, unknown>,
+  finding: BaseFindingFields,
   passName: string
 ): UnifiedFinding {
   return {
-    severity: finding.severity,
-    category: finding.category,
+    severity: finding.severity as Severity,
+    category: finding.category as Category,
     title: finding.title,
     description: finding.description,
     recommendation: finding.recommendation,
     clauseReference: finding.clauseReference,
     clauseText: finding.clauseText,
     explanation: finding.explanation,
-    crossReferences: finding.crossReferences as string[],
+    crossReferences: finding.crossReferences,
     sourcePass: passName,
     negotiationPosition: finding.negotiationPosition,
-    downgradedFrom: finding.downgradedFrom,
-    actionPriority: finding.actionPriority as string | undefined,
+    downgradedFrom: finding.downgradedFrom as Severity | undefined,
+    actionPriority: finding.actionPriority as 'pre-bid' | 'pre-sign' | 'monitor' | undefined,
   };
 }
 
-function convertLegalFinding(
-  finding: FindingResult & Record<string, unknown>,
-  passName: string
-): UnifiedFinding {
-  const base = buildBaseFinding(finding, passName);
+// NOTE on remaining `as Severity` / `as Category` / `as 'pre-bid'|...` casts in buildBaseFinding:
+// These are Zod-validated enum-to-type-alias casts. Zod's z.enum returns the
+// literal string union, but the TS types are branded (Severity = 'Critical'|...).
+// The Zod parse has already validated them, so these are safe narrowing casts,
+// NOT the unsafe assertion casts the plan eliminates (Record/Array/unknown etc).
 
-  switch (passName) {
-    case 'legal-indemnification':
-      base.legalMeta = {
-        clauseType: 'indemnification',
-        riskType: finding.riskType as 'limited' | 'intermediate' | 'broad',
-        hasInsuranceGap: finding.hasInsuranceGap as boolean,
-      };
-      break;
-    case 'legal-payment-contingency':
-      base.legalMeta = {
-        clauseType: 'payment-contingency',
-        paymentType: finding.paymentType as 'pay-if-paid' | 'pay-when-paid',
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-liquidated-damages':
-      base.legalMeta = {
-        clauseType: 'liquidated-damages',
-        amountOrRate: finding.amountOrRate as string,
-        capStatus: finding.capStatus as 'capped' | 'uncapped',
-        proportionalityAssessment: finding.proportionalityAssessment as string,
-      };
-      break;
-    case 'legal-retainage':
-      base.legalMeta = {
-        clauseType: 'retainage',
-        percentage: finding.percentage as string,
-        releaseCondition: finding.releaseCondition as string,
-        tiedTo: finding.tiedTo as 'sub-work' | 'project-completion' | 'unspecified',
-      };
-      break;
-    case 'legal-insurance':
-      base.legalMeta = {
-        clauseType: 'insurance',
-        coverageItems: finding.coverageItems as Array<{
-          coverageType: string;
-          requiredLimit: string;
-          isAboveStandard: boolean;
-        }>,
-        endorsements: finding.endorsements as Array<{
-          endorsementType: string;
-          isNonStandard: boolean;
-        }>,
-        certificateHolder: finding.certificateHolder as string,
-      };
-      break;
-    case 'legal-termination':
-      base.legalMeta = {
-        clauseType: 'termination',
-        terminationType: finding.terminationType as string,
-        noticePeriod: finding.noticePeriod as string,
-        compensation: finding.compensation as string,
-        curePeriod: finding.curePeriod as string,
-      };
-      break;
-    case 'legal-flow-down':
-      base.legalMeta = {
-        clauseType: 'flow-down',
-        flowDownScope: finding.flowDownScope as string,
-        problematicObligations: finding.problematicObligations as string[],
-        primeContractAvailable: finding.primeContractAvailable as boolean,
-      };
-      break;
-    case 'legal-no-damage-delay':
-      base.legalMeta = {
-        clauseType: 'no-damage-delay',
-        waiverScope: finding.waiverScope as string,
-        exceptions: finding.exceptions as string[],
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-lien-rights':
-      base.legalMeta = {
-        clauseType: 'lien-rights',
-        waiverType: finding.waiverType as string,
-        lienFilingDeadline: finding.lienFilingDeadline as string,
-        enforceabilityContext: finding.enforceabilityContext as string,
-      };
-      break;
-    case 'legal-dispute-resolution':
-      base.legalMeta = {
-        clauseType: 'dispute-resolution',
-        mechanism: finding.mechanism as string,
-        venue: finding.venue as string,
-        feeShifting: finding.feeShifting as string,
-        mediationRequired: finding.mediationRequired as boolean,
-      };
-      break;
-    case 'legal-change-order':
-      base.legalMeta = {
-        clauseType: 'change-order',
-        changeType: finding.changeType as string,
-        noticeRequired: finding.noticeRequired as string,
-        pricingMechanism: finding.pricingMechanism as string,
-        proceedPending: finding.proceedPending as boolean,
-      };
-      break;
-  }
+// ---------------------------------------------------------------------------
+// Typed converter functions (one per pass)
+// ---------------------------------------------------------------------------
 
-  return base;
+type IndemnificationFinding = z.infer<typeof IndemnificationFindingSchema>;
+
+function convertIndemnificationFinding(finding: IndemnificationFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'indemnification',
+      riskType: finding.riskType,
+      hasInsuranceGap: finding.hasInsuranceGap,
+    },
+  };
 }
 
-function convertScopeFinding(
-  finding: FindingResult & Record<string, unknown>,
-  passName: string
-): UnifiedFinding {
-  const base = buildBaseFinding(finding, passName);
+type PaymentContingencyFinding = z.infer<typeof PaymentContingencyFindingSchema>;
 
-  switch (passName) {
-    case 'scope-of-work':
-      base.scopeMeta = {
-        passType: 'scope-of-work',
-        scopeItemType: finding.scopeItemType as string,
-        specificationReference: finding.specificationReference as string,
-        affectedTrade: finding.affectedTrade as string,
-      };
-      break;
-    case 'dates-deadlines':
-      base.scopeMeta = {
-        passType: 'dates-deadlines',
-        periodType: finding.periodType as string,
-        duration: finding.duration as string,
-        triggerEvent: finding.triggerEvent as string,
-      };
-      break;
-    case 'verbiage-analysis':
-      base.scopeMeta = {
-        passType: 'verbiage',
-        issueType: finding.issueType as string,
-        affectedParty: finding.affectedParty as string,
-        suggestedClarification: finding.suggestedClarification as string,
-      };
-      break;
-    case 'labor-compliance':
-      base.scopeMeta = {
-        passType: 'labor-compliance',
-        requirementType: finding.requirementType as string,
-        responsibleParty: finding.responsibleParty as string,
-        contactInfo: finding.contactInfo as string,
-        deadline: finding.deadline as string,
-        checklistItems: (
-          (finding.checklistItems as Array<Record<string, unknown>>) || []
-        ).map((item) => ({
-          item: item.item as string,
-          deadline: item.deadline as string,
-          responsibleParty: item.responsibleParty as string,
-          contactInfo: item.contactInfo as string,
-          status: item.status as 'required' | 'conditional' | 'recommended',
-        })),
-      };
-      break;
-  }
-
-  return base;
+function convertPaymentContingencyFinding(finding: PaymentContingencyFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'payment-contingency',
+      paymentType: finding.paymentType,
+      enforceabilityContext: finding.enforceabilityContext,
+    },
+  };
 }
+
+type LiquidatedDamagesFinding = z.infer<typeof LiquidatedDamagesFindingSchema>;
+
+function convertLiquidatedDamagesFinding(finding: LiquidatedDamagesFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'liquidated-damages',
+      amountOrRate: finding.amountOrRate,
+      capStatus: finding.capStatus,
+      proportionalityAssessment: finding.proportionalityAssessment,
+    },
+  };
+}
+
+type RetainageFinding = z.infer<typeof RetainageFindingSchema>;
+
+function convertRetainageFinding(finding: RetainageFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'retainage',
+      percentage: finding.percentage,
+      releaseCondition: finding.releaseCondition,
+      tiedTo: finding.tiedTo,
+    },
+  };
+}
+
+type InsuranceFinding = z.infer<typeof InsuranceFindingSchema>;
+
+function convertInsuranceFinding(finding: InsuranceFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'insurance',
+      coverageItems: finding.coverageItems,
+      endorsements: finding.endorsements,
+      certificateHolder: finding.certificateHolder,
+    },
+  };
+}
+
+type TerminationFinding = z.infer<typeof TerminationFindingSchema>;
+
+function convertTerminationFinding(finding: TerminationFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'termination',
+      terminationType: finding.terminationType,
+      noticePeriod: finding.noticePeriod,
+      compensation: finding.compensation,
+      curePeriod: finding.curePeriod,
+    },
+  };
+}
+
+type FlowDownFinding = z.infer<typeof FlowDownFindingSchema>;
+
+function convertFlowDownFinding(finding: FlowDownFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'flow-down',
+      flowDownScope: finding.flowDownScope,
+      problematicObligations: finding.problematicObligations,
+      primeContractAvailable: finding.primeContractAvailable,
+    },
+  };
+}
+
+type NoDamageDelayFinding = z.infer<typeof NoDamageDelayFindingSchema>;
+
+function convertNoDamageDelayFinding(finding: NoDamageDelayFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'no-damage-delay',
+      waiverScope: finding.waiverScope,
+      exceptions: finding.exceptions,
+      enforceabilityContext: finding.enforceabilityContext,
+    },
+  };
+}
+
+type LienRightsFinding = z.infer<typeof LienRightsFindingSchema>;
+
+function convertLienRightsFinding(finding: LienRightsFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'lien-rights',
+      waiverType: finding.waiverType,
+      lienFilingDeadline: finding.lienFilingDeadline,
+      enforceabilityContext: finding.enforceabilityContext,
+    },
+  };
+}
+
+type DisputeResolutionFinding = z.infer<typeof DisputeResolutionFindingSchema>;
+
+function convertDisputeResolutionFinding(finding: DisputeResolutionFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'dispute-resolution',
+      mechanism: finding.mechanism,
+      venue: finding.venue,
+      feeShifting: finding.feeShifting,
+      mediationRequired: finding.mediationRequired,
+    },
+  };
+}
+
+type ChangeOrderFinding = z.infer<typeof ChangeOrderFindingSchema>;
+
+function convertChangeOrderFinding(finding: ChangeOrderFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    legalMeta: {
+      clauseType: 'change-order',
+      changeType: finding.changeType,
+      noticeRequired: finding.noticeRequired,
+      pricingMechanism: finding.pricingMechanism,
+      proceedPending: finding.proceedPending,
+    },
+  };
+}
+
+// --- Scope converter functions ---
+
+type ScopeOfWorkFinding = z.infer<typeof ScopeOfWorkFindingSchema>;
+
+function convertScopeOfWorkFinding(finding: ScopeOfWorkFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'scope-of-work',
+      scopeItemType: finding.scopeItemType,
+      specificationReference: finding.specificationReference,
+      affectedTrade: finding.affectedTrade,
+    },
+  };
+}
+
+type DatesDeadlinesFinding = z.infer<typeof DatesDeadlinesFindingSchema>;
+
+function convertDatesDeadlinesFinding(finding: DatesDeadlinesFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'dates-deadlines',
+      periodType: finding.periodType,
+      duration: finding.duration,
+      triggerEvent: finding.triggerEvent,
+    },
+  };
+}
+
+type VerbiageFinding = z.infer<typeof VerbiageFindingSchema>;
+
+function convertVerbiageFinding(finding: VerbiageFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'verbiage',
+      issueType: finding.issueType,
+      affectedParty: finding.affectedParty,
+      suggestedClarification: finding.suggestedClarification,
+    },
+  };
+}
+
+type LaborComplianceFinding = z.infer<typeof LaborComplianceFindingSchema>;
+
+function convertLaborComplianceFinding(finding: LaborComplianceFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'labor-compliance',
+      requirementType: finding.requirementType,
+      responsibleParty: finding.responsibleParty,
+      contactInfo: finding.contactInfo,
+      deadline: finding.deadline,
+      checklistItems: finding.checklistItems,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Pass handler dispatch map (generic helper avoids casts)
+// ---------------------------------------------------------------------------
+
+interface PassHandler<T extends z.ZodTypeAny = z.ZodTypeAny> {
+  schema: T;
+  convert: (finding: z.infer<T>, passName: string) => UnifiedFinding;
+}
+
+function createHandler<T extends z.ZodTypeAny>(
+  schema: T,
+  convert: (finding: z.infer<T>, passName: string) => UnifiedFinding
+): PassHandler<T> {
+  return { schema, convert };
+}
+
+const passHandlers: Record<string, PassHandler> = {
+  'legal-indemnification': createHandler(IndemnificationFindingSchema, convertIndemnificationFinding),
+  'legal-payment-contingency': createHandler(PaymentContingencyFindingSchema, convertPaymentContingencyFinding),
+  'legal-liquidated-damages': createHandler(LiquidatedDamagesFindingSchema, convertLiquidatedDamagesFinding),
+  'legal-retainage': createHandler(RetainageFindingSchema, convertRetainageFinding),
+  'legal-insurance': createHandler(InsuranceFindingSchema, convertInsuranceFinding),
+  'legal-termination': createHandler(TerminationFindingSchema, convertTerminationFinding),
+  'legal-flow-down': createHandler(FlowDownFindingSchema, convertFlowDownFinding),
+  'legal-no-damage-delay': createHandler(NoDamageDelayFindingSchema, convertNoDamageDelayFinding),
+  'legal-lien-rights': createHandler(LienRightsFindingSchema, convertLienRightsFinding),
+  'legal-dispute-resolution': createHandler(DisputeResolutionFindingSchema, convertDisputeResolutionFinding),
+  'legal-change-order': createHandler(ChangeOrderFindingSchema, convertChangeOrderFinding),
+  'scope-of-work': createHandler(ScopeOfWorkFindingSchema, convertScopeOfWorkFinding),
+  'dates-deadlines': createHandler(DatesDeadlinesFindingSchema, convertDatesDeadlinesFinding),
+  'verbiage-analysis': createHandler(VerbiageFindingSchema, convertVerbiageFinding),
+  'labor-compliance': createHandler(LaborComplianceFindingSchema, convertLaborComplianceFinding),
+};
+
+// ---------------------------------------------------------------------------
+// Type guard for risk overview results
+// ---------------------------------------------------------------------------
+
+function isRiskOverview(r: PassResult | RiskOverviewResult): r is RiskOverviewResult {
+  return 'client' in r;
+}
+
+// ---------------------------------------------------------------------------
+// Staleness check for knowledge modules
+// ---------------------------------------------------------------------------
 
 function checkModuleStaleness(): UnifiedFinding[] {
   const now = new Date();
@@ -232,6 +382,10 @@ function checkModuleStaleness(): UnifiedFinding[] {
 
   return findings;
 }
+
+// ---------------------------------------------------------------------------
+// Main merge function
+// ---------------------------------------------------------------------------
 
 export function mergePassResults(
   results: PromiseSettledResult<{
@@ -264,31 +418,26 @@ export function mergePassResults(
       allDates.push(...result.dates);
       passResults.push({ passName, status: 'success' });
 
-      if (passes[i].isOverview && 'client' in result) {
-        const overview = result as RiskOverviewResult;
-        client = overview.client || client;
-        contractType = overview.contractType || contractType;
+      if (passes[i].isOverview && isRiskOverview(result)) {
+        client = result.client || client;
+        contractType = result.contractType || contractType;
       }
 
-      if (passes[i].isLegal) {
+      const handler = passHandlers[passName];
+      if (handler) {
+        // Specialized pass -- parse each finding through its Zod schema
         for (const f of result.findings) {
-          allFindings.push(
-            convertLegalFinding(f as FindingResult & Record<string, unknown>, passName)
-          );
-        }
-      } else if (passes[i].isScope) {
-        for (const f of result.findings) {
-          allFindings.push(
-            convertScopeFinding(f as FindingResult & Record<string, unknown>, passName)
-          );
+          const parsed = handler.schema.safeParse(f);
+          if (parsed.success) {
+            allFindings.push(handler.convert(parsed.data, passName));
+          } else {
+            console.error('Malformed finding in pass %s:', passName, parsed.error.issues);
+          }
         }
       } else {
+        // Generic/overview findings -- no special meta
         for (const f of result.findings) {
-          allFindings.push({
-            ...f,
-            sourcePass: passName,
-            negotiationPosition: f.negotiationPosition,
-          });
+          allFindings.push(buildBaseFinding(f, passName));
         }
       }
     } else {
@@ -398,7 +547,7 @@ export function mergePassResults(
     contractType,
     riskScore: scoreResult.score,
     scoreBreakdown: scoreResult.categories,
-    findings: deduplicatedFindings as MergedAnalysisResult['findings'],
+    findings: deduplicatedFindings,
     dates: allDates,
     passResults,
   };
