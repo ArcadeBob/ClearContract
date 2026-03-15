@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
 import { Shield, Scale, ShieldCheck, HardHat, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { useFieldValidation } from '../hooks/useFieldValidation';
 import { validateField, type FieldType } from '../utils/settingsValidation';
 import type { CompanyProfile } from '../knowledge/types';
 
@@ -11,77 +11,31 @@ function ProfileField({
   onSave,
   type = 'text',
   fieldType,
+  fieldKey,
 }: {
   label: string;
   value: string;
   onSave: (v: string) => void;
   type?: string;
   fieldType?: FieldType;
+  fieldKey: string;
 }) {
-  const [localValue, setLocalValue] = useState(value);
-  const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
-  const [showSaved, setShowSaved] = useState(false);
-  const focusedRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  // Sync localValue when value prop changes externally (but not while focused)
-  useEffect(() => {
-    if (!focusedRef.current) {
-      setLocalValue(value);
-    }
-  }, [value]);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalValue(e.target.value);
-    setError(null);
-  }, []);
-
-  const handleFocus = useCallback(() => {
-    focusedRef.current = true;
-    setError(null);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    focusedRef.current = false;
-
-    const result = validateField(localValue, fieldType || 'text');
-
-    if (!result.valid) {
-      setError(result.error || null);
-      setLocalValue(value); // revert to last saved
-      return;
-    }
-
-    setError(null);
-    setWarning(result.warning || null);
-
-    const finalValue = result.formatted || localValue;
-    setLocalValue(finalValue);
-
-    if (finalValue !== value) {
-      onSave(finalValue);
-      setShowSaved(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setShowSaved(false), 2000);
-    }
-  }, [localValue, value, fieldType, onSave]);
+  const { inputProps, error, warning, showSaved } = useFieldValidation({
+    initialValue: value,
+    validate: (v) => validateField(v, fieldType || 'text'),
+    onSave,
+  });
 
   const borderClasses = error
     ? 'border-red-300 focus:ring-red-500'
     : 'border-slate-200 focus:ring-blue-500';
 
+  const inputId = `profile-${fieldKey}`;
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
+        <label htmlFor={inputId} className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
           {label}
         </label>
         <AnimatePresence>
@@ -99,11 +53,9 @@ function ProfileField({
         </AnimatePresence>
       </div>
       <input
+        id={inputId}
         type={type}
-        value={localValue}
-        onChange={handleChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
+        {...inputProps}
         className={`w-full px-3 py-2 border rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent ${borderClasses}`}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
@@ -129,7 +81,7 @@ interface CardSection {
 }
 
 export function Settings() {
-  const { profile, saveField } = useCompanyProfile();
+  const { profile, saveField, storageError, dismissStorageError } = useCompanyProfile();
 
   const cards: CardSection[] = [
     {
@@ -241,6 +193,18 @@ export function Settings() {
 
       <div className="flex-1 overflow-auto bg-slate-50 p-8">
         <div className="max-w-4xl mx-auto space-y-8">
+          {storageError && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+              <span className="text-amber-600 text-sm flex-1">{storageError}</span>
+              <button
+                onClick={dismissStorageError}
+                className="text-amber-400 hover:text-amber-600 text-lg leading-none"
+                aria-label="Dismiss warning"
+              >
+                &times;
+              </button>
+            </div>
+          )}
           {cards.map((card, index) => {
             const Icon = card.icon;
             return (
@@ -276,6 +240,7 @@ export function Settings() {
                         onSave={(v) => saveField(field.key, v)}
                         type={field.type}
                         fieldType={field.fieldType}
+                        fieldKey={field.key}
                       />
                     ))}
                   </div>
