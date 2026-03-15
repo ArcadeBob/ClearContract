@@ -132,11 +132,11 @@ Plans:
   2. User can select two contracts and view a side-by-side comparison showing findings diff and risk score delta (PORT-02)
   3. Findings list supports multi-select filtering by severity, category, resolved status, and presence of negotiation position simultaneously (PORT-03)
   4. When re-analyzing a contract, previously resolved findings and user notes are preserved by matching against new findings on composite key (PORT-04)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 25-01: TBD
-- [ ] 25-02: TBD
+- [ ] 25-01-PLAN.md -- Dashboard patterns card + advanced multi-select filtering (PORT-01, PORT-03)
+- [ ] 25-02-PLAN.md -- Contract comparison view + re-analyze preservation (PORT-02, PORT-04)
 
 ## Progress
 
@@ -166,4 +166,4 @@ Plans:
 | 22. Polish & Trust | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 23. Analysis Quality | v1.4 | 3/3 | Complete | 2026-03-14 |
 | 24. Actionable Output | 2/2 | Complete    | 2026-03-15 | - |
-| 25. Portfolio Intelligence | v1.4 | 0/? | Not started | - |
+| 25. Portfolio Intelligence | v1.4 | 0/2 | Not started | - |
