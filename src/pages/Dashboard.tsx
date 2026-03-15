@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Contract, ViewState } from '../types/contract';
 import { StatCard } from '../components/StatCard';
+import { PatternsCard } from '../components/PatternsCard';
 import { ContractCard } from '../components/ContractCard';
 import {
   FileText,
@@ -135,6 +136,8 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
               color="green"
             />
           </div>
+
+          <PatternsCard contracts={contracts} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">

@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { Contract, Category, Severity } from '../types/contract';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Contract, Category, Severity, SEVERITIES, CATEGORIES } from '../types/contract';
 import { FindingCard } from '../components/FindingCard';
-import { CategoryFilter } from '../components/CategoryFilter';
+import { MultiSelectDropdown } from '../components/MultiSelectDropdown';
 import { CategorySection } from '../components/CategorySection';
 import { DateTimeline } from '../components/DateTimeline';
 import { SeverityBadge } from '../components/SeverityBadge';
@@ -76,10 +76,13 @@ interface ContractReviewProps {
   onRename?: (id: string, name: string) => void;
 }
 
+const ACTION_PRIORITIES = ['pre-bid', 'pre-sign', 'monitor'] as const;
+
 export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onShowToast, onRename }: ContractReviewProps) {
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>(
-    'All'
-  );
+  const [selectedSeverities, setSelectedSeverities] = useState<Set<Severity>>(() => new Set(SEVERITIES));
+  const [selectedCategories, setSelectedCategories] = useState<Set<Category>>(() => new Set(CATEGORIES));
+  const [selectedPriorities, setSelectedPriorities] = useState<Set<string>>(() => new Set(ACTION_PRIORITIES));
+  const [hasNegotiationOnly, setHasNegotiationOnly] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -163,29 +166,30 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
     (k) => profile[k] === ''
   );
 
-  // Scroll to category section when a category pill is clicked in by-category mode
-  useEffect(() => {
-    if (viewMode === 'by-category' && selectedCategory !== 'All') {
-      const el = document.getElementById(
-        `category-${selectedCategory.replace(/\s+/g, '-').toLowerCase()}`
-      );
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [selectedCategory, viewMode]);
-
   // Resolved counts (use ALL findings, not filtered)
   const totalFindings = contract.findings.length;
   const resolvedCount = contract.findings.filter((f) => f.resolved).length;
 
-  // Apply hide-resolved filter at the data level before both rendering paths
-  const visibleFindings = hideResolved
-    ? contract.findings.filter((f) => !f.resolved)
-    : contract.findings;
-
-  // Categories that have findings (deterministic order)
-  const categoriesWithFindings = CATEGORY_ORDER.filter((cat) =>
-    visibleFindings.some((f) => f.category === cat)
-  );
+  // Apply all filters: hideResolved, severity, category, priority, negotiation
+  const visibleFindings = useMemo(() => {
+    let result = contract.findings;
+    if (hideResolved) {
+      result = result.filter((f) => !f.resolved);
+    }
+    if (selectedSeverities.size < SEVERITIES.length) {
+      result = result.filter((f) => selectedSeverities.has(f.severity));
+    }
+    if (selectedCategories.size < CATEGORIES.length) {
+      result = result.filter((f) => selectedCategories.has(f.category));
+    }
+    if (selectedPriorities.size < ACTION_PRIORITIES.length) {
+      result = result.filter((f) => f.actionPriority != null && selectedPriorities.has(f.actionPriority));
+    }
+    if (hasNegotiationOnly) {
+      result = result.filter((f) => !!f.negotiationPosition);
+    }
+    return result;
+  }, [contract.findings, hideResolved, selectedSeverities, selectedCategories, selectedPriorities, hasNegotiationOnly]);
 
   // Category-grouped findings sorted by max severity then count
   const groupedFindings = CATEGORY_ORDER.map((category) => ({
@@ -195,10 +199,6 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
       .sort((a, b) => severityRank[a.severity] - severityRank[b.severity]),
   }))
     .filter((group) => group.findings.length > 0)
-    .filter(
-      (group) =>
-        selectedCategory === 'All' || group.category === selectedCategory
-    )
     .sort((a, b) => {
       const aMax = Math.min(...a.findings.map((f) => severityRank[f.severity]));
       const bMax = Math.min(...b.findings.map((f) => severityRank[f.severity]));
@@ -301,12 +301,19 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
           </button>
           <button
             onClick={() => {
-              const exportFindings = selectedCategory === 'All'
-                ? visibleFindings
-                : visibleFindings.filter(f => f.category === selectedCategory);
+              const exportFindings = visibleFindings;
               const filterDescriptions: string[] = [];
-              if (selectedCategory !== 'All') filterDescriptions.push(`Category: ${selectedCategory}`);
-              if (hideResolved) filterDescriptions.push('Hide Resolved: Yes');
+              if (selectedSeverities.size < SEVERITIES.length) {
+                filterDescriptions.push(`Severity: ${[...selectedSeverities].join(', ')}`);
+              }
+              if (selectedCategories.size < CATEGORIES.length) {
+                filterDescriptions.push(`Category: ${[...selectedCategories].join(', ')}`);
+              }
+              if (selectedPriorities.size < ACTION_PRIORITIES.length) {
+                filterDescriptions.push(`Priority: ${[...selectedPriorities].join(', ')}`);
+              }
+              if (hasNegotiationOnly) filterDescriptions.push('Has negotiation position');
+              if (hideResolved) filterDescriptions.push('Hiding resolved');
               const csv = exportContractCsv(contract, {
                 findings: exportFindings,
                 filterDescriptions,
@@ -468,13 +475,37 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                 </label>
               </div>
 
-              {viewMode === 'by-category' && (
-                <CategoryFilter
-                  categories={categoriesWithFindings}
-                  selectedCategory={selectedCategory}
-                  onSelect={setSelectedCategory}
+              {/* Multi-select filter toolbar */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <MultiSelectDropdown
+                  label="Category"
+                  options={CATEGORIES}
+                  selected={selectedCategories}
+                  onChange={setSelectedCategories}
                 />
-              )}
+                <MultiSelectDropdown
+                  label="Severity"
+                  options={SEVERITIES}
+                  selected={selectedSeverities}
+                  onChange={setSelectedSeverities}
+                  renderOption={(s) => <SeverityBadge severity={s as Severity} />}
+                />
+                <MultiSelectDropdown
+                  label="Priority"
+                  options={ACTION_PRIORITIES}
+                  selected={selectedPriorities}
+                  onChange={setSelectedPriorities}
+                />
+                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none ml-1">
+                  <input
+                    type="checkbox"
+                    checked={hasNegotiationOnly}
+                    onChange={() => setHasNegotiationOnly(!hasNegotiationOnly)}
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Has negotiation position
+                </label>
+              </div>
 
               {/* Findings display */}
               {viewMode === 'negotiation' ? (
