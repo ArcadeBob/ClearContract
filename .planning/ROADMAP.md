@@ -97,7 +97,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 **Milestone Goal:** Establish comprehensive test coverage and validation for a shipped 10,809-LOC application that currently has zero test infrastructure. Proves correctness of core business logic, UI components, API pipeline, and deployment configuration through automated tests and manual UAT.
 
 - [x] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test (completed 2026-03-16)
-- [ ] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas
+- [x] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas (completed 2026-03-16)
 - [ ] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks
 - [ ] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar
 - [ ] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance
@@ -131,7 +131,7 @@ Plans:
   3. Bid signal computation produces correct traffic light values for all 5 weighted factor combinations including edge cases
   4. Error classifier maps network errors, API errors, validation errors, and unknown errors to their correct categories
   5. Storage manager handles get/set/delete operations, quota exceeded errors, and v1-to-v2 migration correctly
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 34-01-PLAN.md -- Extend factories with pass-specific functions, scoring tests, error classification tests
@@ -242,7 +242,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
-| 34. Pure Logic Unit Tests | 2/3 | In Progress|  | - |
+| 34. Pure Logic Unit Tests | 3/3 | Complete   | 2026-03-16 | - |
 | 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |

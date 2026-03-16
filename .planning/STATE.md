@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: in-progress
-stopped_at: Completed 34-02-PLAN.md
-last_updated: "2026-03-16T01:39:26Z"
+status: executing
+stopped_at: Completed 34-03-PLAN.md
+last_updated: "2026-03-16T01:47:34.329Z"
 last_activity: 2026-03-16 -- Completed 34-02 bid signal and storage unit tests
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
-  percent: 100
+  completed_plans: 5
+  percent: 60
 ---
 
 # Project State
@@ -53,6 +53,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 34]: Migration tested via public loadContracts API rather than internal migrateContracts function
 - [Phase 34]: Pass-specific factories use actual Zod enum values (not plan's free-text); passBase() helper for shared fields
 - [Phase 34]: Scoring test values corrected from plan estimates to actual log2 formula output
+- [Phase 34]: Schema validation tests add client-side fields to prove merge output MergedFindingSchema-compatible
 
 ### Pending Todos
 
@@ -66,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:39:26Z
-Stopped at: Completed 34-02-PLAN.md
+Last session: 2026-03-16T01:47:34.326Z
+Stopped at: Completed 34-03-PLAN.md
 Resume with: `/gsd:execute-phase 34` (Plan 03 remaining)
