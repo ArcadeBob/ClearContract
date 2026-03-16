@@ -12,7 +12,7 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 - [x] **INFRA-01**: Vitest configured with dual environments (jsdom for client, node for API tests)
 - [x] **INFRA-02**: React Testing Library with jest-dom matchers and user-event installed and working
 - [x] **INFRA-03**: Framer Motion globally mocked so component tests render without animation errors
-- [ ] **INFRA-04**: Test utility kit: custom render wrapper, localStorage mock helpers, fixture factories for Zod schemas
+- [x] **INFRA-04**: Test utility kit: custom render wrapper, localStorage mock helpers, fixture factories for Zod schemas
 - [ ] **INFRA-05**: GitHub Actions CI pipeline runs tests on push/PR with coverage reporting
 - [ ] **INFRA-06**: Coverage thresholds enforced (starting ~60% statements/functions, fail CI if below)
 
@@ -78,7 +78,7 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | INFRA-01 | Phase 33 | Complete |
 | INFRA-02 | Phase 33 | Complete |
 | INFRA-03 | Phase 33 | Complete |
-| INFRA-04 | Phase 33 | Pending |
+| INFRA-04 | Phase 33 | Complete |
 | INFRA-05 | Phase 38 | Pending |
 | INFRA-06 | Phase 38 | Pending |
 | UNIT-01 | Phase 34 | Pending |

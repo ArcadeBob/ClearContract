@@ -96,7 +96,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 **Milestone Goal:** Establish comprehensive test coverage and validation for a shipped 10,809-LOC application that currently has zero test infrastructure. Proves correctness of core business logic, UI components, API pipeline, and deployment configuration through automated tests and manual UAT.
 
-- [ ] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test
+- [x] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test (completed 2026-03-16)
 - [ ] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas
 - [ ] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks
 - [ ] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar
@@ -115,7 +115,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
   3. An API test file imports a server module in node environment without jsdom contamination
   4. Framer Motion components render in tests without animation errors or hangs
   5. Test utility factories produce valid Contract and Finding objects that pass Zod schema validation
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 33-01-PLAN.md -- Install deps, configure Vitest, create setup files and custom render wrapper
@@ -241,7 +241,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 30. Type Safety Hardening | v1.5 | 3/3 | Complete | 2026-03-15 |
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
-| 33. Test Infrastructure | 1/2 | In Progress|  | - |
+| 33. Test Infrastructure | 2/2 | Complete   | 2026-03-16 | - |
 | 34. Pure Logic Unit Tests | v1.6 | 0/TBD | Not started | - |
 | 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
