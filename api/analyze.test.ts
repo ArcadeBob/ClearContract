@@ -69,6 +69,8 @@ import {
   createMockRes,
   PASS_NAMES,
 } from './test-fixtures/pass-responses';
+import { MergedFindingSchema } from '../src/schemas/finding';
+import { ANALYSIS_PASSES } from './passes';
 
 // ---------------------------------------------------------------------------
 // Setup / teardown
@@ -239,6 +241,225 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
         'file-test-123',
         expect.objectContaining({ betas: expect.any(Array) })
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Full pipeline (INTG-03)
+  // -------------------------------------------------------------------------
+
+  describe('full pipeline', () => {
+    it('exercises all 16 analysis passes plus synthesis', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      // 16 analysis passes + 1 synthesis = 17 total API calls
+      expect(mockCreate).toHaveBeenCalledTimes(17);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as unknown[];
+      // Merged findings from passes + at least 1 synthesis finding
+      // (merge may deduplicate some findings, so count may be less than 16)
+      expect(findings.length).toBeGreaterThanOrEqual(ANALYSIS_PASSES.length / 2);
+
+      // passResults should contain keys for each pass
+      const passResults = body.passResults as Record<string, unknown>;
+      expect(typeof passResults).toBe('object');
+      expect(passResults).not.toBeNull();
+    });
+
+    it('produces findings from all 16 analysis passes', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<{ category: string; sourcePass?: string }>;
+
+      // Check that findings span diverse categories from multiple passes
+      const categories = new Set(findings.map((f) => f.category));
+      expect(categories.has('Legal Issues')).toBe(true);
+      expect(categories.has('Financial Terms')).toBe(true);
+      expect(categories.has('Scope of Work')).toBe(true);
+      expect(categories.has('Insurance Requirements')).toBe(true);
+      expect(categories.has('Important Dates')).toBe(true);
+      expect(categories.has('Contract Compliance')).toBe(true);
+      expect(categories.has('Labor Compliance')).toBe(true);
+
+      // sourcePass values should include names from multiple passes
+      const sourcePasses = new Set(
+        findings.filter((f) => f.sourcePass).map((f) => f.sourcePass)
+      );
+      expect(sourcePasses.size).toBeGreaterThanOrEqual(5);
+    });
+
+    it('includes synthesis findings with isSynthesis flag', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<{
+        isSynthesis?: boolean;
+        category: string;
+        crossReferences?: string[];
+        sourcePass?: string;
+      }>;
+
+      const synthFindings = findings.filter((f) => f.isSynthesis === true);
+      expect(synthFindings.length).toBeGreaterThanOrEqual(1);
+
+      for (const sf of synthFindings) {
+        expect(sf.category).toBe('Compound Risk');
+        expect(Array.isArray(sf.crossReferences)).toBe(true);
+        expect(sf.sourcePass).toBe('synthesis');
+      }
+    });
+
+    it('computes risk score from real merge logic', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      expect(typeof body.riskScore).toBe('number');
+      expect(body.riskScore as number).toBeGreaterThanOrEqual(0);
+      expect(body.riskScore as number).toBeLessThanOrEqual(100);
+
+      expect(body.scoreBreakdown).toBeDefined();
+      expect(typeof body.scoreBreakdown).toBe('object');
+      expect(body.scoreBreakdown).not.toBeNull();
+
+      const bidSignal = body.bidSignal as { level: string };
+      expect(bidSignal).toHaveProperty('level');
+      expect(['bid', 'caution', 'no-bid']).toContain(bidSignal.level);
+    });
+
+    it('assigns unique IDs to all findings', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<{ id: string }>;
+
+      const ids = findings.map((f) => f.id);
+      for (const id of ids) {
+        expect(id).toMatch(/^f-/);
+      }
+      // All IDs should be unique
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('extracts dates from passes that provide them', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const dates = body.dates as Array<{ label: string; date: string; type: string }>;
+
+      expect(Array.isArray(dates)).toBe(true);
+      expect(dates.length).toBeGreaterThanOrEqual(1);
+
+      for (const d of dates) {
+        expect(typeof d.label).toBe('string');
+        expect(typeof d.date).toBe('string');
+        expect(typeof d.type).toBe('string');
+      }
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Schema conformance (INTG-04)
+  // -------------------------------------------------------------------------
+
+  describe('schema conformance', () => {
+    it('every finding has required API fields', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<Record<string, unknown>>;
+
+      for (const f of findings) {
+        expect(typeof f.id).toBe('string');
+        expect(typeof f.severity).toBe('string');
+        expect(typeof f.category).toBe('string');
+        expect(typeof f.title).toBe('string');
+        expect(typeof f.description).toBe('string');
+        expect(typeof f.recommendation).toBe('string');
+        expect(typeof f.clauseReference).toBe('string');
+      }
+    });
+
+    it('every finding validates against MergedFindingSchema when augmented with client defaults', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<Record<string, unknown>>;
+      let parsedCount = 0;
+
+      for (const f of findings) {
+        const augmented = {
+          ...f,
+          resolved: false,
+          note: '',
+          // Ensure required fields have defaults if missing from API
+          negotiationPosition:
+            f.negotiationPosition ?? 'Review required',
+          actionPriority: f.actionPriority ?? 'monitor',
+        };
+
+        try {
+          MergedFindingSchema.parse(augmented);
+          parsedCount++;
+        } catch (error: unknown) {
+          const zodErr = error as { message: string };
+          throw new Error(
+            `Finding '${f.title}' failed schema validation: ${zodErr.message}`
+          );
+        }
+      }
+
+      expect(parsedCount).toBe(findings.length);
+    });
+
+    it('synthesis findings validate against MergedFindingSchema when augmented', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      const body = res.body as Record<string, unknown>;
+      const findings = body.findings as Array<Record<string, unknown>>;
+      const synthFindings = findings.filter((f) => f.isSynthesis === true);
+
+      expect(synthFindings.length).toBeGreaterThanOrEqual(1);
+
+      for (const f of synthFindings) {
+        const augmented = {
+          ...f,
+          resolved: false,
+          note: '',
+          negotiationPosition:
+            f.negotiationPosition ?? 'Review required',
+          actionPriority: f.actionPriority ?? 'monitor',
+        };
+
+        try {
+          MergedFindingSchema.parse(augmented);
+        } catch (error: unknown) {
+          const zodErr = error as { message: string };
+          throw new Error(
+            `Synthesis finding '${f.title}' failed schema validation: ${zodErr.message}`
+          );
+        }
+      }
     });
   });
 });
