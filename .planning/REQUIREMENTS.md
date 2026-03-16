@@ -14,7 +14,7 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 - [x] **INFRA-03**: Framer Motion globally mocked so component tests render without animation errors
 - [x] **INFRA-04**: Test utility kit: custom render wrapper, localStorage mock helpers, fixture factories for Zod schemas
 - [ ] **INFRA-05**: GitHub Actions CI pipeline runs tests on push/PR with coverage reporting
-- [ ] **INFRA-06**: Coverage thresholds enforced (starting ~60% statements/functions, fail CI if below)
+- [x] **INFRA-06**: Coverage thresholds enforced (starting ~60% statements/functions, fail CI if below)
 
 ### Unit Tests: Pure Logic
 
@@ -49,10 +49,10 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 ### Validation & UAT
 
-- [ ] **UAT-01**: Manual UAT checklist created covering full user workflow (upload, analyze, review, actions, export)
-- [ ] **UAT-02**: Mocked regression suite with captured real API response fixtures, validates pipeline without live API
+- [x] **UAT-01**: Manual UAT checklist created covering full user workflow (upload, analyze, review, actions, export)
+- [x] **UAT-02**: Mocked regression suite with captured real API response fixtures, validates pipeline without live API
 - [ ] **UAT-03**: Live API test suite (manual trigger) validates response structure against Zod schemas
-- [ ] **UAT-04**: Vercel Pro config verified (300s maxDuration confirmed working on deployed endpoint)
+- [x] **UAT-04**: Vercel Pro config verified (300s maxDuration confirmed working on deployed endpoint)
 
 ## Future Requirements
 
@@ -80,7 +80,7 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | INFRA-03 | Phase 33 | Complete |
 | INFRA-04 | Phase 33 | Complete |
 | INFRA-05 | Phase 38 | Pending |
-| INFRA-06 | Phase 38 | Pending |
+| INFRA-06 | Phase 38 | Complete |
 | UNIT-01 | Phase 34 | Complete |
 | UNIT-02 | Phase 34 | Complete |
 | UNIT-03 | Phase 34 | Complete |
@@ -100,10 +100,10 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | INTG-02 | Phase 37 | Complete |
 | INTG-03 | Phase 37 | Complete |
 | INTG-04 | Phase 37 | Complete |
-| UAT-01 | Phase 38 | Pending |
-| UAT-02 | Phase 38 | Pending |
+| UAT-01 | Phase 38 | Complete |
+| UAT-02 | Phase 38 | Complete |
 | UAT-03 | Phase 38 | Pending |
-| UAT-04 | Phase 38 | Pending |
+| UAT-04 | Phase 38 | Complete |
 
 **Coverage:**
 - v1.6 requirements: 29 total

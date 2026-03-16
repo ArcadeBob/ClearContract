@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: completed
-stopped_at: Phase 38 context gathered
-last_updated: "2026-03-16T17:11:08.830Z"
-last_activity: 2026-03-16 -- Completed 37-02 full pipeline and schema conformance tests
+status: in-progress
+stopped_at: Completed 38-01-PLAN.md
+last_updated: "2026-03-16T18:59:31Z"
+last_activity: 2026-03-16 -- Completed 38-01 coverage, UAT checklist, and regression suite
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 13
+  completed_plans: 12
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.6 Quality & Validation -- Phase 37: API Integration Tests
+**Current focus:** v1.6 Quality & Validation -- Phase 38: UAT, CI, and Coverage Enforcement
 
 ## Current Position
 
-Phase: 37 of 38 (API Integration Tests)
-Plan: 2 of 2 complete in Phase 37
-Status: Phase 37 complete
-Last activity: 2026-03-16 -- Completed 37-02 full pipeline and schema conformance tests
+Phase: 38 of 38 (UAT, CI, and Coverage Enforcement)
+Plan: 1 of 2 complete in Phase 38
+Status: Phase 38 in progress
+Last activity: 2026-03-16 -- Completed 38-01 coverage, UAT checklist, and regression suite
 
-Progress: [██████████] 100%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [██████████] 100%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 11 plans completed, 37min total
+**v1.6 (Phases 33-38):** 12 plans completed, 43min total
 
 ## Accumulated Context
 
@@ -60,6 +60,8 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 36]: fireEvent.drop with dataTransfer for react-dropzone testing in jsdom; badge count=0 tests check styled span absence due to JSX falsy-number rendering
 - [Phase 37]: Raw flat-field fixtures (not factory-generated) to match API JSON shape; sequential mockCreate callIndex routing for deterministic pass mapping
 - [Phase 37]: bidSignal uses level property (bid/caution/no-bid) not signal; merge deduplication yields fewer findings than pass count
+- [Phase 38]: Coverage thresholds at 60% statements/functions as aspirational targets; @testing-library/dom installed for transitive dep fix
+- [Phase 38]: Regression suite separated from analyze.test.ts for pipeline stability testing; fixtures replayed not regenerated
 
 ### Pending Todos
 
@@ -73,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:11:08.828Z
-Stopped at: Phase 38 context gathered
-Resume with: `/gsd:execute-phase 38` (next phase)
+Last session: 2026-03-16T18:59:31Z
+Stopped at: Completed 38-01-PLAN.md
+Resume with: `/gsd:execute-phase 38` (continue with 38-02)
