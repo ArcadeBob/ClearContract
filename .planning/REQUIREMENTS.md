@@ -44,8 +44,8 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 - [x] **INTG-01**: /api/analyze endpoint accepts valid PDF payload and returns structured response
 - [x] **INTG-02**: /api/analyze returns correct HTTP errors (400 bad input, 401 missing key, 422 image PDF, 429 rate limit)
-- [ ] **INTG-03**: Full pipeline mocked test: PDF upload -> 16 passes + synthesis -> merged findings with risk score
-- [ ] **INTG-04**: API response validates against Zod schemas (MergedFindingSchema for each finding)
+- [x] **INTG-03**: Full pipeline mocked test: PDF upload -> 16 passes + synthesis -> merged findings with risk score
+- [x] **INTG-04**: API response validates against Zod schemas (MergedFindingSchema for each finding)
 
 ### Validation & UAT
 
@@ -98,8 +98,8 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | COMP-05 | Phase 36 | Complete |
 | INTG-01 | Phase 37 | Complete |
 | INTG-02 | Phase 37 | Complete |
-| INTG-03 | Phase 37 | Pending |
-| INTG-04 | Phase 37 | Pending |
+| INTG-03 | Phase 37 | Complete |
+| INTG-04 | Phase 37 | Complete |
 | UAT-01 | Phase 38 | Pending |
 | UAT-02 | Phase 38 | Pending |
 | UAT-03 | Phase 38 | Pending |

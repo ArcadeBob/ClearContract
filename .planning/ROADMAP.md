@@ -100,7 +100,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 - [x] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas (completed 2026-03-16)
 - [x] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks (completed 2026-03-16)
 - [x] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar (completed 2026-03-16)
-- [ ] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance
+- [x] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance (completed 2026-03-16)
 - [ ] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds
 
 ## Phase Details
@@ -178,7 +178,7 @@ Plans:
   2. The endpoint returns 400 for missing/malformed body, 401 for missing API key, 422 for image-based PDFs, and 429 for rate-limited requests
   3. A full pipeline mock test exercises all 16 passes plus synthesis and produces merged findings with correct deduplication and risk scoring
   4. Every finding in the API response validates against MergedFindingSchema with no Zod parse errors
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 37-01-PLAN.md -- Test fixtures, mock infrastructure, endpoint validation and error path tests
@@ -245,5 +245,5 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
 | 35. Hook Tests | 2/2 | Complete    | 2026-03-16 | - |
 | 36. Component Tests | 2/2 | Complete    | 2026-03-16 | - |
-| 37. API Integration Tests | 1/2 | In Progress|  | - |
+| 37. API Integration Tests | 2/2 | Complete   | 2026-03-16 | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |

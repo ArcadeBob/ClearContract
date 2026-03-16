@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: in-progress
-stopped_at: Completed 37-01-PLAN.md
-last_updated: "2026-03-16T16:01:00.000Z"
-last_activity: 2026-03-16 -- Completed 37-01 test fixtures and endpoint validation tests
+status: executing
+stopped_at: Completed 37-02-PLAN.md
+last_updated: "2026-03-16T16:10:08.117Z"
+last_activity: 2026-03-16 -- Completed 37-02 full pipeline and schema conformance tests
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 11
-  completed_plans: 10
-  percent: 91
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 37 of 38 (API Integration Tests)
-Plan: 1 of 2 complete in Phase 37
-Status: In progress
-Last activity: 2026-03-16 -- Completed 37-01 test fixtures and endpoint validation tests
+Plan: 2 of 2 complete in Phase 37
+Status: Phase 37 complete
+Last activity: 2026-03-16 -- Completed 37-02 full pipeline and schema conformance tests
 
-Progress: [█████████░] 91%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [█████████░] 91%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 9 plans completed, 34min total
+**v1.6 (Phases 33-38):** 11 plans completed, 37min total
 
 ## Accumulated Context
 
@@ -59,6 +59,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 36]: screen.getByTitle for button queries; ConfirmDialog portal tested via unscoped screen queries
 - [Phase 36]: fireEvent.drop with dataTransfer for react-dropzone testing in jsdom; badge count=0 tests check styled span absence due to JSX falsy-number rendering
 - [Phase 37]: Raw flat-field fixtures (not factory-generated) to match API JSON shape; sequential mockCreate callIndex routing for deterministic pass mapping
+- [Phase 37]: bidSignal uses level property (bid/caution/no-bid) not signal; merge deduplication yields fewer findings than pass count
 
 ### Pending Todos
 
@@ -72,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T16:01:00.000Z
-Stopped at: Completed 37-01-PLAN.md
-Resume with: `/gsd:execute-phase 37` (continue with plan 02)
+Last session: 2026-03-16T16:10:08.114Z
+Stopped at: Completed 37-02-PLAN.md
+Resume with: `/gsd:execute-phase 38` (next phase)
