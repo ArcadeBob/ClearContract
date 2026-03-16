@@ -131,12 +131,12 @@ Plans:
   3. Bid signal computation produces correct traffic light values for all 5 weighted factor combinations including edge cases
   4. Error classifier maps network errors, API errors, validation errors, and unknown errors to their correct categories
   5. Storage manager handles get/set/delete operations, quota exceeded errors, and v1-to-v2 migration correctly
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 34-01: TBD
-- [ ] 34-02: TBD
-- [ ] 34-03: TBD
+- [ ] 34-01-PLAN.md -- Extend factories with pass-specific functions, scoring tests, error classification tests
+- [ ] 34-02-PLAN.md -- Bid signal tests, storage manager tests, contract storage migration tests
+- [ ] 34-03-PLAN.md -- Merge module tests with all 15 pass handlers and Zod schema validation
 
 ### Phase 35: Hook Tests
 **Goal**: React hooks that manage application state, filtering, inline editing, and field validation are proven to behave correctly through renderHook-based tests
@@ -242,7 +242,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
-| 34. Pure Logic Unit Tests | v1.6 | 0/TBD | Not started | - |
+| 34. Pure Logic Unit Tests | v1.6 | 0/3 | Not started | - |
 | 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
