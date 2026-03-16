@@ -115,7 +115,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
   3. An API test file imports a server module in node environment without jsdom contamination
   4. Framer Motion components render in tests without animation errors or hangs
   5. Test utility factories produce valid Contract and Finding objects that pass Zod schema validation
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 33-01-PLAN.md -- Install deps, configure Vitest, create setup files and custom render wrapper
@@ -241,7 +241,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 30. Type Safety Hardening | v1.5 | 3/3 | Complete | 2026-03-15 |
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
-| 33. Test Infrastructure | v1.6 | 0/2 | Not started | - |
+| 33. Test Infrastructure | 1/2 | In Progress|  | - |
 | 34. Pure Logic Unit Tests | v1.6 | 0/TBD | Not started | - |
 | 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
