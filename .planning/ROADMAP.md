@@ -98,7 +98,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 - [x] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test (completed 2026-03-16)
 - [x] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas (completed 2026-03-16)
-- [ ] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks
+- [x] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks (completed 2026-03-16)
 - [ ] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar
 - [ ] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance
 - [ ] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds
@@ -147,7 +147,7 @@ Plans:
   2. useInlineEdit follows the edit state machine (idle -> editing -> saving -> idle) and handles cancel and error paths
   3. useContractFiltering produces correct filtered/grouped/sorted output for multi-select filter combinations
   4. useFieldValidation calls onBlur validate, reverts to last good value on invalid input, and saves on valid input
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 35-01-PLAN.md -- useContractStore CRUD/finding mutations and useInlineEdit state machine tests
@@ -243,7 +243,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
-| 35. Hook Tests | v1.6 | 0/2 | Not started | - |
+| 35. Hook Tests | 2/2 | Complete   | 2026-03-16 | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |
