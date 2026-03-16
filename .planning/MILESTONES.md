@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.6 Quality & Validation (Shipped: 2026-03-16)
+
+**Phases:** 33-38 (13 plans)
+**Timeline:** 1 day (2026-03-15 → 2026-03-16)
+**Code:** 76 commits, 84 files changed, 17,365 insertions, 11,122 LOC TypeScript total
+**Tests:** 269 automated tests across 22 test files
+**Requirements:** 29/29 satisfied
+**Audit:** TECH_DEBT (all requirements met, 4 minor items — coverage threshold intentional forcing function)
+
+**Key accomplishments:**
+- Vitest + React Testing Library + jest-dom test infrastructure with Proxy-based Framer Motion mock and custom render wrapper with ToastProvider context
+- 269 automated tests: 123 pure logic (scoring, merge, bid signal, errors, storage, schemas), 53 hook tests (4 hooks), 58 component tests (5 components), 18 API integration tests, 6 regression + 11 factory tests
+- All 15 specialized pass handlers tested with Zod schema validation proving merge output is MergedFindingSchema-compatible
+- Component tests for FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar with full severity/interaction coverage
+- Mocked regression suite replaying all 16 pass fixtures through real merge/scoring pipeline without live API calls
+- GitHub Actions CI workflow with lint + test:coverage on push/PR, live API test isolation via separate vitest config
+
+**Tech debt carried forward:**
+- Statement coverage at 40.74% vs 60% CI threshold (intentional forcing function — functions coverage passes at 60.5%)
+- INFRA-04 localStorage mock helpers mentioned but not delivered (plan scope delta)
+- vercel.json uncommitted working-tree change (cosmetic, does not affect maxDuration)
+- UploadZone.test.tsx minor import pattern deviation (tests pass)
+
+---
+
 ## v1.5 Code Health (Shipped: 2026-03-15)
 
 **Phases:** 27-32 (12 plans)

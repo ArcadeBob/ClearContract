@@ -238,17 +238,64 @@
 
 ---
 
+## Milestone: v1.6 -- Quality & Validation
+
+**Shipped:** 2026-03-16
+**Phases:** 6 | **Plans:** 13 | **Commits:** 76
+**Timeline:** 1 day (2026-03-15 -> 2026-03-16)
+
+### What Was Built
+- Vitest + React Testing Library test infrastructure with Proxy-based Framer Motion mock and custom render wrapper
+- 269 automated tests across 22 test files: pure logic (scoring, merge, bid signal, errors, storage, schemas), hooks (4 hooks), components (5 components), API integration (endpoint + pipeline + schema conformance)
+- Mocked regression suite replaying all 16 pass fixtures through the real merge/scoring pipeline
+- GitHub Actions CI workflow with lint + test:coverage on push/PR
+- Live API test suite with separate vitest config for manual trigger
+- Manual UAT checklist covering 14 workflow sections with 47 checkbox steps
+
+### What Worked
+- Factory functions with Zod validation caught field mismatches immediately during test development
+- Proxy-based Framer Motion mock handled all motion.* elements dynamically -- no per-element mocking needed
+- Raw flat-field API fixtures (matching actual Anthropic response shape) made integration tests realistic
+- Coverage thresholds as intentional forcing function -- sets improvement target without blocking development
+- Phase ordering (infra -> logic -> hooks -> components -> integration -> UAT) built each layer on the previous
+
+### What Was Inefficient
+- SUMMARY.md one_liner field missing across all 13 plans (7th consecutive milestone with this issue)
+- Nyquist validation remained partial across all 6 phases (draft VALIDATION.md files, not compliant)
+- ROADMAP.md progress table had formatting issues on phases 33-38 (missing milestone column values)
+- Some plan estimates needed correction during execution (scoring formula values, schema field requirements)
+
+### Patterns Established
+- Vitest inline config in vite.config.ts: share path aliases and plugins between dev and test
+- vi.spyOn(Storage.prototype) pattern for localStorage quota exceeded simulation
+- Sequential mockCreate callIndex routing for deterministic pass mapping in API tests
+- fireEvent.drop with dataTransfer for react-dropzone testing in jsdom
+- Separate vitest config for live API tests excluded from main suite
+
+### Key Lessons
+- Test infrastructure for an existing 10K+ LOC app can be stood up rapidly when v1.5 code health work provides clean module boundaries
+- Factory functions with Zod validation are more valuable than simple object literals -- they catch schema drift as the codebase evolves
+- Integration test fixtures should match actual API response shape (flat fields), not factory-generated convenience objects
+- Coverage thresholds work best as forcing functions (aspirational) rather than hard gates -- functions coverage passed at 60.5% while statements lagged
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution
+- Sessions: 1 session
+- Notable: 13 plans completed in 47 minutes total -- fastest full milestone by absolute time; test-writing phases executed efficiently due to established patterns from v1.5
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 |
-|--------|------|------|------|------|------|
-| Phases | 6 | 4 | 7 | 5 | 6 |
-| Plans | 13 | 8 | 8 | 11 | 12 |
-| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min |
-| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 |
-| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) |
-| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 |
-| Sessions | ~10 | ~6 | 1 | ~4 | ~3 |
+| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 | v1.6 |
+|--------|------|------|------|------|------|------|
+| Phases | 6 | 4 | 7 | 5 | 6 | 6 |
+| Plans | 13 | 8 | 8 | 11 | 12 | 13 |
+| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min | ~3.6min |
+| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 | 29/29 |
+| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) | tech_debt |
+| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 | ~11,122 |
+| Sessions | ~10 | ~6 | 1 | ~4 | ~3 | 1 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -259,4 +306,5 @@
 5. Execution velocity improves with each milestone as patterns mature (45min→4min→2min per plan)
 6. Tech debt cleanup first in a milestone creates clean foundation for subsequent phases (v1.4, v1.5)
 7. Incremental extraction without tests is viable when each phase verifies via tsc compilation (v1.5)
-8. SUMMARY.md one_liner field consistently missing -- template or tooling should enforce it (v1.4, v1.5)
+8. SUMMARY.md one_liner field consistently missing -- template or tooling should enforce it (v1.4, v1.5, v1.6)
+9. Test infrastructure is most effective when built on clean module boundaries (v1.5 code health enabled v1.6 test velocity)

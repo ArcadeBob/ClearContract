@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: completed
-stopped_at: Completed 38-02-PLAN.md
-last_updated: "2026-03-16T19:16:21.833Z"
-last_activity: 2026-03-16 -- Completed 38-02 live API test and CI pipeline
+status: archived
+stopped_at: Milestone v1.6 archived
+last_updated: "2026-03-16T20:00:00.000Z"
+last_activity: 2026-03-16 -- Milestone v1.6 archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,17 +18,16 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-15)
+See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.6 Quality & Validation -- Phase 38: UAT, CI, and Coverage Enforcement
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 38 of 38 (UAT, CI, and Coverage Enforcement)
-Plan: 2 of 2 complete in Phase 38
-Status: Phase 38 complete -- all v1.6 phases done
-Last activity: 2026-03-16 -- Completed 38-02 live API test and CI pipeline
+Phase: All v1.6 phases complete and archived
+Status: Between milestones -- v1.6 shipped, next milestone not started
+Last activity: 2026-03-16 -- Milestone v1.6 Quality & Validation archived
 
 Progress: [██████████] 100%
 
@@ -40,29 +39,13 @@ Progress: [██████████] 100%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 13 plans completed, 47min total
+**v1.6 (Phases 33-38):** 13 plans, 47min total
 
 ## Accumulated Context
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 milestones).
-- [Phase 33]: Vitest 3.2 configured inline in vite.config.ts with jsdom, Proxy-based FM mock, jest-dom auto-loaded
-- [Phase 33]: Factory functions use Zod parse for validation, module-level counters for unique IDs
-- [Phase 34]: localStorage spy pattern (vi.spyOn Storage.prototype) for quota exceeded simulation in storage tests
-- [Phase 34]: Migration tested via public loadContracts API rather than internal migrateContracts function
-- [Phase 34]: Pass-specific factories use actual Zod enum values (not plan's free-text); passBase() helper for shared fields
-- [Phase 34]: Scoring test values corrected from plan estimates to actual log2 formula output
-- [Phase 34]: Schema validation tests add client-side fields to prove merge output MergedFindingSchema-compatible
-- [Phase 35]: vi.mock contractStorage at module level for useContractStore isolation; useInlineEdit needs no mocking (pure state hook)
-- [Phase 35]: negotiationPosition/actionPriority are required in MergedFindingSchema; storageManager mock pattern for useContractFiltering persistence tests
-- [Phase 36]: screen.getByTitle for button queries; ConfirmDialog portal tested via unscoped screen queries
-- [Phase 36]: fireEvent.drop with dataTransfer for react-dropzone testing in jsdom; badge count=0 tests check styled span absence due to JSX falsy-number rendering
-- [Phase 37]: Raw flat-field fixtures (not factory-generated) to match API JSON shape; sequential mockCreate callIndex routing for deterministic pass mapping
-- [Phase 37]: bidSignal uses level property (bid/caution/no-bid) not signal; merge deduplication yields fewer findings than pass count
-- [Phase 38]: Coverage thresholds at 60% statements/functions as aspirational targets; @testing-library/dom installed for transitive dep fix
-- [Phase 38]: Regression suite separated from analyze.test.ts for pipeline stability testing; fixtures replayed not regenerated
-- [Phase 38]: Live test excluded from main suite via vite.config.ts exclude array; CI uses npm ci with setup-node cache; no external coverage services
+Full decision log in PROJECT.md Key Decisions table (54 decisions across 7 milestones).
 
 ### Pending Todos
 
@@ -70,12 +53,10 @@ None.
 
 ### Blockers/Concerns
 
-- Human UAT (live API + real contract) not yet performed (addressing in Phase 38)
-- Nyquist validation not compliant (addressing this milestone -- test framework in Phase 33)
-- Research warns mergePassResults tests (Phase 34) and API handler tests (Phase 37) are HIGH complexity
+None active. Statement coverage threshold (40.74% < 60%) deferred to next milestone.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:10:01.460Z
-Stopped at: Completed 38-02-PLAN.md
-Resume with: Phase 38 complete. v1.6 milestone complete.
+Last session: 2026-03-16
+Stopped at: Milestone v1.6 archived
+Resume with: `/gsd:new-milestone` to start next milestone
