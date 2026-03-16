@@ -163,11 +163,11 @@ Plans:
   3. UploadZone accepts PDF files within size limits, rejects non-PDF files, rejects oversized files, and shows appropriate error messages
   4. FilterToolbar toggles filter selections on click, visually indicates active filters, and updates the filtered results
   5. Sidebar renders all navigation views, highlights the currently active view, and triggers navigation on click
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 36-01: TBD
-- [ ] 36-02: TBD
+- [ ] 36-01-PLAN.md -- FindingCard and SeverityBadge component tests
+- [ ] 36-02-PLAN.md -- UploadZone, FilterToolbar, and Sidebar component tests
 
 ### Phase 37: API Integration Tests
 **Goal**: The /api/analyze endpoint correctly validates input, handles all error conditions, and processes the full 17-pass pipeline through to merged findings with risk score
@@ -244,6 +244,6 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
 | 35. Hook Tests | 2/2 | Complete    | 2026-03-16 | - |
-| 36. Component Tests | v1.6 | 0/TBD | Not started | - |
+| 36. Component Tests | v1.6 | 0/2 | Planned | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |
