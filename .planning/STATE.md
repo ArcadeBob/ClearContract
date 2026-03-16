@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: completed
-stopped_at: Phase 37 context gathered
-last_updated: "2026-03-16T15:33:09.015Z"
-last_activity: 2026-03-16 -- Completed 36-02 UploadZone, FilterToolbar, and Sidebar component tests
+status: in-progress
+stopped_at: Completed 37-01-PLAN.md
+last_updated: "2026-03-16T16:01:00.000Z"
+last_activity: 2026-03-16 -- Completed 37-01 test fixtures and endpoint validation tests
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_plans: 11
+  completed_plans: 10
+  percent: 91
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.6 Quality & Validation -- Phase 36: Component Tests
+**Current focus:** v1.6 Quality & Validation -- Phase 37: API Integration Tests
 
 ## Current Position
 
-Phase: 36 of 38 (Component Tests) -- COMPLETE
-Plan: 2 of 2 complete in Phase 36
-Status: Phase 36 complete
-Last activity: 2026-03-16 -- Completed 36-02 UploadZone, FilterToolbar, and Sidebar component tests
+Phase: 37 of 38 (API Integration Tests)
+Plan: 1 of 2 complete in Phase 37
+Status: In progress
+Last activity: 2026-03-16 -- Completed 37-01 test fixtures and endpoint validation tests
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [██████████] 100%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 8 plans completed, 29min total
+**v1.6 (Phases 33-38):** 9 plans completed, 34min total
 
 ## Accumulated Context
 
@@ -58,6 +58,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 35]: negotiationPosition/actionPriority are required in MergedFindingSchema; storageManager mock pattern for useContractFiltering persistence tests
 - [Phase 36]: screen.getByTitle for button queries; ConfirmDialog portal tested via unscoped screen queries
 - [Phase 36]: fireEvent.drop with dataTransfer for react-dropzone testing in jsdom; badge count=0 tests check styled span absence due to JSX falsy-number rendering
+- [Phase 37]: Raw flat-field fixtures (not factory-generated) to match API JSON shape; sequential mockCreate callIndex routing for deterministic pass mapping
 
 ### Pending Todos
 
@@ -71,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:33:09.013Z
-Stopped at: Phase 37 context gathered
-Resume with: `/gsd:execute-phase 37`
+Last session: 2026-03-16T16:01:00.000Z
+Stopped at: Completed 37-01-PLAN.md
+Resume with: `/gsd:execute-phase 37` (continue with plan 02)

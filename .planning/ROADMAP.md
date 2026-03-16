@@ -178,7 +178,7 @@ Plans:
   2. The endpoint returns 400 for missing/malformed body, 401 for missing API key, 422 for image-based PDFs, and 429 for rate-limited requests
   3. A full pipeline mock test exercises all 16 passes plus synthesis and produces merged findings with correct deduplication and risk scoring
   4. Every finding in the API response validates against MergedFindingSchema with no Zod parse errors
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 37-01-PLAN.md -- Test fixtures, mock infrastructure, endpoint validation and error path tests
@@ -245,5 +245,5 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
 | 35. Hook Tests | 2/2 | Complete    | 2026-03-16 | - |
 | 36. Component Tests | 2/2 | Complete    | 2026-03-16 | - |
-| 37. API Integration Tests | v1.6 | 0/2 | Not started | - |
+| 37. API Integration Tests | 1/2 | In Progress|  | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |
