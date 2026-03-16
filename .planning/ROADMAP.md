@@ -101,7 +101,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 - [x] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks (completed 2026-03-16)
 - [x] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar (completed 2026-03-16)
 - [x] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance (completed 2026-03-16)
-- [ ] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds
+- [x] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds (completed 2026-03-16)
 
 ## Phase Details
 
@@ -194,7 +194,7 @@ Plans:
   3. A live API test suite (manual trigger via `npm run test:live`) validates real API responses against Zod schemas
   4. Vercel Pro configuration is verified with 300s maxDuration working on the deployed endpoint
   5. GitHub Actions CI runs tests on push/PR and fails the build if coverage drops below configured thresholds
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 38-01-PLAN.md -- Coverage config, UAT checklist, mocked regression suite
@@ -245,4 +245,4 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 35. Hook Tests | 2/2 | Complete    | 2026-03-16 | - |
 | 36. Component Tests | 2/2 | Complete    | 2026-03-16 | - |
 | 37. API Integration Tests | 2/2 | Complete    | 2026-03-16 | - |
-| 38. UAT, CI, and Coverage Enforcement | 1/2 | In Progress|  | - |
+| 38. UAT, CI, and Coverage Enforcement | 2/2 | Complete   | 2026-03-16 | - |

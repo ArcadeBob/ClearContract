@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: in-progress
-stopped_at: Completed 38-01-PLAN.md
-last_updated: "2026-03-16T18:59:31Z"
+status: executing
+stopped_at: Completed 38-02-PLAN.md
+last_updated: "2026-03-16T19:10:01.462Z"
 last_activity: 2026-03-16 -- Completed 38-01 coverage, UAT checklist, and regression suite
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 100
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 38 of 38 (UAT, CI, and Coverage Enforcement)
-Plan: 1 of 2 complete in Phase 38
-Status: Phase 38 in progress
-Last activity: 2026-03-16 -- Completed 38-01 coverage, UAT checklist, and regression suite
+Plan: 2 of 2 complete in Phase 38
+Status: Phase 38 complete -- all v1.6 phases done
+Last activity: 2026-03-16 -- Completed 38-02 live API test and CI pipeline
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [█████████░] 92%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 12 plans completed, 43min total
+**v1.6 (Phases 33-38):** 13 plans completed, 47min total
 
 ## Accumulated Context
 
@@ -62,6 +62,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 37]: bidSignal uses level property (bid/caution/no-bid) not signal; merge deduplication yields fewer findings than pass count
 - [Phase 38]: Coverage thresholds at 60% statements/functions as aspirational targets; @testing-library/dom installed for transitive dep fix
 - [Phase 38]: Regression suite separated from analyze.test.ts for pipeline stability testing; fixtures replayed not regenerated
+- [Phase 38]: Live test excluded from main suite via vite.config.ts exclude array; CI uses npm ci with setup-node cache; no external coverage services
 
 ### Pending Todos
 
@@ -75,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T18:59:31Z
-Stopped at: Completed 38-01-PLAN.md
-Resume with: `/gsd:execute-phase 38` (continue with 38-02)
+Last session: 2026-03-16T19:10:01.460Z
+Stopped at: Completed 38-02-PLAN.md
+Resume with: Phase 38 complete. v1.6 milestone complete.
