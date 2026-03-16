@@ -1,5 +1,29 @@
 import { MergedFindingSchema, type MergedFinding } from '../schemas/finding';
 import type { Contract, ContractDate } from '../types/contract';
+import { z } from 'zod';
+
+// Legal pass schemas
+import {
+  IndemnificationFindingSchema,
+  PaymentContingencyFindingSchema,
+  LiquidatedDamagesFindingSchema,
+  RetainageFindingSchema,
+  InsuranceFindingSchema,
+  TerminationFindingSchema,
+  FlowDownFindingSchema,
+  NoDamageDelayFindingSchema,
+  LienRightsFindingSchema,
+  DisputeResolutionFindingSchema,
+  ChangeOrderFindingSchema,
+} from '../schemas/legalAnalysis';
+
+// Scope pass schemas
+import {
+  ScopeOfWorkFindingSchema,
+  DatesDeadlinesFindingSchema,
+  VerbiageFindingSchema,
+  LaborComplianceFindingSchema,
+} from '../schemas/scopeComplianceAnalysis';
 
 let _findingCounter = 0;
 let _contractCounter = 0;
@@ -56,4 +80,262 @@ export function createContractDate(overrides?: Partial<ContractDate>): ContractD
     type: 'Deadline',
   };
   return { ...defaults, ...overrides };
+}
+
+// ---------------------------------------------------------------------------
+// Pass-specific factory functions (15 total)
+// ---------------------------------------------------------------------------
+
+// Common base fields shared by all pass-specific factories
+function passBase(passName: string, counter: number, category: string) {
+  return {
+    severity: 'Medium' as const,
+    title: `Test ${passName} Finding ${counter}`,
+    description: `Test description for ${passName} finding.`,
+    recommendation: `Test recommendation for ${passName}.`,
+    clauseReference: 'Section X.X',
+    clauseText: 'Sample clause text',
+    explanation: 'Sample explanation',
+    crossReferences: [] as string[],
+    negotiationPosition: 'Request amendment',
+    actionPriority: 'monitor' as const,
+  };
+}
+
+// --- Legal pass factories (11) ---
+
+let _indemnificationCounter = 0;
+export function createIndemnificationFinding(
+  overrides?: Partial<z.infer<typeof IndemnificationFindingSchema>>
+): z.infer<typeof IndemnificationFindingSchema> {
+  const n = _indemnificationCounter++;
+  return IndemnificationFindingSchema.parse({
+    ...passBase('Indemnification', n, 'Legal Issues'),
+    category: 'Legal Issues',
+    riskType: 'limited',
+    hasInsuranceGap: false,
+    ...overrides,
+  });
+}
+
+let _paymentContingencyCounter = 0;
+export function createPaymentContingencyFinding(
+  overrides?: Partial<z.infer<typeof PaymentContingencyFindingSchema>>
+): z.infer<typeof PaymentContingencyFindingSchema> {
+  const n = _paymentContingencyCounter++;
+  return PaymentContingencyFindingSchema.parse({
+    ...passBase('PaymentContingency', n, 'Financial Terms'),
+    category: 'Financial Terms',
+    paymentType: 'pay-when-paid',
+    enforceabilityContext: 'Standard in CA',
+    ...overrides,
+  });
+}
+
+let _liquidatedDamagesCounter = 0;
+export function createLiquidatedDamagesFinding(
+  overrides?: Partial<z.infer<typeof LiquidatedDamagesFindingSchema>>
+): z.infer<typeof LiquidatedDamagesFindingSchema> {
+  const n = _liquidatedDamagesCounter++;
+  return LiquidatedDamagesFindingSchema.parse({
+    ...passBase('LiquidatedDamages', n, 'Financial Terms'),
+    category: 'Financial Terms',
+    amountOrRate: '$500/day',
+    capStatus: 'capped',
+    proportionalityAssessment: 'Reasonable',
+    ...overrides,
+  });
+}
+
+let _retainageCounter = 0;
+export function createRetainageFinding(
+  overrides?: Partial<z.infer<typeof RetainageFindingSchema>>
+): z.infer<typeof RetainageFindingSchema> {
+  const n = _retainageCounter++;
+  return RetainageFindingSchema.parse({
+    ...passBase('Retainage', n, 'Financial Terms'),
+    category: 'Financial Terms',
+    percentage: '10%',
+    releaseCondition: 'Final completion',
+    tiedTo: 'sub-work',
+    ...overrides,
+  });
+}
+
+let _insuranceCounter = 0;
+export function createInsuranceFinding(
+  overrides?: Partial<z.infer<typeof InsuranceFindingSchema>>
+): z.infer<typeof InsuranceFindingSchema> {
+  const n = _insuranceCounter++;
+  return InsuranceFindingSchema.parse({
+    ...passBase('Insurance', n, 'Insurance Requirements'),
+    category: 'Insurance Requirements',
+    coverageItems: [{ coverageType: 'GL', requiredLimit: '$1M', isAboveStandard: false }],
+    endorsements: [],
+    certificateHolder: 'Owner',
+    ...overrides,
+  });
+}
+
+let _terminationCounter = 0;
+export function createTerminationFinding(
+  overrides?: Partial<z.infer<typeof TerminationFindingSchema>>
+): z.infer<typeof TerminationFindingSchema> {
+  const n = _terminationCounter++;
+  return TerminationFindingSchema.parse({
+    ...passBase('Termination', n, 'Legal Issues'),
+    category: 'Legal Issues',
+    terminationType: 'for-cause',
+    noticePeriod: '30 days',
+    compensation: 'Work completed to date',
+    curePeriod: '10 days',
+    ...overrides,
+  });
+}
+
+let _flowDownCounter = 0;
+export function createFlowDownFinding(
+  overrides?: Partial<z.infer<typeof FlowDownFindingSchema>>
+): z.infer<typeof FlowDownFindingSchema> {
+  const n = _flowDownCounter++;
+  return FlowDownFindingSchema.parse({
+    ...passBase('FlowDown', n, 'Legal Issues'),
+    category: 'Legal Issues',
+    flowDownScope: 'blanket',
+    problematicObligations: [],
+    primeContractAvailable: false,
+    ...overrides,
+  });
+}
+
+let _noDamageDelayCounter = 0;
+export function createNoDamageDelayFinding(
+  overrides?: Partial<z.infer<typeof NoDamageDelayFindingSchema>>
+): z.infer<typeof NoDamageDelayFindingSchema> {
+  const n = _noDamageDelayCounter++;
+  return NoDamageDelayFindingSchema.parse({
+    ...passBase('NoDamageDelay', n, 'Legal Issues'),
+    category: 'Legal Issues',
+    waiverScope: 'absolute',
+    exceptions: [],
+    enforceabilityContext: 'Enforceable in CA',
+    ...overrides,
+  });
+}
+
+let _lienRightsCounter = 0;
+export function createLienRightsFinding(
+  overrides?: Partial<z.infer<typeof LienRightsFindingSchema>>
+): z.infer<typeof LienRightsFindingSchema> {
+  const n = _lienRightsCounter++;
+  return LienRightsFindingSchema.parse({
+    ...passBase('LienRights', n, 'Financial Terms'),
+    category: 'Financial Terms',
+    waiverType: 'conditional',
+    lienFilingDeadline: '90 days',
+    enforceabilityContext: 'Standard timeline',
+    ...overrides,
+  });
+}
+
+let _disputeResolutionCounter = 0;
+export function createDisputeResolutionFinding(
+  overrides?: Partial<z.infer<typeof DisputeResolutionFindingSchema>>
+): z.infer<typeof DisputeResolutionFindingSchema> {
+  const n = _disputeResolutionCounter++;
+  return DisputeResolutionFindingSchema.parse({
+    ...passBase('DisputeResolution', n, 'Legal Issues'),
+    category: 'Legal Issues',
+    mechanism: 'mandatory-arbitration',
+    venue: 'County of project',
+    feeShifting: 'none',
+    mediationRequired: true,
+    ...overrides,
+  });
+}
+
+let _changeOrderCounter = 0;
+export function createChangeOrderFinding(
+  overrides?: Partial<z.infer<typeof ChangeOrderFindingSchema>>
+): z.infer<typeof ChangeOrderFindingSchema> {
+  const n = _changeOrderCounter++;
+  return ChangeOrderFindingSchema.parse({
+    ...passBase('ChangeOrder', n, 'Contract Compliance'),
+    category: 'Contract Compliance',
+    changeType: 'mutual',
+    noticeRequired: '5 days written',
+    pricingMechanism: 'Time and materials',
+    proceedPending: true,
+    ...overrides,
+  });
+}
+
+// --- Scope pass factories (4) ---
+
+let _scopeOfWorkCounter = 0;
+export function createScopeOfWorkFinding(
+  overrides?: Partial<z.infer<typeof ScopeOfWorkFindingSchema>>
+): z.infer<typeof ScopeOfWorkFindingSchema> {
+  const n = _scopeOfWorkCounter++;
+  return ScopeOfWorkFindingSchema.parse({
+    ...passBase('ScopeOfWork', n, 'Scope of Work'),
+    category: 'Scope of Work',
+    scopeItemType: 'exclusion',
+    specificationReference: 'Section 08 80 00',
+    affectedTrade: 'Glazing',
+    ...overrides,
+  });
+}
+
+let _datesDeadlinesCounter = 0;
+export function createDatesDeadlinesFinding(
+  overrides?: Partial<z.infer<typeof DatesDeadlinesFindingSchema>>
+): z.infer<typeof DatesDeadlinesFindingSchema> {
+  const n = _datesDeadlinesCounter++;
+  return DatesDeadlinesFindingSchema.parse({
+    ...passBase('DatesDeadlines', n, 'Important Dates'),
+    category: 'Important Dates',
+    periodType: 'project-milestone',
+    duration: '180 days',
+    triggerEvent: 'NTP',
+    ...overrides,
+  });
+}
+
+let _verbiageCounter = 0;
+export function createVerbiageFinding(
+  overrides?: Partial<z.infer<typeof VerbiageFindingSchema>>
+): z.infer<typeof VerbiageFindingSchema> {
+  const n = _verbiageCounter++;
+  return VerbiageFindingSchema.parse({
+    ...passBase('Verbiage', n, 'Contract Compliance'),
+    category: 'Contract Compliance',
+    issueType: 'ambiguous-language',
+    affectedParty: 'subcontractor',
+    suggestedClarification: 'Clarify scope boundaries',
+    ...overrides,
+  });
+}
+
+let _laborComplianceCounter = 0;
+export function createLaborComplianceFinding(
+  overrides?: Partial<z.infer<typeof LaborComplianceFindingSchema>>
+): z.infer<typeof LaborComplianceFindingSchema> {
+  const n = _laborComplianceCounter++;
+  return LaborComplianceFindingSchema.parse({
+    ...passBase('LaborCompliance', n, 'Labor Compliance'),
+    category: 'Labor Compliance',
+    requirementType: 'prevailing-wage',
+    responsibleParty: 'Subcontractor',
+    contactInfo: 'DIR',
+    deadline: 'Pre-job',
+    checklistItems: [{
+      item: 'Certified payroll',
+      deadline: 'Weekly',
+      responsibleParty: 'Sub',
+      contactInfo: 'DIR',
+      status: 'required',
+    }],
+    ...overrides,
+  });
 }
