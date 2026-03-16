@@ -92,7 +92,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v1.6 Quality & Validation (In Progress)
+### v1.6 Quality & Validation (In Progress)
 
 **Milestone Goal:** Establish comprehensive test coverage and validation for a shipped 10,809-LOC application that currently has zero test infrastructure. Proves correctness of core business logic, UI components, API pipeline, and deployment configuration through automated tests and manual UAT.
 
@@ -115,11 +115,11 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
   3. An API test file imports a server module in node environment without jsdom contamination
   4. Framer Motion components render in tests without animation errors or hangs
   5. Test utility factories produce valid Contract and Finding objects that pass Zod schema validation
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 33-01: TBD
-- [ ] 33-02: TBD
+- [ ] 33-01-PLAN.md -- Install deps, configure Vitest, create setup files and custom render wrapper
+- [ ] 33-02-PLAN.md -- Create fixture factories and verification tests proving the stack works
 
 ### Phase 34: Pure Logic Unit Tests
 **Goal**: Core business logic is proven correct through automated tests that catch regressions in risk scoring, finding merge, bid signals, error handling, storage, and schema validation
@@ -241,7 +241,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 30. Type Safety Hardening | v1.5 | 3/3 | Complete | 2026-03-15 |
 | 31. Server-side API Modularization | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
-| 33. Test Infrastructure | v1.6 | 0/TBD | Not started | - |
+| 33. Test Infrastructure | v1.6 | 0/2 | Not started | - |
 | 34. Pure Logic Unit Tests | v1.6 | 0/TBD | Not started | - |
 | 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
