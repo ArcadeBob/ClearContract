@@ -20,9 +20,9 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 - [x] **UNIT-01**: Risk scoring tested (computeRiskScore with various finding distributions and category weights)
 - [ ] **UNIT-02**: Merge logic tested (mergePassResults deduplication, composite key matching, all 16 pass schemas)
-- [ ] **UNIT-03**: Bid signal tested (computeBidSignal with all 5 weighted factors and edge cases)
+- [x] **UNIT-03**: Bid signal tested (computeBidSignal with all 5 weighted factors and edge cases)
 - [x] **UNIT-04**: Error classification tested (classifyError for all error types: network, API, validation, unknown)
-- [ ] **UNIT-05**: Storage manager tested (storageManager get/set/delete, quota exceeded handling, v1-v2 migration)
+- [x] **UNIT-05**: Storage manager tested (storageManager get/set/delete, quota exceeded handling, v1-v2 migration)
 - [ ] **UNIT-06**: Zod schema validation tested (MergedFindingSchema, pass-specific schemas, edge cases for required vs optional fields)
 
 ### Unit Tests: Hooks
@@ -83,9 +83,9 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | INFRA-06 | Phase 38 | Pending |
 | UNIT-01 | Phase 34 | Complete |
 | UNIT-02 | Phase 34 | Pending |
-| UNIT-03 | Phase 34 | Pending |
+| UNIT-03 | Phase 34 | Complete |
 | UNIT-04 | Phase 34 | Complete |
-| UNIT-05 | Phase 34 | Pending |
+| UNIT-05 | Phase 34 | Complete |
 | UNIT-06 | Phase 34 | Pending |
 | HOOK-01 | Phase 35 | Pending |
 | HOOK-02 | Phase 35 | Pending |
