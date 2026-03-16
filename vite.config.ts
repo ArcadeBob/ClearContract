@@ -18,6 +18,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}', 'api/**/*.test.ts'],
+    exclude: ['api/live-api.test.ts', 'node_modules/**'],
     setupFiles: ['src/test/setup.ts'],
     css: false,
     coverage: {
