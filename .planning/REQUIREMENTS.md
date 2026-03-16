@@ -29,8 +29,8 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 - [x] **HOOK-01**: useContractStore tested (CRUD operations, state transitions, finding resolve/note updates)
 - [x] **HOOK-02**: useInlineEdit tested (edit state machine: idle -> editing -> saving -> idle, cancel, error)
-- [ ] **HOOK-03**: useContractFiltering tested (filter/group/sort combinations, persistence to localStorage)
-- [ ] **HOOK-04**: useFieldValidation tested (onBlur validate, revert on invalid, save on valid)
+- [x] **HOOK-03**: useContractFiltering tested (filter/group/sort combinations, persistence to localStorage)
+- [x] **HOOK-04**: useFieldValidation tested (onBlur validate, revert on invalid, save on valid)
 
 ### Component Tests
 
@@ -89,8 +89,8 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | UNIT-06 | Phase 34 | Complete |
 | HOOK-01 | Phase 35 | Complete |
 | HOOK-02 | Phase 35 | Complete |
-| HOOK-03 | Phase 35 | Pending |
-| HOOK-04 | Phase 35 | Pending |
+| HOOK-03 | Phase 35 | Complete |
+| HOOK-04 | Phase 35 | Complete |
 | COMP-01 | Phase 36 | Pending |
 | COMP-02 | Phase 36 | Pending |
 | COMP-03 | Phase 36 | Pending |
