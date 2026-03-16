@@ -147,11 +147,11 @@ Plans:
   2. useInlineEdit follows the edit state machine (idle -> editing -> saving -> idle) and handles cancel and error paths
   3. useContractFiltering produces correct filtered/grouped/sorted output for multi-select filter combinations
   4. useFieldValidation calls onBlur validate, reverts to last good value on invalid input, and saves on valid input
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 35-01: TBD
-- [ ] 35-02: TBD
+- [ ] 35-01-PLAN.md -- useContractStore CRUD/finding mutations and useInlineEdit state machine tests
+- [ ] 35-02-PLAN.md -- useContractFiltering filter/group/sort tests and useFieldValidation validation/timer tests
 
 ### Phase 36: Component Tests
 **Goal**: Key UI components render correctly with all data variations, respond to user interaction, and display appropriate visual states
@@ -243,7 +243,7 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 32. Type Safety Gap Closure | v1.5 | 1/1 | Complete | 2026-03-15 |
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
-| 35. Hook Tests | v1.6 | 0/TBD | Not started | - |
+| 35. Hook Tests | v1.6 | 0/2 | Not started | - |
 | 36. Component Tests | v1.6 | 0/TBD | Not started | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |
