@@ -20,5 +20,23 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'api/**/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
     css: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'text-summary'],
+      include: ['src/**/*.{ts,tsx}', 'api/**/*.ts'],
+      exclude: [
+        'src/test/**',
+        'api/test-fixtures/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.d.ts',
+        'src/index.tsx',
+        'src/vite-env.d.ts',
+        'src/data/mockContracts.ts',
+      ],
+      thresholds: {
+        statements: 60,
+        functions: 60,
+      },
+    },
   },
 })
