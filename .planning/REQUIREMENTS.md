@@ -36,9 +36,9 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 
 - [x] **COMP-01**: FindingCard renders all severity levels with correct styling and metadata
 - [x] **COMP-02**: SeverityBadge renders correct colors and labels for all severity values
-- [ ] **COMP-03**: UploadZone accepts valid PDFs, rejects invalid files, shows error states
-- [ ] **COMP-04**: FilterToolbar toggles filters correctly, reflects active filter state
-- [ ] **COMP-05**: Sidebar navigation renders all views, highlights active view, triggers navigation
+- [x] **COMP-03**: UploadZone accepts valid PDFs, rejects invalid files, shows error states
+- [x] **COMP-04**: FilterToolbar toggles filters correctly, reflects active filter state
+- [x] **COMP-05**: Sidebar navigation renders all views, highlights active view, triggers navigation
 
 ### Integration Tests: API
 
@@ -93,9 +93,9 @@ Requirements for Quality & Validation milestone. Each maps to roadmap phases.
 | HOOK-04 | Phase 35 | Complete |
 | COMP-01 | Phase 36 | Complete |
 | COMP-02 | Phase 36 | Complete |
-| COMP-03 | Phase 36 | Pending |
-| COMP-04 | Phase 36 | Pending |
-| COMP-05 | Phase 36 | Pending |
+| COMP-03 | Phase 36 | Complete |
+| COMP-04 | Phase 36 | Complete |
+| COMP-05 | Phase 36 | Complete |
 | INTG-01 | Phase 37 | Pending |
 | INTG-02 | Phase 37 | Pending |
 | INTG-03 | Phase 37 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
 status: in-progress
-stopped_at: Completed 36-01 FindingCard and SeverityBadge tests
-last_updated: "2026-03-16T04:55:00.000Z"
-last_activity: 2026-03-16 -- Completed 36-01 FindingCard and SeverityBadge component tests
+stopped_at: Completed 36-02 UploadZone, FilterToolbar, Sidebar tests
+last_updated: "2026-03-16T04:56:18Z"
+last_activity: 2026-03-16 -- Completed 36-02 UploadZone, FilterToolbar, and Sidebar component tests
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 36 of 38 (Component Tests)
-Plan: 1 of 2 complete in Phase 36
-Status: Executing Phase 36
-Last activity: 2026-03-16 -- Completed 36-01 FindingCard and SeverityBadge component tests
+Phase: 36 of 38 (Component Tests) -- COMPLETE
+Plan: 2 of 2 complete in Phase 36
+Status: Phase 36 complete
+Last activity: 2026-03-16 -- Completed 36-02 UploadZone, FilterToolbar, and Sidebar component tests
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [█████████░] 89%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 7 plans completed, 24min total
+**v1.6 (Phases 33-38):** 8 plans completed, 29min total
 
 ## Accumulated Context
 
@@ -57,6 +57,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 35]: vi.mock contractStorage at module level for useContractStore isolation; useInlineEdit needs no mocking (pure state hook)
 - [Phase 35]: negotiationPosition/actionPriority are required in MergedFindingSchema; storageManager mock pattern for useContractFiltering persistence tests
 - [Phase 36]: screen.getByTitle for button queries; ConfirmDialog portal tested via unscoped screen queries
+- [Phase 36]: fireEvent.drop with dataTransfer for react-dropzone testing in jsdom; badge count=0 tests check styled span absence due to JSX falsy-number rendering
 
 ### Pending Todos
 
@@ -70,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:55:00.000Z
-Stopped at: Completed 36-01 FindingCard and SeverityBadge tests
-Resume with: `/gsd:execute-phase 36` (plan 36-02 remaining)
+Last session: 2026-03-16T04:56:18Z
+Stopped at: Completed 36-02 UploadZone, FilterToolbar, Sidebar tests
+Resume with: `/gsd:execute-phase 37`
