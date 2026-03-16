@@ -99,7 +99,7 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 - [x] **Phase 33: Test Infrastructure** - Vitest, RTL, Framer Motion mock, test utilities, and a passing trivial test (completed 2026-03-16)
 - [x] **Phase 34: Pure Logic Unit Tests** - Risk scoring, merge, bid signal, error classification, storage, and Zod schemas (completed 2026-03-16)
 - [x] **Phase 35: Hook Tests** - Contract store, inline edit, filtering, and field validation hooks (completed 2026-03-16)
-- [ ] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar
+- [x] **Phase 36: Component Tests** - FindingCard, SeverityBadge, UploadZone, FilterToolbar, and Sidebar (completed 2026-03-16)
 - [ ] **Phase 37: API Integration Tests** - Endpoint validation, error paths, full pipeline mock, and schema conformance
 - [ ] **Phase 38: UAT, CI, and Coverage Enforcement** - Manual UAT checklist, regression suite, live API tests, Vercel config, CI pipeline, coverage thresholds
 
@@ -163,7 +163,7 @@ Plans:
   3. UploadZone accepts PDF files within size limits, rejects non-PDF files, rejects oversized files, and shows appropriate error messages
   4. FilterToolbar toggles filter selections on click, visually indicates active filters, and updates the filtered results
   5. Sidebar renders all navigation views, highlights the currently active view, and triggers navigation on click
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 36-01-PLAN.md -- FindingCard and SeverityBadge component tests
@@ -244,6 +244,6 @@ Phases execute in numeric order: 33 -> 34 -> 35 -> 36 -> 37 -> 38
 | 33. Test Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
 | 34. Pure Logic Unit Tests | 3/3 | Complete    | 2026-03-16 | - |
 | 35. Hook Tests | 2/2 | Complete    | 2026-03-16 | - |
-| 36. Component Tests | v1.6 | 0/2 | Planned | - |
+| 36. Component Tests | 2/2 | Complete   | 2026-03-16 | - |
 | 37. API Integration Tests | v1.6 | 0/TBD | Not started | - |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 0/TBD | Not started | - |

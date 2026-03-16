@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Quality & Validation
-status: completed
-stopped_at: Phase 36 context gathered
-last_updated: "2026-03-16T04:26:15.821Z"
-last_activity: 2026-03-16 -- Completed 35-02 useContractFiltering and useFieldValidation hook tests
+status: in-progress
+stopped_at: Completed 36-01 FindingCard and SeverityBadge tests
+last_updated: "2026-03-16T04:55:00.000Z"
+last_activity: 2026-03-16 -- Completed 36-01 FindingCard and SeverityBadge component tests
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v1.6 Quality & Validation -- Phase 35: Hook Tests
+**Current focus:** v1.6 Quality & Validation -- Phase 36: Component Tests
 
 ## Current Position
 
-Phase: 35 of 38 (Hook Tests) -- COMPLETE
-Plan: 2 of 2 complete in Phase 35
-Status: Phase 35 complete
-Last activity: 2026-03-16 -- Completed 35-02 useContractFiltering and useFieldValidation hook tests
+Phase: 36 of 38 (Component Tests)
+Plan: 1 of 2 complete in Phase 36
+Status: Executing Phase 36
+Last activity: 2026-03-16 -- Completed 36-01 FindingCard and SeverityBadge component tests
 
-Progress: [██████████] 100%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [██████████] 100%
 **v1.3 (Phases 15-21):** 8 plans, single session
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
-**v1.6 (Phases 33-38):** 6 plans completed, 21min total
+**v1.6 (Phases 33-38):** 7 plans completed, 24min total
 
 ## Accumulated Context
 
@@ -56,6 +56,7 @@ Full decision log in PROJECT.md Key Decisions table (46 decisions across 6 miles
 - [Phase 34]: Schema validation tests add client-side fields to prove merge output MergedFindingSchema-compatible
 - [Phase 35]: vi.mock contractStorage at module level for useContractStore isolation; useInlineEdit needs no mocking (pure state hook)
 - [Phase 35]: negotiationPosition/actionPriority are required in MergedFindingSchema; storageManager mock pattern for useContractFiltering persistence tests
+- [Phase 36]: screen.getByTitle for button queries; ConfirmDialog portal tested via unscoped screen queries
 
 ### Pending Todos
 
@@ -69,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:26:15.818Z
-Stopped at: Phase 36 context gathered
-Resume with: `/gsd:execute-phase 36`
+Last session: 2026-03-16T04:55:00.000Z
+Stopped at: Completed 36-01 FindingCard and SeverityBadge tests
+Resume with: `/gsd:execute-phase 36` (plan 36-02 remaining)
