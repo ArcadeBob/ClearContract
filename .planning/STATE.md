@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Quality & Validation
-status: archived
-stopped_at: Milestone v1.6 archived
-last_updated: "2026-03-16T20:00:00.000Z"
-last_activity: 2026-03-16 -- Milestone v1.6 archived
+milestone: v2.0
+milestone_name: Enterprise Foundation
+status: requirements
+stopped_at: Defining requirements
+last_updated: "2026-03-16T21:00:00.000Z"
+last_activity: 2026-03-16 -- Milestone v2.0 started
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,15 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone
+**Current focus:** v2.0 Enterprise Foundation -- Supabase Auth + Postgres
 
 ## Current Position
 
-Phase: All v1.6 phases complete and archived
-Status: Between milestones -- v1.6 shipped, next milestone not started
-Last activity: 2026-03-16 -- Milestone v1.6 Quality & Validation archived
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v2.0 started
 
 ## Performance Metrics
 
@@ -53,10 +52,4 @@ None.
 
 ### Blockers/Concerns
 
-None active. Statement coverage threshold (40.74% < 60%) deferred to next milestone.
-
-## Session Continuity
-
-Last session: 2026-03-16
-Stopped at: Milestone v1.6 archived
-Resume with: `/gsd:new-milestone` to start next milestone
+None active. Statement coverage threshold (40.74% < 60%) carried from v1.6.

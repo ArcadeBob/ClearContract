@@ -78,7 +78,10 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(None yet -- define requirements for next milestone with `/gsd:new-milestone`)
+- [ ] Supabase Auth with email/password (single user, protected routes)
+- [ ] Supabase Postgres database for contracts, findings, dates, company profile
+- [ ] Replace all localStorage data access with Supabase queries
+- [ ] Login page for unauthenticated users
 
 ### Out of Scope
 
@@ -184,6 +187,17 @@ Known issues: Statement coverage 40.74% vs 60% CI threshold (intentional forcing
 | Coverage thresholds as forcing function (60%) | CI fails until coverage improves; functions pass, statements aspirational | ✓ Good -- drives incremental improvement |
 | Live test isolation via separate vitest config | Excluded from main suite; runs only via npm run test:live | ✓ Good -- CI-safe, no API key required |
 
+## Current Milestone: v2.0 Enterprise Foundation
+
+**Goal:** Move from localStorage to Supabase (Postgres + Auth) for real data durability and single-user authentication.
+
+**Target features:**
+- Supabase Auth with email/password login
+- Postgres database for all contract data (contracts, findings, dates, company profile)
+- Replace localStorage reads/writes with Supabase queries throughout the app
+- Protected routes — unauthenticated users see login page only
+- Fresh start (no localStorage migration)
+
 ---
 ## Completed Milestones
 
@@ -196,4 +210,4 @@ Known issues: Statement coverage 40.74% vs 60% CI threshold (intentional forcing
 - **v1.6** Quality & Validation (2026-03-16) -- 269 automated tests, CI pipeline, UAT checklist, regression suite
 
 ---
-*Last updated: 2026-03-16 after v1.6 milestone completion*
+*Last updated: 2026-03-16 after v2.0 milestone start*
