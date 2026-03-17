@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Foundation
-status: completed
-stopped_at: Phase 41 context gathered
-last_updated: "2026-03-17T20:45:09.499Z"
-last_activity: 2026-03-17 -- Phase 40 plan 02 complete
+status: in-progress
+stopped_at: Completed 41-01-PLAN.md
+last_updated: "2026-03-17T22:30:10.000Z"
+last_activity: 2026-03-17 -- Phase 41 plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 40 - Authentication
+**Current focus:** Phase 41 - Contract Reads and Data Mapping
 
 ## Current Position
 
-Phase: 40 of 45 (Authentication) -- IN PROGRESS
-Plan: 2 of 3 in current phase (plan 02 complete)
-Status: Phase 40 plan 02 complete, ready for plan 03
-Last activity: 2026-03-17 -- Phase 40 plan 02 complete
+Phase: 41 of 45 (Contract Reads and Data Mapping) -- IN PROGRESS
+Plan: 1 of 3 in current phase (plan 01 complete)
+Status: Phase 41 plan 01 complete, ready for plan 02
+Last activity: 2026-03-17 -- Phase 41 plan 01 complete
 
-Progress: [████████░░] 100% (3/3 v2.0 plans)
+Progress: [████████░░] 80% (4/5 v2.0 plans)
 
 ## Performance Metrics
 
@@ -41,7 +41,7 @@ Progress: [████████░░] 100% (3/3 v2.0 plans)
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
-**v2.0 (Phases 39-45):** 3 plans complete, ~5min avg
+**v2.0 (Phases 39-45):** 4 plans complete, ~5min avg
 
 ## Accumulated Context
 
@@ -62,6 +62,7 @@ Recent decisions affecting v2.0:
 - Generic "Invalid email or password" for all auth errors (security best practice)
 - AuthenticatedApp inner component pattern: unmounting clears all in-memory state on sign-out
 - AuthProvider wraps outside ToastProvider (auth is more fundamental)
+- Top-level keys only in row mapper -- JSONB stored as camelCase, no recursive conversion needed
 
 ### Pending Todos
 
@@ -76,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T20:45:09.497Z
-Stopped at: Phase 41 context gathered
-Resume file: .planning/phases/41-contract-reads-and-data-mapping/41-CONTEXT.md
+Last session: 2026-03-17T22:30:10.000Z
+Stopped at: Completed 41-01-PLAN.md
+Resume file: .planning/phases/41-contract-reads-and-data-mapping/41-01-SUMMARY.md
