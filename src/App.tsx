@@ -19,19 +19,30 @@ import { LoadingScreen } from './components/LoadingScreen';
 function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const {
     contracts,
+    isLoading: contractsLoading,
+    error: contractsError,
     addContract,
     updateContract,
     deleteContract,
     toggleFindingResolved,
     updateFindingNote,
-    storageWarning,
-    dismissStorageWarning,
   } = useContractStore();
   const { activeView, activeContractId, compareIds, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const { showToast } = useToast();
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+
+  // Show error toast on fetch failure
+  useEffect(() => {
+    if (contractsError) {
+      showToast({ type: 'error', message: contractsError });
+    }
+  }, [contractsError, showToast]);
+
+  if (contractsLoading) {
+    return <LoadingScreen />;
+  }
 
   // 1C: Redirect to dashboard if review view has no active contract (avoids setState during render)
   useEffect(() => {
@@ -255,19 +266,6 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
         contractCount={contracts.length}
         onSignOut={signOut}
       />
-
-      {storageWarning && (
-        <div className="fixed top-4 right-4 z-50 max-w-md bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-lg flex items-start gap-3">
-          <span className="text-amber-600 text-sm flex-1">{storageWarning}</span>
-          <button
-            onClick={dismissStorageWarning}
-            className="text-amber-400 hover:text-amber-600 text-lg leading-none"
-            aria-label="Dismiss warning"
-          >
-            &times;
-          </button>
-        </div>
-      )}
 
       <main className="flex-1 h-full overflow-hidden relative">
         {renderContent()}
