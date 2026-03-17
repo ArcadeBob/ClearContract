@@ -21,7 +21,7 @@ created: 2026-03-17
 | Preset | not applicable |
 | Component library | none (custom Tailwind components) |
 | Icon library | lucide-react |
-| Font | Inter (300, 400, 500, 600, 700 weights loaded via Google Fonts) |
+| Font | Inter (400, 600 weights used this phase; other weights may be loaded by app but are not used here) |
 
 ---
 
@@ -31,11 +31,11 @@ Declared values (must be multiples of 4):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps, inline padding |
+| xs | 4px | Icon gaps, inline padding, label-to-input margin |
 | sm | 8px | Compact element spacing, input internal padding-y |
 | md | 16px | Default element spacing, input padding-x, card internal padding |
 | lg | 24px | Card section padding, form field vertical gaps |
-| xl | 32px | Card outer padding |
+| xl | 32px | Card outer padding, branding-to-form gap |
 | 2xl | 48px | Login card vertical padding from branding to form |
 | 3xl | 64px | Not used this phase |
 
@@ -47,10 +47,10 @@ Exceptions: none
 
 | Role | Size | Weight | Line Height | Usage This Phase |
 |------|------|--------|-------------|------------------|
-| Body | 14px | 400 (regular) | 1.5 | Error message text, tagline |
-| Label | 14px | 500 (medium) | 1.5 | Form field labels ("Email", "Password") |
-| Heading | 20px | 600 (semibold) | 1.2 | "ClearContract" heading on login card |
-| Display | 20px | 600 (semibold) | 1.2 | "ClearContract" text on loading screen |
+| Body | 14px | 400 (regular) | 1.5 | Error message text, tagline, form field labels ("Email", "Password"), sign-out label |
+| Heading | 20px | 600 (semibold) | 1.2 | "ClearContract" heading on login card and loading screen |
+
+Weights used: 400 and 600 only. Form field labels are visually distinguished from error text through proximity and layout position, not font weight.
 
 ---
 
@@ -60,7 +60,7 @@ Exceptions: none
 |------|-------|-------|
 | Dominant (60%) | slate-50 (#f8fafc) | Full-screen background behind login card and loading screen |
 | Secondary (30%) | white/80 (rgba(255,255,255,0.8)) | Login card surface via `.glass-panel` class |
-| Accent (10%) | slate-900 (#0f172a) | Sign In button background only |
+| Accent (10%) | slate-900 (#0f172a) | Primary action accent -- Sign In button background only |
 | Destructive | red-600 (#dc2626) | Inline error message text color |
 
 Additional color tokens used:
@@ -69,7 +69,7 @@ Additional color tokens used:
 |---------|-------|--------|
 | Sign In button text | white (#ffffff) | CONTEXT.md locked decision |
 | Input borders (default) | slate-300 (#cbd5e1) | Matches existing app border convention |
-| Input borders (focus) | blue-500 (#3b82f6) | Matches existing active-state blue accent |
+| Input borders (focus) | blue-500 (#3b82f6) | Focus state accent (inherited app convention) |
 | Input focus ring | blue-500/20 (ring-blue-500/20) | Subtle focus indicator |
 | Branding icon background | blue-600 (#2563eb) | Matches Sidebar Gem icon styling |
 | Tagline text | slate-500 (#64748b) | Secondary text color |
@@ -78,7 +78,15 @@ Additional color tokens used:
 | Sign-out link hover | white (#ffffff) | Matches sidebar hover convention |
 | Sidebar divider | slate-800 (#1e293b) | Matches existing sidebar border-slate-800 |
 
-Accent reserved for: Sign In button background (slate-900), input focus ring (blue-500)
+Accent reserved for:
+- **Primary action accent:** slate-900 -- Sign In button background (the sole interactive CTA on the page)
+- **Focus state accent:** blue-500 -- input focus ring/border (inherited app-wide convention, not a new design choice)
+
+---
+
+## Focal Point
+
+**Primary visual anchor:** Gem icon + "ClearContract" heading (branding block, centered at top of login card). This is the first element the user sees and establishes product identity before the form fields below.
 
 ---
 
@@ -99,8 +107,8 @@ Accent reserved for: Sign In button background (slate-900), input focus ring (bl
 | Form fields | Stacked vertically with 24px gap between fields |
 | Input height | 44px (py-2.5 + 14px text + border = ~44px touch target) |
 | Input styling | `w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors` |
-| Input labels | 14px/500 slate-700, 4px margin-bottom to input |
-| Submit button | `w-full py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed` |
+| Input labels | 14px/400 slate-700, 4px margin-bottom to input |
+| Submit button | `w-full py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed` |
 | Submit button top margin | 8px more than field gap (32px from last field, using `mt-8` on button or `pt-2` on button wrapper) |
 | Error message | Below password field, above submit button. 14px/400 text-red-600. 8px top margin from password input. |
 | Animation | Optional: Framer Motion `initial={{ opacity: 0, y: 8 }}` `animate={{ opacity: 1, y: 0 }}` on card with 300ms duration |
