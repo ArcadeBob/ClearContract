@@ -111,7 +111,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
 **Milestone Goal:** Move from localStorage to Supabase (Postgres + Auth) for real data durability and single-user authentication.
 
-- [ ] **Phase 39: Database Schema and RLS** - Create Supabase tables with row-level security and configure environment variables
+- [x] **Phase 39: Database Schema and RLS** - Create Supabase tables with row-level security and configure environment variables (completed 2026-03-17)
 - [ ] **Phase 40: Authentication** - Email/password login with session persistence and protected routes
 - [ ] **Phase 41: Contract Reads and Data Mapping** - Load contracts from Supabase with type-safe snake_case/camelCase mapping
 - [ ] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern
@@ -244,7 +244,7 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 36. Component Tests | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 37. API Integration Tests | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 2/2 | Complete | 2026-03-16 |
-| 39. Database Schema and RLS | v2.0 | 0/1 | Not started | - |
+| 39. Database Schema and RLS | 1/1 | Complete   | 2026-03-17 | - |
 | 40. Authentication | v2.0 | 0/0 | Not started | - |
 | 41. Contract Reads and Data Mapping | v2.0 | 0/0 | Not started | - |
 | 42. Company Profile Migration | v2.0 | 0/0 | Not started | - |

@@ -18,12 +18,12 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 ### Database Schema
 
-- [ ] **DB-01**: Contracts table in Postgres with RLS policy restricting access to owning user
-- [ ] **DB-02**: Findings table with foreign key to contracts and individual row CRUD
-- [ ] **DB-03**: Contract dates table with foreign key to contracts
-- [ ] **DB-04**: Company profiles table with single row per user (upsert pattern)
-- [ ] **DB-05**: RLS enabled on all tables with user-scoped policies
-- [ ] **DB-06**: Environment variables configured (anon key, service role key, Supabase URL)
+- [x] **DB-01**: Contracts table in Postgres with RLS policy restricting access to owning user
+- [x] **DB-02**: Findings table with foreign key to contracts and individual row CRUD
+- [x] **DB-03**: Contract dates table with foreign key to contracts
+- [x] **DB-04**: Company profiles table with single row per user (upsert pattern)
+- [x] **DB-05**: RLS enabled on all tables with user-scoped policies
+- [x] **DB-06**: Environment variables configured (anon key, service role key, Supabase URL)
 
 ### Data Access
 
@@ -101,12 +101,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 40 | Pending |
 | AUTH-05 | Phase 40 | Pending |
 | AUTH-06 | Phase 40 | Pending |
-| DB-01 | Phase 39 | Pending |
-| DB-02 | Phase 39 | Pending |
-| DB-03 | Phase 39 | Pending |
-| DB-04 | Phase 39 | Pending |
-| DB-05 | Phase 39 | Pending |
-| DB-06 | Phase 39 | Pending |
+| DB-01 | Phase 39 | Complete |
+| DB-02 | Phase 39 | Complete |
+| DB-03 | Phase 39 | Complete |
+| DB-04 | Phase 39 | Complete |
+| DB-05 | Phase 39 | Complete |
+| DB-06 | Phase 39 | Complete |
 | DATA-01 | Phase 41 | Pending |
 | DATA-02 | Phase 41 | Pending |
 | DATA-03 | Phase 42 | Pending |
