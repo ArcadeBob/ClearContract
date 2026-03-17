@@ -130,7 +130,9 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
   2. RLS is enabled on all four tables and policies restrict every query to the owning user (verified by querying with anon key and seeing no unauthorized data)
   3. Environment variables (Supabase URL, anon key, service role key) are configured in both local .env and Vercel project settings
   4. CASCADE delete on findings and contract_dates foreign keys works (deleting a contract removes its children)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 39-01-PLAN.md -- Supabase CLI init, migration SQL (4 tables, RLS, indexes), env var config
 
 ### Phase 40: Authentication
 **Goal**: Users must sign in before accessing any part of the app, with sessions that survive browser restarts
@@ -242,7 +244,7 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 36. Component Tests | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 37. API Integration Tests | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 2/2 | Complete | 2026-03-16 |
-| 39. Database Schema and RLS | v2.0 | 0/0 | Not started | - |
+| 39. Database Schema and RLS | v2.0 | 0/1 | Not started | - |
 | 40. Authentication | v2.0 | 0/0 | Not started | - |
 | 41. Contract Reads and Data Mapping | v2.0 | 0/0 | Not started | - |
 | 42. Company Profile Migration | v2.0 | 0/0 | Not started | - |
