@@ -11,8 +11,8 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 - [x] **AUTH-01**: User can sign in with email and password on a login page
 - [x] **AUTH-02**: User session persists across browser refresh and tab close
-- [ ] **AUTH-03**: Unauthenticated users see only the login page (protected routes)
-- [ ] **AUTH-04**: User can sign out via button in sidebar
+- [x] **AUTH-03**: Unauthenticated users see only the login page (protected routes)
+- [x] **AUTH-04**: User can sign out via button in sidebar
 - [x] **AUTH-05**: Login page shows clear error messages for invalid credentials
 - [x] **AUTH-06**: App shows loading state while checking session (no login flash)
 
@@ -97,8 +97,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | AUTH-01 | Phase 40 | Complete |
 | AUTH-02 | Phase 40 | Complete |
-| AUTH-03 | Phase 40 | Pending |
-| AUTH-04 | Phase 40 | Pending |
+| AUTH-03 | Phase 40 | Complete |
+| AUTH-04 | Phase 40 | Complete |
 | AUTH-05 | Phase 40 | Complete |
 | AUTH-06 | Phase 40 | Complete |
 | DB-01 | Phase 39 | Complete |
