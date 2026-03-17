@@ -112,7 +112,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 **Milestone Goal:** Move from localStorage to Supabase (Postgres + Auth) for real data durability and single-user authentication.
 
 - [x] **Phase 39: Database Schema and RLS** - Create Supabase tables with row-level security and configure environment variables (completed 2026-03-17)
-- [x] **Phase 40: Authentication** - Email/password login with session persistence and protected routes (completed 2026-03-17)
+- [x] **Phase 40: Authentication** - Email/password login with session persistence and protected routes (completed 2026-03-17)
 - [ ] **Phase 41: Contract Reads and Data Mapping** - Load contracts from Supabase with type-safe snake_case/camelCase mapping
 - [ ] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern
 - [ ] **Phase 43: Analysis Pipeline Server Writes** - Server validates JWT, reads company profile from DB, writes analysis results to Postgres
@@ -157,7 +157,10 @@ Plans:
   1. Dashboard and All Contracts page render contracts loaded from Supabase (not localStorage)
   2. Contract review page shows findings and dates nested under the correct contract, loaded via joined Supabase query
   3. Type-safe mapper converts between Postgres snake_case columns and TypeScript camelCase fields with zero runtime type errors
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 41-01-PLAN.md -- Generic snake_case-to-camelCase mapper utility
+- [ ] 41-02-PLAN.md -- Supabase fetch in useContractStore, loading state in AuthenticatedApp
 
 ### Phase 42: Company Profile Migration
 **Goal**: Company profile settings persist in Supabase so they survive device changes and localStorage clearing
@@ -249,7 +252,7 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 39. Database Schema and RLS | 1/1 | Complete    | 2026-03-17 | - |
 | 40. Authentication | 2/2 | Complete    | 2026-03-17 | - |
-| 41. Contract Reads and Data Mapping | v2.0 | 0/0 | Not started | - |
+| 41. Contract Reads and Data Mapping | v2.0 | 0/2 | Not started | - |
 | 42. Company Profile Migration | v2.0 | 0/0 | Not started | - |
 | 43. Analysis Pipeline Server Writes | v2.0 | 0/0 | Not started | - |
 | 44. Contract Operations | v2.0 | 0/0 | Not started | - |
