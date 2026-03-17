@@ -12,8 +12,11 @@ import { useToast } from './hooks/useToast';
 import { Contract, Finding } from './types/contract';
 import { analyzeContract } from './api/analyzeContract';
 import { classifyError } from './utils/errors';
+import { useAuth } from './contexts/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { LoadingScreen } from './components/LoadingScreen';
 
-export function App() {
+function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const {
     contracts,
     addContract,
@@ -250,6 +253,7 @@ export function App() {
         activeView={activeView}
         onNavigate={(view) => navigateTo(view)}
         contractCount={contracts.length}
+        onSignOut={signOut}
       />
 
       {storageWarning && (
@@ -270,4 +274,18 @@ export function App() {
       </main>
     </div>
   );
+}
+
+export function App() {
+  const { session, isLoading, signOut } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (!session) {
+    return <LoginPage />;
+  }
+
+  return <AuthenticatedApp signOut={signOut} />;
 }

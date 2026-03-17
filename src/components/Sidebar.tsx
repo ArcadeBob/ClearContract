@@ -5,17 +5,20 @@ import {
   Settings,
   Gem,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { ViewState } from '../types/contract';
 interface SidebarProps {
   activeView: ViewState;
   onNavigate: (view: ViewState) => void;
   contractCount: number;
+  onSignOut: () => void;
 }
 export function Sidebar({
   activeView,
   onNavigate,
   contractCount,
+  onSignOut,
 }: SidebarProps) {
   const navItems = [
     {
@@ -91,6 +94,16 @@ export function Sidebar({
             labor codes.
           </p>
         </div>
+      </div>
+
+      <div className="border-t border-slate-800 px-4 py-3">
+        <button
+          onClick={onSignOut}
+          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
