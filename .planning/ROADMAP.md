@@ -144,7 +144,10 @@ Plans:
   3. Unauthenticated users see only the login page -- no sidebar, no dashboard, no routes accessible
   4. User can sign out via a button in the sidebar and is returned to the login page
   5. Invalid credentials produce a clear, specific error message on the login form (not a generic failure)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 40-01-PLAN.md -- Supabase client, AuthContext, LoginPage, LoadingScreen
+- [ ] 40-02-PLAN.md -- Wire auth gate, Sidebar sign-out, unit tests
 
 ### Phase 41: Contract Reads and Data Mapping
 **Goal**: The app loads all contract data from Supabase on mount, replacing localStorage reads with database queries
@@ -245,7 +248,7 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 37. API Integration Tests | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 38. UAT, CI, and Coverage Enforcement | v1.6 | 2/2 | Complete | 2026-03-16 |
 | 39. Database Schema and RLS | 1/1 | Complete    | 2026-03-17 | - |
-| 40. Authentication | v2.0 | 0/0 | Not started | - |
+| 40. Authentication | v2.0 | 0/2 | Planning complete | - |
 | 41. Contract Reads and Data Mapping | v2.0 | 0/0 | Not started | - |
 | 42. Company Profile Migration | v2.0 | 0/0 | Not started | - |
 | 43. Analysis Pipeline Server Writes | v2.0 | 0/0 | Not started | - |
