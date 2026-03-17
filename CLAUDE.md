@@ -43,7 +43,7 @@ The contract analysis flow spans client and server:
 1. User uploads PDF via `UploadZone` (react-dropzone, 3MB max, PDF only)
 2. `App.tsx` creates a placeholder contract in "Analyzing" state and navigates to review page immediately
 3. `src/api/analyzeContract.ts` converts the PDF to base64 via `FileReader` and POSTs to `/api/analyze`
-4. `api/analyze.ts` (Vercel serverless function, 60s timeout) decodes PDF, extracts text with `pdf-parse`, truncates to 100k chars, and sends to Claude (`claude-sonnet-4-20250514`, 4096 max tokens)
+4. `api/analyze.ts` (Vercel serverless function, 60s timeout) decodes PDF, extracts text with `pdf-parse`, truncates to 100k chars, and sends to Claude (`claude-sonnet-4-5-20250929`, 8192 max tokens)
 5. Claude returns structured JSON: client name, contract type, risk score (0-100), findings array, dates array
 6. On success, the placeholder contract is updated with real data via `updateContract()`; on failure, the error appears as a Critical finding
 
