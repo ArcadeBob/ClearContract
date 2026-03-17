@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Foundation
-status: completed
-stopped_at: Phase 40 context gathered
-last_updated: "2026-03-17T04:47:32.774Z"
-last_activity: 2026-03-17 -- Phase 39 plan 01 complete
+status: in-progress
+stopped_at: Completed 40-01-PLAN.md
+last_updated: "2026-03-17T09:41:05.535Z"
+last_activity: 2026-03-17 -- Phase 40 plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
   percent: 14
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 39 - Database Schema and RLS
+**Current focus:** Phase 40 - Authentication
 
 ## Current Position
 
-Phase: 39 of 45 (Database Schema and RLS) -- COMPLETE
-Plan: 1 of 1 in current phase (all plans complete)
-Status: Phase 39 complete, ready for Phase 40
-Last activity: 2026-03-17 -- Phase 39 plan 01 complete
+Phase: 40 of 45 (Authentication) -- IN PROGRESS
+Plan: 1 of 3 in current phase (plan 01 complete)
+Status: Phase 40 plan 01 complete, ready for plan 02
+Last activity: 2026-03-17 -- Phase 40 plan 01 complete
 
-Progress: [█░░░░░░░░░] 14% (1/7 v2.0 phases)
+Progress: [███████░░░] 67% (2/3 v2.0 plans)
 
 ## Performance Metrics
 
@@ -41,7 +41,7 @@ Progress: [█░░░░░░░░░] 14% (1/7 v2.0 phases)
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
-**v2.0 (Phases 39-45):** 1 plan complete, ~5min
+**v2.0 (Phases 39-45):** 2 plans complete, ~5min avg
 
 ## Accumulated Context
 
@@ -58,6 +58,8 @@ Recent decisions affecting v2.0:
 - TEXT + CHECK constraints over Postgres ENUMs for easier future changes
 - (select auth.uid()) subquery pattern in RLS policies for performance
 - Anon key for client-side RLS; service role key deferred to Phase 43
+- AuthContext uses onAuthStateChange for reactive session (no getSession polling)
+- Generic "Invalid email or password" for all auth errors (security best practice)
 
 ### Pending Todos
 
@@ -72,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T04:47:32.772Z
-Stopped at: Phase 40 context gathered
-Resume file: .planning/phases/40-authentication/40-CONTEXT.md
+Last session: 2026-03-17T09:39:32Z
+Stopped at: Completed 40-01-PLAN.md
+Resume file: .planning/phases/40-authentication/40-02-PLAN.md
