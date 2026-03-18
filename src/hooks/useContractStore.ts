@@ -3,12 +3,14 @@ import { Contract } from '../types/contract';
 import type { Finding, ContractDate } from '../types/contract';
 import { supabase } from '../lib/supabase';
 import { mapRow, mapRows } from '../lib/mappers';
+import { useToast } from './useToast';
 
 export function useContractStore() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -78,38 +80,90 @@ export function useContractStore() {
     );
   };
 
-  const deleteContract = (id: string) => {
-    setContracts((prev) => prev.filter((c) => c.id !== id));
+  const deleteContract = async (id: string) => {
+    const prev = [...contracts];
+    setContracts((c) => c.filter((x) => x.id !== id));
+
+    const { error } = await supabase.from('contracts').delete().eq('id', id);
+    if (error) {
+      console.error('Failed to delete contract:', error);
+      setContracts(prev);
+      showToast({ type: 'error', message: 'Failed to delete contract. Changes reverted.' });
+    }
   };
 
-  const toggleFindingResolved = (contractId: string, findingId: string) => {
-    setContracts((prev) =>
-      prev.map((c) =>
+  const toggleFindingResolved = async (contractId: string, findingId: string) => {
+    const prev = [...contracts];
+    const contract = contracts.find((c) => c.id === contractId);
+    const finding = contract?.findings.find((f) => f.id === findingId);
+    if (!finding) return;
+
+    const newResolved = !finding.resolved;
+
+    setContracts((cs) =>
+      cs.map((c) =>
         c.id === contractId
-          ? {
-              ...c,
-              findings: c.findings.map((f) =>
-                f.id === findingId ? { ...f, resolved: !f.resolved } : f
-              ),
-            }
+          ? { ...c, findings: c.findings.map((f) =>
+              f.id === findingId ? { ...f, resolved: newResolved } : f
+            )}
           : c
       )
     );
+
+    const { error } = await supabase
+      .from('findings')
+      .update({ resolved: newResolved })
+      .eq('id', findingId);
+
+    if (error) {
+      console.error('Failed to toggle resolved:', error);
+      setContracts(prev);
+      showToast({ type: 'error', message: 'Failed to update finding. Changes reverted.' });
+    }
   };
 
-  const updateFindingNote = (contractId: string, findingId: string, note: string | undefined) => {
-    setContracts((prev) =>
-      prev.map((c) =>
+  const updateFindingNote = async (contractId: string, findingId: string, note: string | undefined) => {
+    const prev = [...contracts];
+    const noteValue = note ?? '';
+
+    setContracts((cs) =>
+      cs.map((c) =>
         c.id === contractId
-          ? {
-              ...c,
-              findings: c.findings.map((f) =>
-                f.id === findingId ? { ...f, note: note ?? '' } : f
-              ),
-            }
+          ? { ...c, findings: c.findings.map((f) =>
+              f.id === findingId ? { ...f, note: noteValue } : f
+            )}
           : c
       )
     );
+
+    const { error } = await supabase
+      .from('findings')
+      .update({ note: noteValue })
+      .eq('id', findingId);
+
+    if (error) {
+      console.error('Failed to save note:', error);
+      setContracts(prev);
+      showToast({ type: 'error', message: 'Failed to save note. Changes reverted.' });
+    }
+  };
+
+  const renameContract = async (id: string, name: string) => {
+    const prev = [...contracts];
+    setContracts((cs) =>
+      cs.map((c) => (c.id === id ? { ...c, name } : c))
+    );
+
+    const { error } = await supabase
+      .from('contracts')
+      .update({ name })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to rename contract:', error);
+      setContracts(prev);
+      showToast({ type: 'error', message: 'Failed to rename contract. Changes reverted.' });
+    }
   };
 
   return {
@@ -123,5 +177,6 @@ export function useContractStore() {
     deleteContract,
     toggleFindingResolved,
     updateFindingNote,
+    renameContract,
   };
 }
