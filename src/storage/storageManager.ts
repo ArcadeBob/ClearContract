@@ -3,17 +3,10 @@
  * Pure utility -- no React imports.
  */
 
-import type { Contract } from '../types/contract';
-import type { CompanyProfile } from '../knowledge/types';
-
 /**
  * Maps all localStorage keys to their stored value types.
  */
 export interface StorageRegistry {
-  'clearcontract:contracts': Contract[];
-  'clearcontract:contracts-seeded': string;
-  'clearcontract:schema-version': string;
-  'clearcontract:company-profile': CompanyProfile;
   'clearcontract:hide-resolved': string;
 }
 
@@ -74,7 +67,7 @@ export function save<K extends StorageKey>(
 
 /**
  * Reads a raw string value from localStorage without JSON.parse.
- * Use for keys that store plain strings (seeded, schema-version, hide-resolved).
+ * Use for keys that store plain strings (hide-resolved).
  */
 export function loadRaw<K extends StorageKey>(key: K): StorageResult<string> {
   try {
@@ -95,7 +88,7 @@ export function loadRaw<K extends StorageKey>(key: K): StorageResult<string> {
 
 /**
  * Writes a raw string value to localStorage without JSON.stringify.
- * Use for keys that store plain strings (seeded, schema-version, hide-resolved).
+ * Use for keys that store plain strings (hide-resolved).
  */
 export function saveRaw<K extends StorageKey>(key: K, value: string): StorageResult<null> {
   try {
