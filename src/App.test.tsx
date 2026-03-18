@@ -16,12 +16,6 @@ vi.mock('./components/LoadingScreen', () => ({
   LoadingScreen: () => <div data-testid="loading-screen">LoadingScreen</div>,
 }));
 
-// Mock storage to avoid localStorage issues in test
-vi.mock('./storage/contractStorage', () => ({
-  loadContracts: () => ({ contracts: [], migrationWarning: null }),
-  saveContracts: () => ({ success: true }),
-}));
-
 import { App } from './App';
 
 describe('App auth gate', () => {
