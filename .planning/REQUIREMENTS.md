@@ -36,7 +36,7 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 - [x] **PIPE-01**: API endpoint validates JWT before processing analysis
 - [x] **PIPE-02**: Server writes analysis results (contract, findings, dates) to Supabase
-- [ ] **PIPE-03**: Client sends auth token with analysis request
+- [x] **PIPE-03**: Client sends auth token with analysis request
 - [x] **PIPE-04**: Server reads company profile from database for analysis context
 
 ### Contract Operations
@@ -113,7 +113,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-04 | Phase 44 | Pending |
 | PIPE-01 | Phase 43 | Complete |
 | PIPE-02 | Phase 43 | Complete |
-| PIPE-03 | Phase 43 | Pending |
+| PIPE-03 | Phase 43 | Complete |
 | PIPE-04 | Phase 43 | Complete |
 | CRUD-01 | Phase 44 | Pending |
 | CRUD-02 | Phase 44 | Pending |
