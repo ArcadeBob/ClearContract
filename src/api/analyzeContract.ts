@@ -1,7 +1,4 @@
-import { loadCompanyProfile } from '../knowledge/profileLoader';
-import { AnalysisResultSchema, type AnalysisResult } from '../schemas/analysisResult';
-
-export type { AnalysisResult };
+import type { Contract } from '../types/contract';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -10,7 +7,6 @@ function readFileAsBase64(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      // Strip the data:...;base64, prefix
       const base64 = dataUrl.split(',')[1];
       resolve(base64);
     };
@@ -19,7 +15,11 @@ function readFileAsBase64(file: File): Promise<string> {
   });
 }
 
-export async function analyzeContract(file: File): Promise<AnalysisResult> {
+export async function analyzeContract(
+  file: File,
+  accessToken: string,
+  contractId?: string
+): Promise<Contract> {
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(
       `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`
@@ -32,22 +32,26 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
 
   const pdfBase64 = await readFileAsBase64(file);
 
+  const body: Record<string, string> = { pdfBase64, fileName: file.name };
+  if (contractId) {
+    body.contractId = contractId;
+  }
+
   const response = await fetch('/api/analyze', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      pdfBase64,
-      fileName: file.name,
-      companyProfile: loadCompanyProfile(),
-    }),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     let errorMessage: string;
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
-      const body = await response.json().catch(() => null);
-      errorMessage = body?.error || `Analysis failed (HTTP ${response.status})`;
+      const responseBody = await response.json().catch(() => null);
+      errorMessage = responseBody?.error || `Analysis failed (HTTP ${response.status})`;
     } else {
       const text = await response.text().catch(() => '');
       errorMessage = text.includes('<!DOCTYPE')
@@ -58,10 +62,5 @@ export async function analyzeContract(file: File): Promise<AnalysisResult> {
   }
 
   const json = await response.json();
-  const parsed = AnalysisResultSchema.safeParse(json);
-  if (!parsed.success) {
-    console.error('API response validation failed:', parsed.error.issues);
-    throw new Error('Analysis returned invalid data. Please try again.');
-  }
-  return parsed.data;
+  return json as Contract;
 }

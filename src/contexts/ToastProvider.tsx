@@ -6,10 +6,11 @@ interface ToastState {
   type: 'error' | 'warning' | 'info' | 'success';
   message: string;
   onRetry?: () => void;
+  actionLabel?: string;
 }
 
 export interface ToastContextValue {
-  showToast: (opts: { type: 'error' | 'warning' | 'info' | 'success'; message: string; onRetry?: () => void }) => void;
+  showToast: (opts: { type: 'error' | 'warning' | 'info' | 'success'; message: string; onRetry?: () => void; actionLabel?: string }) => void;
 }
 
 export const ToastContext = createContext<ToastContextValue | null>(null);
@@ -57,6 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             type={toast.type}
             message={toast.message}
             onRetry={toast.onRetry}
+            actionLabel={toast.actionLabel}
             onDismiss={dismissToast}
           />
         )}

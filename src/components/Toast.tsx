@@ -5,6 +5,7 @@ export interface ToastData {
   type: 'error' | 'warning' | 'info' | 'success';
   message: string;
   onRetry?: () => void;
+  actionLabel?: string;
   onDismiss: () => void;
 }
 
@@ -31,7 +32,7 @@ const styleMap = {
   },
 };
 
-export function Toast({ type, message, onRetry, onDismiss }: ToastData) {
+export function Toast({ type, message, onRetry, actionLabel, onDismiss }: ToastData) {
   const { container, button, Icon } = styleMap[type];
 
   return (
@@ -46,9 +47,9 @@ export function Toast({ type, message, onRetry, onDismiss }: ToastData) {
       {onRetry && (
         <button
           onClick={onRetry}
-          className={`px-3 py-1 rounded text-sm font-medium ${button}`}
+          className={`px-3 py-1 rounded text-sm font-semibold ${button}`}
         >
-          Retry
+          {actionLabel || 'Retry'}
         </button>
       )}
       <button
