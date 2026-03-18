@@ -45,7 +45,7 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 - [x] **CRUD-02**: User can resolve/unresolve individual findings
 - [x] **CRUD-03**: User can add, edit, and delete notes on findings
 - [x] **CRUD-04**: User can rename a contract inline
-- [ ] **CRUD-05**: User can re-analyze a contract with finding preservation
+- [x] **CRUD-05**: User can re-analyze a contract with finding preservation
 
 ### Cleanup
 
@@ -119,7 +119,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRUD-02 | Phase 44 | Complete |
 | CRUD-03 | Phase 44 | Complete |
 | CRUD-04 | Phase 44 | Complete |
-| CRUD-05 | Phase 44 | Pending |
+| CRUD-05 | Phase 44 | Complete |
 | CLEAN-01 | Phase 45 | Pending |
 | CLEAN-02 | Phase 45 | Pending |
 | CLEAN-03 | Phase 45 | Pending |
