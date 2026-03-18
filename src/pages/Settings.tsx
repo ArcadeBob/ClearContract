@@ -81,7 +81,7 @@ interface CardSection {
 }
 
 export function Settings() {
-  const { profile, saveField, storageError, dismissStorageError } = useCompanyProfile();
+  const { profile, saveField, isLoading } = useCompanyProfile();
 
   const cards: CardSection[] = [
     {
@@ -193,18 +193,6 @@ export function Settings() {
 
       <div className="flex-1 overflow-auto bg-slate-50 p-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          {storageError && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
-              <span className="text-amber-600 text-sm flex-1">{storageError}</span>
-              <button
-                onClick={dismissStorageError}
-                className="text-amber-400 hover:text-amber-600 text-lg leading-none"
-                aria-label="Dismiss warning"
-              >
-                &times;
-              </button>
-            </div>
-          )}
           {cards.map((card, index) => {
             const Icon = card.icon;
             return (
