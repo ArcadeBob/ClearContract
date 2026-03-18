@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
+import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types';
+import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers';
 
 // 2A: Allow larger base64-encoded PDFs through Vercel body parser
 export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
@@ -33,37 +36,12 @@ import type { AnalysisPass } from './passes';
 // Constants
 // ---------------------------------------------------------------------------
 
-// 2B: Zod schema for server-side validation of companyProfile
-const CompanyProfileSchema = z.object({
-  glPerOccurrence: z.string().max(50),
-  glAggregate: z.string().max(50),
-  umbrellaLimit: z.string().max(50),
-  autoLimit: z.string().max(50),
-  wcStatutoryState: z.string().max(50),
-  wcEmployerLiability: z.string().max(50),
-  bondingSingleProject: z.string().max(50),
-  bondingAggregate: z.string().max(50),
-  contractorLicenseType: z.string().max(50),
-  contractorLicenseNumber: z.string().max(50),
-  contractorLicenseExpiry: z.string().max(50),
-  dirRegistration: z.string().max(50),
-  dirExpiry: z.string().max(50),
-  sbeCertId: z.string().max(50),
-  sbeCertIssuer: z.string().max(50),
-  lausdVendorNumber: z.string().max(50),
-  employeeCount: z.string().max(50),
-  serviceArea: z.string().max(100),
-  typicalProjectSizeMin: z.string().max(50),
-  typicalProjectSizeMax: z.string().max(50),
-}).partial();
-
 // 2B+: Zod schema for full request body validation
 const AnalyzeRequestSchema = z.object({
   pdfBase64: z.string().min(1, 'pdfBase64 is required'),
   fileName: z.string().max(255).optional(),
-  companyProfile: CompanyProfileSchema.optional(),
+  contractId: z.string().uuid().optional(),
 });
-type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
 
 // 2C: Sanitize user-controlled filenames
 function sanitizeFileName(name: string): string {
@@ -276,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     process.env.ALLOWED_ORIGIN || 'https://clearcontract.vercel.app';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -285,6 +263,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // --- JWT Authentication ---
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const token = authHeader.slice(7);
+
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  const userId = user.id;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -305,7 +302,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: parseResult.error.flatten().fieldErrors,
       });
     }
-    const { pdfBase64, fileName: rawFileName, companyProfile } = parseResult.data;
+    const { pdfBase64, fileName: rawFileName, contractId: existingContractId } = parseResult.data;
+
+    // --- Read company profile from DB ---
+    const { data: profileRow } = await supabaseAdmin
+      .from('company_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const companyProfile: CompanyProfile = profileRow
+      ? { ...DEFAULT_COMPANY_PROFILE, ...mapRow<CompanyProfile>(profileRow) }
+      : DEFAULT_COMPANY_PROFILE;
     const fileName = rawFileName ? sanitizeFileName(rawFileName) : 'contract.pdf';
 
     // Decode and validate size
@@ -394,27 +402,136 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // and appended after mergePassResults which already computed the risk score)
     merged.findings.push(...synthFindings as unknown as typeof merged.findings[number][]);
 
-    // Assign unique IDs to all findings (use crypto.randomUUID to avoid collisions)
-    const findingsWithIds = merged.findings.map((f) => ({
-      id: `f-${crypto.randomUUID()}`,
-      ...f,
-    }));
+    const allFindings = [...merged.findings];
 
     // Compute bid/no-bid signal from findings
     const bidSignal = computeBidSignal(
-      findingsWithIds as unknown as import('../src/types/contract').Finding[]
+      allFindings as unknown as import('../src/types/contract').Finding[]
     );
 
-    return res.status(200).json({
+    // --- Write results to Supabase ---
+    // Build contract payload
+    const contractPayload = mapToSnake({
+      userId,
+      name: rawFileName ? sanitizeFileName(rawFileName).replace(/\.pdf$/i, '') : 'contract',
       client: merged.client,
-      contractType: merged.contractType,
+      type: merged.contractType,
+      uploadDate: new Date().toISOString().split('T')[0],
+      status: 'Reviewed',
       riskScore: merged.riskScore,
       scoreBreakdown: merged.scoreBreakdown,
       bidSignal,
-      findings: findingsWithIds,
-      dates: merged.dates,
       passResults: merged.passResults,
     });
+    // Remove meta columns that Postgres auto-generates
+    delete contractPayload.id;
+    delete contractPayload.created_at;
+    delete contractPayload.updated_at;
+
+    let contractRow: Record<string, unknown>;
+
+    if (existingContractId) {
+      // Re-analyze: update existing contract row
+      const { data, error: updateError } = await supabaseAdmin
+        .from('contracts')
+        .update(contractPayload)
+        .eq('id', existingContractId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+      if (updateError || !data) throw new Error(`Failed to update contract: ${updateError?.message || 'not found'}`);
+      contractRow = data as Record<string, unknown>;
+
+      // Delete old findings and dates for this contract (new ones inserted below)
+      await supabaseAdmin.from('findings').delete().eq('contract_id', existingContractId);
+      await supabaseAdmin.from('contract_dates').delete().eq('contract_id', existingContractId);
+    } else {
+      // New analysis: insert contract row
+      const { data, error: insertError } = await supabaseAdmin
+        .from('contracts')
+        .insert(contractPayload)
+        .select()
+        .single();
+      if (insertError || !data) throw new Error(`Failed to save contract: ${insertError?.message}`);
+      contractRow = data as Record<string, unknown>;
+    }
+
+    const contractId = contractRow.id as string;
+
+    // Bulk insert findings
+    const findingPayloads = allFindings.map((f) => {
+      const payload = mapToSnake({
+        contractId,
+        userId,
+        severity: f.severity,
+        category: f.category,
+        title: f.title,
+        description: f.description,
+        recommendation: f.recommendation,
+        clauseReference: f.clauseReference || 'N/A',
+        negotiationPosition: f.negotiationPosition || '',
+        actionPriority: f.actionPriority || 'monitor',
+        resolved: false,
+        note: '',
+        clauseText: f.clauseText,
+        explanation: f.explanation,
+        crossReferences: f.crossReferences,
+        legalMeta: f.legalMeta,
+        scopeMeta: f.scopeMeta,
+        sourcePass: f.sourcePass,
+        downgradedFrom: f.downgradedFrom,
+        isSynthesis: f.isSynthesis,
+      });
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+      return payload;
+    });
+
+    const { data: findingRows, error: findingsError } = await supabaseAdmin
+      .from('findings')
+      .insert(findingPayloads)
+      .select();
+
+    if (findingsError) {
+      console.error(`[analyze] Findings insert failed: ${findingsError.message}`);
+    }
+
+    // Bulk insert dates
+    const datePayloads = merged.dates.map((d) => {
+      const payload = mapToSnake({
+        contractId,
+        userId,
+        label: d.label,
+        date: d.date,
+        type: d.type,
+      });
+      delete payload.id;
+      delete payload.created_at;
+      return payload;
+    });
+
+    let dateRows: Record<string, unknown>[] | null = null;
+    if (datePayloads.length > 0) {
+      const { data, error: datesError } = await supabaseAdmin
+        .from('contract_dates')
+        .insert(datePayloads)
+        .select();
+
+      if (datesError) {
+        console.error(`[analyze] Dates insert failed: ${datesError.message}`);
+      }
+      dateRows = data;
+    }
+
+    // Return full Contract object with DB-assigned IDs
+    const contract = {
+      ...mapRow(contractRow),
+      findings: findingRows ? mapRows(findingRows) : [],
+      dates: dateRows ? mapRows(dateRows) : [],
+    };
+
+    return res.status(200).json(contract);
   } catch (error: unknown) {
     const classified = classifyError(error);
     console.error('Analysis error:', classified.userMessage);
