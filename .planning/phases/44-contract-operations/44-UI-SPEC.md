@@ -52,9 +52,9 @@ Exceptions: none — this phase adds no new layout elements.
 | Body | 14px (`text-sm`) | 400 (normal) | 1.5 (`leading-relaxed`) |
 | Label | 12px (`text-xs`) | 600 (`font-semibold`) | 1.25 |
 | Heading | 18px (`text-lg`) | 600 (`font-semibold`) | 1.2 |
-| Display | 24px (`text-2xl`) | 700 (`font-bold`) | 1.2 |
+| Display | 24px (`text-2xl`) | 600 (`font-semibold`) | 1.2 |
 
-**Phase-specific usage:** All toast messages use Body (14px, weight 500/`font-medium`). Confirmation dialog titles use Heading (18px, weight 600). Confirmation dialog body text uses Body (14px, weight 400) in `text-slate-500`.
+**Phase-specific usage:** All toast messages use Body (14px, weight 400). Confirmation dialog titles use Heading (18px, weight 600). Confirmation dialog body text uses Body (14px, weight 400) in `text-slate-500`.
 
 ---
 
@@ -108,13 +108,13 @@ Accent reserved for: note-related interactions only (save note button, note disp
 |---------|------|
 | Delete contract title | "Delete Contract" |
 | Delete contract message | "Are you sure you want to delete this contract? This cannot be undone." |
-| Delete contract confirm button | "Delete" |
+| Delete contract confirm button | "Delete Contract" |
 | Delete note title | "Delete Note" |
 | Delete note message | "Are you sure you want to delete this note? This cannot be undone." |
-| Delete note confirm button | "Delete" |
+| Delete note confirm button | "Delete Note" |
 | Re-analyze title | "Re-analyze Contract" |
 | Re-analyze message | "This will re-analyze the contract with your current company profile. Resolved findings and notes will be preserved where possible." |
-| Re-analyze confirm button | "Re-analyze" |
+| Re-analyze confirm button | "Re-analyze Contract" |
 
 ### Inline Interactions (Existing, Unchanged)
 
@@ -122,8 +122,8 @@ Accent reserved for: note-related interactions only (save note button, note disp
 |---------|------|
 | Add note trigger | "+ Add note" |
 | Note textarea placeholder | "Add your note..." |
-| Note save button | "Save" |
-| Note cancel button | "Cancel" |
+| Note save button | "Save Note" |
+| Note cancel button | "Discard" |
 | Resolve toggle tooltip (unresolved) | "Mark resolved" |
 | Resolve toggle tooltip (resolved) | "Mark unresolved" |
 
@@ -170,9 +170,9 @@ All five mutations follow the same visual contract:
 
 | Step | Visual Behavior |
 |------|----------------|
-| Add: user clicks "+ Add note" | Textarea appears below finding with Cancel/Save buttons |
+| Add: user clicks "+ Add note" | Textarea appears below finding with Discard/Save Note buttons |
 | Edit: user clicks pencil icon | Textarea replaces note display with current text pre-filled |
-| Save: user clicks Save, presses Enter, or blurs textarea | Textarea closes, note displays in `violet-50` card |
+| Save: user clicks Save Note, presses Enter, or blurs textarea | Textarea closes, note displays in `violet-50` card |
 | Delete: user clicks X icon | ConfirmDialog opens; on confirm, note removed from display |
 | Failure (save/delete) | Note reverts to previous state; error toast shown |
 | Textarea focus ring | `ring-violet-300` and `border-violet-300` on focus |
