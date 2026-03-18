@@ -113,7 +113,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
 - [x] **Phase 39: Database Schema and RLS** - Create Supabase tables with row-level security and configure environment variables (completed 2026-03-17)
 - [x] **Phase 40: Authentication** - Email/password login with session persistence and protected routes (completed 2026-03-17)
-- [x] **Phase 41: Contract Reads and Data Mapping** - Load contracts from Supabase with type-safe snake_case/camelCase mapping (completed 2026-03-17)
+- [x] **Phase 41: Contract Reads and Data Mapping** - Load contracts from Supabase with type-safe snake_case/camelCase mapping (completed 2026-03-17)
 - [x] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern (completed 2026-03-18)
 - [ ] **Phase 43: Analysis Pipeline Server Writes** - Server validates JWT, reads company profile from DB, writes analysis results to Postgres
 - [ ] **Phase 44: Contract Operations** - Wire all user-initiated mutations to Supabase with optimistic updates
@@ -183,9 +183,10 @@ Plans:
   2. An analysis request without a valid auth token is rejected with an appropriate error (not silently accepted)
   3. The analysis pipeline reads the company profile from Supabase (not localStorage) for insurance/bonding comparison and bid signal computation
   4. After analysis completes, the client navigates to the contract review page showing all results loaded from the database
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
+- [ ] 43-01-PLAN.md -- JWT validation, DB profile read, sequential DB inserts, Contract response
+- [ ] 43-02-PLAN.md -- Client auth token, analyzing UI, toast action label, re-analyze wiring
 
 ### Phase 44: Contract Operations
 **Goal**: All user-initiated mutations (delete, resolve, annotate, rename, re-analyze) write to Supabase with instant UI feedback and rollback on failure
@@ -262,6 +263,6 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 40. Authentication | 2/2 | Complete    | 2026-03-17 | - |
 | 41. Contract Reads and Data Mapping | 2/2 | Complete    | 2026-03-17 | - |
 | 42. Company Profile Migration | 1/1 | Complete    | 2026-03-18 | - |
-| 43. Analysis Pipeline Server Writes | v2.0 | 0/0 | Not started | - |
+| 43. Analysis Pipeline Server Writes | v2.0 | 0/2 | Not started | - |
 | 44. Contract Operations | v2.0 | 0/0 | Not started | - |
 | 45. Cleanup | v2.0 | 0/0 | Not started | - |
