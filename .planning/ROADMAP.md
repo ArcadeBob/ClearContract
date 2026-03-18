@@ -114,7 +114,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 - [x] **Phase 39: Database Schema and RLS** - Create Supabase tables with row-level security and configure environment variables (completed 2026-03-17)
 - [x] **Phase 40: Authentication** - Email/password login with session persistence and protected routes (completed 2026-03-17)
 - [x] **Phase 41: Contract Reads and Data Mapping** - Load contracts from Supabase with type-safe snake_case/camelCase mapping (completed 2026-03-17)
-- [ ] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern
+- [x] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern (completed 2026-03-18)
 - [ ] **Phase 43: Analysis Pipeline Server Writes** - Server validates JWT, reads company profile from DB, writes analysis results to Postgres
 - [ ] **Phase 44: Contract Operations** - Wire all user-initiated mutations to Supabase with optimistic updates
 - [ ] **Phase 45: Cleanup** - Remove localStorage contract storage, mock data, and simplify storageManager
@@ -261,7 +261,7 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 39. Database Schema and RLS | 1/1 | Complete    | 2026-03-17 | - |
 | 40. Authentication | 2/2 | Complete    | 2026-03-17 | - |
 | 41. Contract Reads and Data Mapping | 2/2 | Complete    | 2026-03-17 | - |
-| 42. Company Profile Migration | v2.0 | 0/0 | Not started | - |
+| 42. Company Profile Migration | 1/1 | Complete   | 2026-03-18 | - |
 | 43. Analysis Pipeline Server Writes | v2.0 | 0/0 | Not started | - |
 | 44. Contract Operations | v2.0 | 0/0 | Not started | - |
 | 45. Cleanup | v2.0 | 0/0 | Not started | - |

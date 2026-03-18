@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Foundation
 status: completed
-stopped_at: Phase 42 context gathered
-last_updated: "2026-03-18T05:04:40.268Z"
+stopped_at: Completed 42-01-PLAN.md
+last_updated: "2026-03-18T16:00:22.009Z"
 last_activity: 2026-03-17 -- Phase 41 plan 02 complete
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  completed_phases: 4
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 41 - Contract Reads and Data Mapping
+**Current focus:** Phase 42 - Company Profile Migration
 
 ## Current Position
 
-Phase: 41 of 45 (Contract Reads and Data Mapping) -- COMPLETE
-Plan: 2 of 2 in current phase (all plans complete)
-Status: Phase 41 complete, ready for next phase
-Last activity: 2026-03-17 -- Phase 41 plan 02 complete
+Phase: 42 of 45 (Company Profile Migration) -- COMPLETE
+Plan: 1 of 1 in current phase (all plans complete)
+Status: Phase 42 complete, ready for next phase
+Last activity: 2026-03-18 -- Phase 42 plan 01 complete
 
-Progress: [██████████] 100% (5/5 v2.0 plans)
+Progress: [██████████] 100% (6/6 v2.0 plans)
 
 ## Performance Metrics
 
@@ -41,7 +41,7 @@ Progress: [██████████] 100% (5/5 v2.0 plans)
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
-**v2.0 (Phases 39-45):** 5 plans complete, ~5min avg
+**v2.0 (Phases 39-45):** 6 plans complete, ~5min avg
 
 ## Accumulated Context
 
@@ -65,6 +65,9 @@ Recent decisions affecting v2.0:
 - Top-level keys only in row mapper -- JSONB stored as camelCase, no recursive conversion needed
 - [Phase 41-02]: In-memory mutations only -- Supabase writes deferred to Phase 43
 - [Phase 41-02]: Client-side stitching of findings/dates via Map lookups instead of Supabase joins
+- [Phase 42]: Fire-and-forget upsert: UI updates immediately, Supabase write async with toast on failure
+- [Phase 42]: Meta column exclusion (id, created_at, updated_at) from upsert payload
+- [Phase 42]: mapToSnake pattern for all camelCase-to-snake_case write payloads
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T05:04:40.266Z
-Stopped at: Phase 42 context gathered
-Resume file: .planning/phases/42-company-profile-migration/42-CONTEXT.md
+Last session: 2026-03-18T16:00:22.007Z
+Stopped at: Completed 42-01-PLAN.md
+Resume file: None

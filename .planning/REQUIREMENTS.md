@@ -29,7 +29,7 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 - [x] **DATA-01**: Type-safe mapper between Postgres snake_case and TypeScript camelCase
 - [x] **DATA-02**: Contracts load from Supabase on app mount (with nested findings and dates)
-- [ ] **DATA-03**: Company profile reads and writes to Supabase
+- [x] **DATA-03**: Company profile reads and writes to Supabase
 - [ ] **DATA-04**: All mutations use optimistic updates with rollback on failure
 
 ### Analysis Pipeline
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DB-06 | Phase 39 | Complete |
 | DATA-01 | Phase 41 | Complete |
 | DATA-02 | Phase 41 | Complete |
-| DATA-03 | Phase 42 | Pending |
+| DATA-03 | Phase 42 | Complete |
 | DATA-04 | Phase 44 | Pending |
 | PIPE-01 | Phase 43 | Pending |
 | PIPE-02 | Phase 43 | Pending |
