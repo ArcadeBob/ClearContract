@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -9,7 +9,8 @@ import { ContractComparison } from './pages/ContractComparison';
 import { useContractStore } from './hooks/useContractStore';
 import { useRouter } from './hooks/useRouter';
 import { useToast } from './hooks/useToast';
-import { Contract, Finding } from './types/contract';
+import { Finding } from './types/contract';
+import { supabase } from './lib/supabase';
 import { analyzeContract } from './api/analyzeContract';
 import { classifyError } from './utils/errors';
 import { useAuth } from './contexts/AuthContext';
@@ -32,6 +33,11 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const { showToast } = useToast();
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+
+  const activeViewRef = useRef(activeView);
+  useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
+
+  const pendingFileRef = useRef<File | null>(null);
 
   // Show error toast on fetch failure
   useEffect(() => {
@@ -60,152 +66,122 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     }
   };
 
-  const handleUploadComplete = (file: File) => {
-    const id = `c-${Date.now()}`;
+  const handleUploadComplete = async (file: File) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      showToast({ type: 'error', message: 'Please sign in to analyze contracts.' });
+      return;
+    }
 
-    // Create placeholder contract in Analyzing state
-    const placeholder: Contract = {
-      id,
-      name: file.name.replace('.pdf', ''),
-      client: 'Analyzing...',
-      type: 'Prime Contract',
-      uploadDate: new Date().toISOString().split('T')[0],
-      status: 'Analyzing',
-      riskScore: 0,
-      findings: [],
-      dates: [],
-    };
-    addContract(placeholder);
-    setAnalyzingId(id);
-    navigateTo('review', id);
+    pendingFileRef.current = file;
+    setAnalyzingId('pending');
 
-    // Run analysis in background
-    analyzeContract(file)
-      .then((result) => {
-        updateContract(id, {
-          status: 'Reviewed',
-          client: result.client,
-          type: result.contractType,
-          riskScore: result.riskScore,
-          scoreBreakdown: result.scoreBreakdown,
-          bidSignal: result.bidSignal,
-          findings: result.findings,
-          dates: result.dates,
-          passResults: result.passResults,
-        });
-      })
-      .catch((err) => {
-        // Remove the failed placeholder instead of leaving a zombie contract
-        deleteContract(id);
+    try {
+      const contract = await analyzeContract(file, session.access_token);
+      addContract(contract);
 
-        // Navigate to dashboard (not upload) on initial analysis failure
-        if (activeView === 'review' && activeContractId === id) {
-          navigateTo('dashboard');
-        }
-
-        const classified = classifyError(err);
+      if (activeViewRef.current === 'upload') {
+        // User still on upload page -- navigate to review
+        navigateTo('review', contract.id);
+      } else {
+        // User navigated away -- show success toast with "View Contract" action
         showToast({
-          type: 'error',
-          message: classified.userMessage,
-          ...(classified.retryable ? {
-            onRetry: () => {
-              handleUploadComplete(file);
-            },
-          } : {}),
+          type: 'success',
+          message: 'Analysis complete',
+          actionLabel: 'View Contract',
+          onRetry: () => navigateTo('review', contract.id),
         });
-      })
-      .finally(() => {
-        setAnalyzingId(null);
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      showToast({
+        type: 'error',
+        message: classified.userMessage,
+        ...(classified.retryable ? {
+          onRetry: () => {
+            if (pendingFileRef.current) {
+              handleUploadComplete(pendingFileRef.current);
+            }
+          },
+        } : {}),
       });
-  };
-
-  const handleCancelAnalysis = () => {
-    if (analyzingId) {
-      deleteContract(analyzingId);
+    } finally {
       setAnalyzingId(null);
+      pendingFileRef.current = null;
     }
   };
 
-  const handleReanalyze = (contractId: string, file: File) => {
+  const handleReanalyze = async (contractId: string, file: File) => {
     const contract = contracts.find(c => c.id === contractId);
     if (!contract) return;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      showToast({ type: 'error', message: 'Please sign in to analyze contracts.' });
+      return;
+    }
+
     // Snapshot for rollback (REANA-03)
     const snapshot = structuredClone(contract);
-
     setReanalyzingId(contractId);
 
-    analyzeContract(file)
-      .then((result) => {
-        // Build lookup from old findings with user data (PORT-04)
-        const oldByKey = new Map<string, Finding>();
-        for (const f of contract.findings) {
-          if (f.resolved || f.note) {
-            const ref = f.clauseReference;
-            if (ref && ref !== 'N/A' && ref !== 'Not Found') {
-              oldByKey.set(`${ref}::${f.category}`, f);
-            }
+    try {
+      const result = await analyzeContract(file, session.access_token, contractId);
+
+      // Build lookup from old findings with user data (PORT-04)
+      const oldByKey = new Map<string, Finding>();
+      for (const f of contract.findings) {
+        if (f.resolved || f.note) {
+          const ref = f.clauseReference;
+          if (ref && ref !== 'N/A' && ref !== 'Not Found') {
+            oldByKey.set(`${ref}::${f.category}`, f);
           }
         }
+      }
 
-        // Carry over resolved/note to matching new findings
-        let preservedResolved = 0;
-        let preservedNotes = 0;
-        const mergedFindings = result.findings.map((newFinding: Finding) => {
-          const ref = newFinding.clauseReference;
-          if (ref && ref !== 'N/A' && ref !== 'Not Found') {
-            const old = oldByKey.get(`${ref}::${newFinding.category}`);
-            if (old) {
-              if (old.resolved) preservedResolved++;
-              if (old.note) preservedNotes++;
-              return { ...newFinding, resolved: old.resolved, note: old.note };
-            }
+      // Carry over resolved/note to matching new findings
+      let preservedResolved = 0;
+      let preservedNotes = 0;
+      const mergedFindings = result.findings.map((newFinding: Finding) => {
+        const ref = newFinding.clauseReference;
+        if (ref && ref !== 'N/A' && ref !== 'Not Found') {
+          const old = oldByKey.get(`${ref}::${newFinding.category}`);
+          if (old) {
+            if (old.resolved) preservedResolved++;
+            if (old.note) preservedNotes++;
+            return { ...newFinding, resolved: old.resolved, note: old.note };
           }
-          return newFinding;
-        });
-
-        updateContract(contractId, {
-          status: 'Reviewed',
-          name: file.name.replace(/\.pdf$/i, ''),
-          client: result.client,
-          type: result.contractType,
-          riskScore: result.riskScore,
-          scoreBreakdown: result.scoreBreakdown,
-          bidSignal: result.bidSignal,
-          findings: mergedFindings,
-          dates: result.dates,
-          passResults: result.passResults,
-          uploadDate: new Date().toISOString().split('T')[0],
-        });
-
-        const preserveMsg =
-          preservedResolved > 0 || preservedNotes > 0
-            ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
-            : 'Analysis complete \u2014 findings updated.';
-
-        showToast({
-          type: 'success',
-          message: preserveMsg,
-        });
-      })
-      .catch((err) => {
-        // Restore previous state completely (REANA-03)
-        updateContract(contractId, snapshot);
-
-        const classified = classifyError(err);
-        showToast({
-          type: 'error',
-          message: classified.userMessage + ' Your previous findings are unchanged.',
-          ...(classified.retryable ? {
-            onRetry: () => {
-              handleReanalyze(contractId, file);
-            },
-          } : {}),
-        });
-      })
-      .finally(() => {
-        setReanalyzingId(null);
+        }
+        return newFinding;
       });
+
+      // Replace in-memory contract with server response + preserved user data
+      updateContract(contractId, {
+        ...result,
+        findings: mergedFindings,
+      });
+
+      const preserveMsg =
+        preservedResolved > 0 || preservedNotes > 0
+          ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
+          : 'Analysis complete \u2014 findings updated.';
+
+      showToast({ type: 'success', message: preserveMsg });
+    } catch (err) {
+      // Restore previous state completely (REANA-03)
+      updateContract(contractId, snapshot);
+
+      const classified = classifyError(err);
+      showToast({
+        type: 'error',
+        message: classified.userMessage + ' Your previous findings are unchanged.',
+        ...(classified.retryable ? {
+          onRetry: () => handleReanalyze(contractId, file),
+        } : {}),
+      });
+    } finally {
+      setReanalyzingId(null);
+    }
   };
 
   const renderContent = () => {
@@ -217,7 +193,6 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
           <ContractUpload
             onUploadComplete={handleUploadComplete}
             isAnalyzing={analyzingId !== null}
-            onCancel={handleCancelAnalysis}
           />
         );
       case 'review':
