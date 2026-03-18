@@ -172,7 +172,7 @@ Plans:
   3. A new user with no existing profile sees the Settings page with empty/default values (no errors)
 **Plans**: 1 plan
 Plans:
-- [ ] 45-01-PLAN.md -- [To be planned]
+- [ ] 45-01-PLAN.md -- Delete dead localStorage code, trim storageManager, fix stale test mocks
 
 ### Phase 43: Analysis Pipeline Server Writes
 **Goal**: The analysis pipeline authenticates requests, reads company profile from the database, and writes all results directly to Postgres -- the server owns contract creation
@@ -213,7 +213,7 @@ Plans:
   3. storageManager handles only UI preference keys (hide-resolved filter state) -- no contract storage methods remain
 **Plans**: 1 plan
 Plans:
-- [ ] 45-01-PLAN.md -- [To be planned]
+- [ ] 45-01-PLAN.md -- Delete dead localStorage code, trim storageManager, fix stale test mocks
 
 ## Progress
 
