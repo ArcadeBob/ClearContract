@@ -170,7 +170,9 @@ Plans:
   1. Settings page loads company profile from Supabase (insurance, bonding, licenses, capabilities fields all populated)
   2. Editing a company profile field on the Settings page persists the change to Supabase (verifiable by refreshing the page and seeing the new value)
   3. A new user with no existing profile sees the Settings page with empty/default values (no errors)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
 
 ### Phase 43: Analysis Pipeline Server Writes
 **Goal**: The analysis pipeline authenticates requests, reads company profile from the database, and writes all results directly to Postgres -- the server owns contract creation
@@ -181,7 +183,9 @@ Plans:
   2. An analysis request without a valid auth token is rejected with an appropriate error (not silently accepted)
   3. The analysis pipeline reads the company profile from Supabase (not localStorage) for insurance/bonding comparison and bid signal computation
   4. After analysis completes, the client navigates to the contract review page showing all results loaded from the database
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
 
 ### Phase 44: Contract Operations
 **Goal**: All user-initiated mutations (delete, resolve, annotate, rename, re-analyze) write to Supabase with instant UI feedback and rollback on failure
@@ -193,7 +197,9 @@ Plans:
   3. Adding, editing, and deleting notes on findings persists to Supabase (survives page refresh)
   4. Renaming a contract inline persists to Supabase (survives page refresh)
   5. Re-analyzing a contract preserves resolved status and notes on matched findings, with rollback to previous state if analysis fails
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
 
 ### Phase 45: Cleanup
 **Goal**: All localStorage contract storage code is removed now that Supabase handles all persistence -- storageManager retains only UI preferences
@@ -203,7 +209,9 @@ Plans:
   1. No contract, finding, date, or company profile data is read from or written to localStorage (grep confirms zero localStorage contract access)
   2. Mock contract data file is deleted and not imported anywhere
   3. storageManager handles only UI preference keys (hide-resolved filter state) -- no contract storage methods remain
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
 
 ## Progress
 
