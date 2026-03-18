@@ -117,7 +117,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 - [x] **Phase 42: Company Profile Migration** - Read and write company profile to Supabase with upsert pattern (completed 2026-03-18)
 - [x] **Phase 43: Analysis Pipeline Server Writes** - Server validates JWT, reads company profile from DB, writes analysis results to Postgres (completed 2026-03-18)
 - [x] **Phase 44: Contract Operations** - Wire all user-initiated mutations to Supabase with optimistic updates (completed 2026-03-18)
-- [ ] **Phase 45: Cleanup** - Remove localStorage contract storage, mock data, and simplify storageManager
+- [x] **Phase 45: Cleanup** - Remove localStorage contract storage, mock data, and simplify storageManager (completed 2026-03-18)
 
 ## Phase Details
 
@@ -266,4 +266,4 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 42. Company Profile Migration | 1/1 | Complete    | 2026-03-18 | - |
 | 43. Analysis Pipeline Server Writes | 2/2 | Complete    | 2026-03-18 | - |
 | 44. Contract Operations | 2/2 | Complete    | 2026-03-18 | - |
-| 45. Cleanup | v2.0 | 0/0 | Not started | - |
+| 45. Cleanup | 1/1 | Complete   | 2026-03-18 | - |

@@ -49,9 +49,9 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 ### Cleanup
 
-- [ ] **CLEAN-01**: localStorage contract storage code removed
-- [ ] **CLEAN-02**: Mock contract data removed
-- [ ] **CLEAN-03**: storageManager simplified to UI preferences only
+- [x] **CLEAN-01**: localStorage contract storage code removed
+- [x] **CLEAN-02**: Mock contract data removed
+- [x] **CLEAN-03**: storageManager simplified to UI preferences only
 
 ## Future Requirements
 
@@ -120,9 +120,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRUD-03 | Phase 44 | Complete |
 | CRUD-04 | Phase 44 | Complete |
 | CRUD-05 | Phase 44 | Complete |
-| CLEAN-01 | Phase 45 | Pending |
-| CLEAN-02 | Phase 45 | Pending |
-| CLEAN-03 | Phase 45 | Pending |
+| CLEAN-01 | Phase 45 | Complete |
+| CLEAN-02 | Phase 45 | Complete |
+| CLEAN-03 | Phase 45 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 28 total
