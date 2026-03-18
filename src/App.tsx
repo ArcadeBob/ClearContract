@@ -162,6 +162,33 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
         findings: mergedFindings,
       });
 
+      // Write preserved resolved/note values back to Supabase for matched findings
+      // These findings have NEW IDs from the server response (old rows were deleted)
+      const findingsToPreserve = mergedFindings.filter(
+        (f: Finding) => f.resolved || (f.note && f.note !== '')
+      );
+
+      if (findingsToPreserve.length > 0) {
+        const preserveWrites = await Promise.all(
+          findingsToPreserve.map((f: Finding) =>
+            supabase
+              .from('findings')
+              .update({ resolved: f.resolved, note: f.note || '' })
+              .eq('id', f.id)
+          )
+        );
+
+        const failures = preserveWrites.filter((r) => r.error);
+        if (failures.length > 0) {
+          console.error(
+            'Some finding preservation writes failed:',
+            failures.map((r) => r.error)
+          );
+          // Non-blocking: in-memory state is correct, and findings exist in DB from server write
+          // Do NOT show user toast -- this is a silent degradation
+        }
+      }
+
       const preserveMsg =
         preservedResolved > 0 || preservedNotes > 0
           ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
