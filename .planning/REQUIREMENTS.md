@@ -30,7 +30,7 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 - [x] **DATA-01**: Type-safe mapper between Postgres snake_case and TypeScript camelCase
 - [x] **DATA-02**: Contracts load from Supabase on app mount (with nested findings and dates)
 - [x] **DATA-03**: Company profile reads and writes to Supabase
-- [ ] **DATA-04**: All mutations use optimistic updates with rollback on failure
+- [x] **DATA-04**: All mutations use optimistic updates with rollback on failure
 
 ### Analysis Pipeline
 
@@ -41,10 +41,10 @@ Requirements for Enterprise Foundation milestone. Each maps to roadmap phases.
 
 ### Contract Operations
 
-- [ ] **CRUD-01**: User can delete a contract (CASCADE deletes findings and dates)
-- [ ] **CRUD-02**: User can resolve/unresolve individual findings
-- [ ] **CRUD-03**: User can add, edit, and delete notes on findings
-- [ ] **CRUD-04**: User can rename a contract inline
+- [x] **CRUD-01**: User can delete a contract (CASCADE deletes findings and dates)
+- [x] **CRUD-02**: User can resolve/unresolve individual findings
+- [x] **CRUD-03**: User can add, edit, and delete notes on findings
+- [x] **CRUD-04**: User can rename a contract inline
 - [ ] **CRUD-05**: User can re-analyze a contract with finding preservation
 
 ### Cleanup
@@ -110,15 +110,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-01 | Phase 41 | Complete |
 | DATA-02 | Phase 41 | Complete |
 | DATA-03 | Phase 42 | Complete |
-| DATA-04 | Phase 44 | Pending |
+| DATA-04 | Phase 44 | Complete |
 | PIPE-01 | Phase 43 | Complete |
 | PIPE-02 | Phase 43 | Complete |
 | PIPE-03 | Phase 43 | Complete |
 | PIPE-04 | Phase 43 | Complete |
-| CRUD-01 | Phase 44 | Pending |
-| CRUD-02 | Phase 44 | Pending |
-| CRUD-03 | Phase 44 | Pending |
-| CRUD-04 | Phase 44 | Pending |
+| CRUD-01 | Phase 44 | Complete |
+| CRUD-02 | Phase 44 | Complete |
+| CRUD-03 | Phase 44 | Complete |
+| CRUD-04 | Phase 44 | Complete |
 | CRUD-05 | Phase 44 | Pending |
 | CLEAN-01 | Phase 45 | Pending |
 | CLEAN-02 | Phase 45 | Pending |

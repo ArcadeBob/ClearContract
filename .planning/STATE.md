@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Enterprise Foundation
 status: executing
-stopped_at: Phase 44 UI-SPEC approved
-last_updated: "2026-03-18T20:22:45.414Z"
-last_activity: 2026-03-18 -- Phase 43 plan 02 complete
+stopped_at: Completed 44-01-PLAN.md
+last_updated: "2026-03-18T20:54:09Z"
+last_activity: 2026-03-18 -- Phase 44 plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
-  percent: 88
+  total_plans: 10
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 43 - Analysis Pipeline Server Writes
+**Current focus:** Phase 44 - Contract Operations
 
 ## Current Position
 
-Phase: 43 of 45 (Analysis Pipeline Server Writes)
-Plan: 2 of 2 in current phase (plan 02 complete)
-Status: Phase 43 in progress
-Last activity: 2026-03-18 -- Phase 43 plan 02 complete
+Phase: 44 of 45 (Contract Operations)
+Plan: 1 of 2 in current phase (plan 01 complete)
+Status: Phase 44 in progress
+Last activity: 2026-03-18 -- Phase 44 plan 01 complete
 
-Progress: [████████░░] 88% (7/8 v2.0 plans)
+Progress: [█████████░] 90% (9/10 v2.0 plans)
 
 ## Performance Metrics
 
@@ -41,7 +41,7 @@ Progress: [████████░░] 88% (7/8 v2.0 plans)
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
-**v2.0 (Phases 39-45):** 8 plans complete, ~5min avg
+**v2.0 (Phases 39-45):** 9 plans complete, ~5min avg
 
 ## Accumulated Context
 
@@ -73,6 +73,9 @@ Recent decisions affecting v2.0:
 - [Phase 43-01]: Contract IDs assigned by Postgres gen_random_uuid(), not client-side
 - [Phase 43-02]: Server response trusted as Contract type (no client-side schema validation)
 - [Phase 43-02]: Re-analyze spreads entire server Contract response instead of field-by-field update
+- [Phase 44-01]: Single-column Supabase updates (no mapToSnake for already-snake column names)
+- [Phase 44-01]: updateContract stays in-memory only -- re-analyze handles its own DB writes
+- [Phase 44-01]: Closure snapshot [...contracts] for rollback, not setter callback
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T20:22:45.412Z
-Stopped at: Phase 44 UI-SPEC approved
-Resume file: .planning/phases/44-contract-operations/44-UI-SPEC.md
+Last session: 2026-03-18T20:54:09Z
+Stopped at: Completed 44-01-PLAN.md
+Resume file: .planning/phases/44-contract-operations/44-02-PLAN.md
