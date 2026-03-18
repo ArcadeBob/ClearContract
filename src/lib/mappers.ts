@@ -21,3 +21,15 @@ export function mapRow<T>(row: Record<string, unknown>): T {
 export function mapRows<T>(rows: Record<string, unknown>[]): T[] {
   return rows.map((row) => mapRow<T>(row));
 }
+
+function camelToSnake(s: string): string {
+  return s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
+export function mapToSnake(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[camelToSnake(key)] = value;
+  }
+  return result;
+}
