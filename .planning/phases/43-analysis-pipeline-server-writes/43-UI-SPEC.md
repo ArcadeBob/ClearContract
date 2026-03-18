@@ -21,7 +21,7 @@ created: 2026-03-18
 | Preset | not applicable |
 | Component library | none (Tailwind utility classes) |
 | Icon library | lucide-react |
-| Font | Inter (400, 500, 600, 700 via Google Fonts) |
+| Font | Inter (400, 600 via Google Fonts) |
 
 Source: CLAUDE.md, index.css, existing codebase.
 
@@ -50,11 +50,13 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 | 1.5 |
-| Label | 12px | 500 | 1.5 |
-| Heading | 24px (text-2xl) | 700 | 1.2 |
+| Label | 12px | 600 | 1.5 |
+| Heading | 24px (text-2xl) | 600 | 1.2 |
 | Subheading | 14px | 600 | 1.5 |
 
-Source: Existing ContractUpload.tsx uses text-2xl font-bold for heading, text-sm text-slate-500 for body, text-sm font-medium for status labels.
+Only 2 weights used: 400 (body, subtext) and 600 (labels, headings, subheadings, CTA text). Existing codebase uses font-bold (700) and font-medium (500) in places; this phase standardizes on font-semibold (600) for all emphasis. Executor should use `font-semibold` (Tailwind class) wherever the prior code used `font-bold` or `font-medium` within phase-43-touched components only.
+
+Source: Existing ContractUpload.tsx uses text-2xl font-bold for heading, text-sm text-slate-500 for body, text-sm font-medium for status labels. Consolidated to 400 + 600 per design contract rules.
 
 ---
 
@@ -67,7 +69,7 @@ Source: Existing ContractUpload.tsx uses text-2xl font-bold for heading, text-sm
 | Accent (10%) | blue-600 (#2563eb) | Analyzing spinner, progress indicator, active drag state |
 | Destructive | red-600 (#dc2626) | Error toasts, upload rejection text |
 
-Accent reserved for: analyzing spinner animation, drag-active upload zone border, "View" action link in success toast, re-analyze spinner.
+Accent reserved for: analyzing spinner animation, drag-active upload zone border, "View Contract" action link in success toast, re-analyze spinner.
 
 Source: Existing codebase patterns -- blue for interactive/active states, red for errors, slate for neutral surfaces.
 
@@ -82,7 +84,7 @@ Source: Existing codebase patterns -- blue for interactive/active states, red fo
 | Analyzing body | "AI is reviewing your contract. This usually takes 30-60 seconds." |
 | Analyzing subtext | "You can navigate away -- we'll notify you when it's ready." |
 | Success toast (user on upload page) | N/A -- auto-navigates to review page |
-| Success toast (user navigated away) | "Analysis complete" with "View" action button |
+| Success toast (user navigated away) | "Analysis complete" with "View Contract" action button |
 | Error toast (retryable) | "{classifyError message}" with "Retry" action button |
 | Error toast (non-retryable) | "{classifyError message}" (auto-dismisses after 3s) |
 | Auth error (no session) | "Please sign in to analyze contracts." |
@@ -111,7 +113,7 @@ Source: CONTEXT.md upload UX decisions, existing toast/error patterns in App.tsx
 | Element | Location | Specification |
 |---------|----------|---------------|
 | Analyzing indicator | ContractUpload page | Centered within the existing card (replaces UploadZone when analyzing). Contains: animated spinner (blue-600, 32x32px), heading "Analyzing Contract...", body text, subtext about navigating away. Uses Framer Motion fade-in (opacity 0 to 1, 300ms). |
-| Success toast with action | ToastProvider | Existing toast system supports `onRetry` but needs no structural change -- the "View" action will use the same `onRetry` callback pattern renamed conceptually to `onAction`. If the toast API does not support a custom action label, the implementation may pass the navigation callback as `onRetry` (the toast already renders a button for it). |
+| Success toast with action | ToastProvider | Existing toast system supports `onRetry` but needs no structural change -- the "View Contract" action will use the same `onRetry` callback pattern renamed conceptually to `onAction`. If the toast API does not support a custom action label, the implementation may pass the navigation callback as `onRetry` (the toast already renders a button for it). |
 
 ### Unchanged Components
 
@@ -135,7 +137,7 @@ IDLE (UploadZone visible)
 
 ANALYZING (spinner visible, UploadZone hidden)
   |-- analysis succeeds + user still on page --> navigate to /review/{id}
-  |-- analysis succeeds + user navigated away --> success toast with "View" action
+  |-- analysis succeeds + user navigated away --> success toast with "View Contract" action
   |-- analysis fails --> ERROR_TOAST (stay on current page)
   |-- user clicks "Back" during analysis --> navigates away, analysis continues in background
 
