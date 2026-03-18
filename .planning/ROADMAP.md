@@ -172,7 +172,7 @@ Plans:
   3. A new user with no existing profile sees the Settings page with empty/default values (no errors)
 **Plans**: 1 plan
 Plans:
-- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
+- [ ] 45-01-PLAN.md -- [To be planned]
 
 ### Phase 43: Analysis Pipeline Server Writes
 **Goal**: The analysis pipeline authenticates requests, reads company profile from the database, and writes all results directly to Postgres -- the server owns contract creation
@@ -198,9 +198,10 @@ Plans:
   3. Adding, editing, and deleting notes on findings persists to Supabase (survives page refresh)
   4. Renaming a contract inline persists to Supabase (survives page refresh)
   5. Re-analyzing a contract preserves resolved status and notes on matched findings, with rollback to previous state if analysis fails
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
+- [ ] 44-01-PLAN.md -- Supabase writes + rollback for delete, resolve, note, rename mutations
+- [ ] 44-02-PLAN.md -- Re-analyze finding preservation batch writes to Supabase
 
 ### Phase 45: Cleanup
 **Goal**: All localStorage contract storage code is removed now that Supabase handles all persistence -- storageManager retains only UI preferences
@@ -212,7 +213,7 @@ Plans:
   3. storageManager handles only UI preference keys (hide-resolved filter state) -- no contract storage methods remain
 **Plans**: 1 plan
 Plans:
-- [ ] 42-01-PLAN.md -- mapToSnake mapper, useCompanyProfile Supabase rewrite, Settings page update
+- [ ] 45-01-PLAN.md -- [To be planned]
 
 ## Progress
 
@@ -264,5 +265,5 @@ Phases execute in numeric order: 39 -> 40 -> 41 -> 42 -> 43 -> 44 -> 45
 | 41. Contract Reads and Data Mapping | 2/2 | Complete    | 2026-03-17 | - |
 | 42. Company Profile Migration | 1/1 | Complete    | 2026-03-18 | - |
 | 43. Analysis Pipeline Server Writes | 2/2 | Complete    | 2026-03-18 | - |
-| 44. Contract Operations | v2.0 | 0/0 | Not started | - |
+| 44. Contract Operations | v2.0 | 0/2 | Not started | - |
 | 45. Cleanup | v2.0 | 0/0 | Not started | - |
