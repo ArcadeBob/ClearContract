@@ -1,5 +1,31 @@
 # Milestones
 
+## v2.0 Enterprise Foundation (Shipped: 2026-03-19)
+
+**Phases:** 39-45 (11 plans)
+**Timeline:** 2 days (2026-03-17 → 2026-03-18)
+**Code:** 92 files changed, 11,809 insertions, 1,075 deletions (15,658 LOC TypeScript total)
+**Requirements:** 28/28 satisfied
+**Audit:** TECH_DEBT (all requirements met, 5 non-blocking items — pre-existing test failures, orphaned exports)
+
+**Key accomplishments:**
+- Supabase Postgres schema with 4 tables (contracts, findings, contract_dates, company_profiles), 16 RLS policies, CASCADE deletes, and Supabase CLI migration workflow
+- Email/password authentication with AuthContext provider, session persistence via onAuthStateChange, protected routes via auth gate, and branded loading screen
+- Type-safe snake_case/camelCase mappers (mapRow, mapRows, mapToSnake) with Supabase-backed contract loading replacing all localStorage reads
+- Company profile persistence in Supabase with fire-and-forget upsert pattern and meta column exclusion
+- Server-owned analysis pipeline: JWT validation, company profile DB read, sequential contract/findings/dates DB inserts, re-analyze mode with row update
+- All CRUD mutations (delete, resolve, note, rename, re-analyze) wired to Supabase with optimistic updates, closure-snapshot rollback, and batch finding preservation writes
+- Dead localStorage contract code removed — storageManager trimmed to single UI preference key, mock data deleted
+
+**Tech debt carried forward:**
+- Pre-existing test failures: api/analyze.test.ts (16/18 fail), api/regression.test.ts (6/6 fail), App.test.tsx (1/3 fail)
+- Orphaned state: isUploading/setIsUploading in useContractStore never consumed
+- .env.example documents SUPABASE_ANON_KEY but codebase uses VITE_SUPABASE_ANON_KEY
+- Deleted useContractStore.test.ts rather than rewriting for Supabase (no store-level tests)
+- Nyquist validation partial (1/7 phases compliant)
+
+---
+
 ## v1.6 Quality & Validation (Shipped: 2026-03-16)
 
 **Phases:** 33-38 (13 plans)

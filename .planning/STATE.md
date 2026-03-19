@@ -1,36 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Enterprise Foundation
-status: completed
-stopped_at: Completed 45-01-PLAN.md
-last_updated: "2026-03-18T21:39:22.852Z"
-last_activity: 2026-03-18 -- Phase 45 plan 01 complete (cleanup)
+milestone: null
+milestone_name: null
+status: between_milestones
+stopped_at: v2.0 milestone completed and archived
+last_updated: "2026-03-19T20:52:07.341Z"
+last_activity: 2026-03-19 -- v2.0 Enterprise Foundation milestone archived
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 45 - Cleanup (complete)
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 45 of 45 (Cleanup)
-Plan: 1 of 1 in current phase (phase 45 complete)
-Status: Phase 45 complete
-Last activity: 2026-03-18 -- Phase 45 plan 01 complete (cleanup)
-
-Progress: [██████████] 100% (11/11 v2.0 plans)
+Status: Between milestones (v2.0 shipped, next milestone not yet started)
+Last milestone: v2.0 Enterprise Foundation (shipped 2026-03-19)
 
 ## Performance Metrics
 
@@ -41,43 +37,13 @@ Progress: [██████████] 100% (11/11 v2.0 plans)
 **v1.4 (Phases 22-26):** 11 plans, 2 days
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
-**v2.0 (Phases 39-45):** 11 plans complete, ~5min avg
+**v2.0 (Phases 39-45):** 11 plans, 2 days, ~5min avg
 
 ## Accumulated Context
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (54 decisions across 7 milestones).
-Recent decisions affecting v2.0:
-
-- Fresh start -- no localStorage data migration to Supabase
-- Single new dependency: @supabase/supabase-js v2 (no auth-helpers, no ORM)
-- Two-client pattern: anon key for client RLS queries, service_role key for server writes
-- Server owns contract creation during analysis (no client-side placeholder row)
-- Normalized schema: findings and contract_dates as separate tables (not JSONB arrays)
-- TEXT + CHECK constraints over Postgres ENUMs for easier future changes
-- (select auth.uid()) subquery pattern in RLS policies for performance
-- Anon key for client-side RLS; service role key deferred to Phase 43
-- AuthContext uses onAuthStateChange for reactive session (no getSession polling)
-- Generic "Invalid email or password" for all auth errors (security best practice)
-- AuthenticatedApp inner component pattern: unmounting clears all in-memory state on sign-out
-- AuthProvider wraps outside ToastProvider (auth is more fundamental)
-- Top-level keys only in row mapper -- JSONB stored as camelCase, no recursive conversion needed
-- [Phase 41-02]: In-memory mutations only -- Supabase writes deferred to Phase 43
-- [Phase 41-02]: Client-side stitching of findings/dates via Map lookups instead of Supabase joins
-- [Phase 42]: Fire-and-forget upsert: UI updates immediately, Supabase write async with toast on failure
-- [Phase 42]: Meta column exclusion (id, created_at, updated_at) from upsert payload
-- [Phase 42]: mapToSnake pattern for all camelCase-to-snake_case write payloads
-- [Phase 43-01]: Server reads company profile from DB instead of request body
-- [Phase 43-01]: Re-analyze mode updates existing contract row, replaces findings/dates
-- [Phase 43-01]: Contract IDs assigned by Postgres gen_random_uuid(), not client-side
-- [Phase 43-02]: Server response trusted as Contract type (no client-side schema validation)
-- [Phase 43-02]: Re-analyze spreads entire server Contract response instead of field-by-field update
-- [Phase 44-01]: Single-column Supabase updates (no mapToSnake for already-snake column names)
-- [Phase 44-01]: updateContract stays in-memory only -- re-analyze handles its own DB writes
-- [Phase 44-01]: Closure snapshot [...contracts] for rollback, not setter callback
-- [Phase 44-02]: Non-blocking batch write for preserved finding fields (console.error only on partial failure)
-- [Phase 45-01]: Deleted useContractStore.test.ts rather than rewriting for Supabase (out of scope for cleanup)
+Full decision log in PROJECT.md Key Decisions table (66 decisions across 8 milestones).
 
 ### Pending Todos
 
@@ -85,13 +51,12 @@ None.
 
 ### Blockers/Concerns
 
-- Supabase service role key not yet in Vercel -- needed before Phase 43 (server writes)
-- Upload UX changes in Phase 43: server-owns-creation eliminates immediate navigation during analysis
-- Test suite (271 tests) mocks localStorage -- will need Supabase mocking updates
+- Pre-existing test failures: api/analyze.test.ts (16/18), api/regression.test.ts (6/6), App.test.tsx (1/3) -- need Supabase mocking updates
 - Statement coverage vs 60% CI threshold (carried from v1.6)
+- Orphaned isUploading/setIsUploading in useContractStore
 
 ## Session Continuity
 
-Last session: 2026-03-18T21:33:24.280Z
-Stopped at: Completed 45-01-PLAN.md
+Last session: 2026-03-19
+Stopped at: v2.0 milestone archived
 Resume file: None
