@@ -299,6 +299,9 @@ export function createMockReq(
 ): VercelRequest {
   const defaults = {
     method: 'POST',
+    headers: {
+      authorization: 'Bearer test-jwt-token',
+    },
     body: { pdfBase64: Buffer.from('fake-pdf').toString('base64') },
   };
   return { ...defaults, ...overrides } as unknown as VercelRequest;

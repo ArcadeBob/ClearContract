@@ -55,6 +55,77 @@ vi.mock('../src/knowledge/trade/index', () => ({}));
 vi.mock('../src/knowledge/standards/index', () => ({}));
 
 // ---------------------------------------------------------------------------
+// Supabase client mock
+// ---------------------------------------------------------------------------
+
+const mockGetUser = vi.fn().mockResolvedValue({
+  data: { user: { id: 'test-user-id' } },
+  error: null,
+});
+
+function createTableMock() {
+  let lastInsertPayload: unknown[] = [];
+
+  const chain: Record<string, ReturnType<typeof vi.fn>> = {};
+
+  chain.select = vi.fn().mockImplementation(() => {
+    const rows = lastInsertPayload.map((row: Record<string, unknown>, i: number) => ({
+      ...row,
+      id: row.id || `f-mock-${i}`,
+      created_at: '2026-01-01T00:00:00Z',
+    }));
+    return {
+      single: vi.fn().mockResolvedValue({
+        data: {
+          id: 'contract-db-123',
+          user_id: 'test-user-id',
+          name: 'contract',
+          client: 'Test Construction Corp',
+          contract_type: 'Subcontract',
+          upload_date: '2026-01-01',
+          status: 'Reviewed',
+          risk_score: 72,
+          score_breakdown: { legal: 20, financial: 15, scope: 10, compliance: 12, insurance: 8, labor: 7 },
+          bid_signal: { level: 'caution', reasons: ['High risk clauses detected'] },
+          pass_results: {},
+        },
+        error: null,
+      }),
+      eq: chain.eq,
+      maybeSingle: chain.maybeSingle,
+      then: (resolve: (v: unknown) => void) =>
+        Promise.resolve({ data: rows, error: null }).then(resolve),
+    };
+  });
+
+  chain.insert = vi.fn().mockImplementation((payload: unknown) => {
+    lastInsertPayload = Array.isArray(payload) ? payload : [payload];
+    return chain;
+  });
+
+  chain.update = vi.fn().mockReturnValue(chain);
+  chain.delete = vi.fn().mockReturnValue(chain);
+  chain.eq = vi.fn().mockReturnValue(chain);
+  chain.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+
+  return chain;
+}
+
+const mockTableChains: Record<string, ReturnType<typeof createTableMock>> = {};
+
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({
+    auth: { getUser: mockGetUser },
+    from: vi.fn((table: string) => {
+      if (!mockTableChains[table]) {
+        mockTableChains[table] = createTableMock();
+      }
+      return mockTableChains[table];
+    }),
+  })),
+}));
+
+// ---------------------------------------------------------------------------
 // Imports
 // ---------------------------------------------------------------------------
 
@@ -80,8 +151,17 @@ let originalApiKey: string | undefined;
 beforeEach(() => {
   originalApiKey = process.env.ANTHROPIC_API_KEY;
   process.env.ANTHROPIC_API_KEY = 'test-key-regression';
+  process.env.SUPABASE_URL = 'https://test.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
   mockCreate.mockReset();
   mockFileDelete.mockReset().mockResolvedValue({});
+  mockGetUser.mockReset().mockResolvedValue({
+    data: { user: { id: 'test-user-id' } },
+    error: null,
+  });
+  for (const key of Object.keys(mockTableChains)) {
+    delete mockTableChains[key];
+  }
 
   // Route each call to the correct pass fixture sequentially
   let callIndex = 0;
@@ -104,6 +184,8 @@ afterEach(() => {
   } else {
     delete process.env.ANTHROPIC_API_KEY;
   }
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 });
 
 // ---------------------------------------------------------------------------
