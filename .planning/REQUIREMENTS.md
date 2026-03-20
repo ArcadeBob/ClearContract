@@ -9,8 +9,8 @@ Requirements for Quality Restoration milestone. Each maps to roadmap phases.
 
 ### Test Restoration
 
-- [ ] **TEST-01**: api/analyze.test.ts passes all 18 tests with Supabase-aware mocks (JWT auth, DB writes)
-- [ ] **TEST-02**: api/regression.test.ts passes all 6 tests with Supabase-aware pipeline replay
+- [x] **TEST-01**: api/analyze.test.ts passes all 18 tests with Supabase-aware mocks (JWT auth, DB writes)
+- [x] **TEST-02**: api/regression.test.ts passes all 6 tests with Supabase-aware pipeline replay
 - [ ] **TEST-03**: App.test.tsx passes all 3 tests including auth gate rendering
 - [ ] **TEST-04**: `npm run test` exits with 0 failures (269/269 pass)
 
@@ -70,8 +70,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 46 | Pending |
-| TEST-02 | Phase 46 | Pending |
+| TEST-01 | Phase 46 | Complete |
+| TEST-02 | Phase 46 | Complete |
 | TEST-03 | Phase 46 | Pending |
 | TEST-04 | Phase 46 | Pending |
 | SEC-01 | Phase 47 | Pending |

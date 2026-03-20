@@ -144,7 +144,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
   2. api/analyze.test.ts passes all 18 tests using mocked Supabase client (JWT auth, DB writes)
   3. api/regression.test.ts passes all 6 tests replaying pipeline fixtures through Supabase-aware mocks
   4. App.test.tsx passes all 3 tests including auth gate rendering with mocked AuthContext
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 46-01-PLAN.md -- Fix API test mocks (createMockReq auth headers + Supabase client mock)
@@ -243,7 +243,7 @@ Plans:
 | 43. Analysis Pipeline Server Writes | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 44. Contract Operations | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
-| 46. Test Restoration | v2.1 | 0/2 | Not started | - |
+| 46. Test Restoration | 1/2 | In Progress|  | - |
 | 47. Security Audit | v2.1 | 0/? | Not started | - |
 | 48. ESLint and Tooling Upgrade | v2.1 | 0/? | Not started | - |
 | 49. Coverage Push | v2.1 | 0/? | Not started | - |
