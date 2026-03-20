@@ -127,7 +127,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 **Milestone Goal:** Restore full test suite health broken by Supabase migration, resolve security vulnerabilities, upgrade ESLint tooling to current majors, push statement coverage past CI threshold, and clean up residual dead code.
 
-- [ ] **Phase 46: Test Restoration** - Fix all 23 failing tests with Supabase-aware mocks
+- [x] **Phase 46: Test Restoration** - Fix all 23 failing tests with Supabase-aware mocks (completed 2026-03-20)
 - [ ] **Phase 47: Security Audit** - Resolve all npm audit vulnerabilities
 - [ ] **Phase 48: ESLint and Tooling Upgrade** - Migrate ESLint 8 to 10+ with flat config
 - [ ] **Phase 49: Coverage Push** - Reach 60% statement coverage CI threshold
@@ -144,7 +144,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
   2. api/analyze.test.ts passes all 18 tests using mocked Supabase client (JWT auth, DB writes)
   3. api/regression.test.ts passes all 6 tests replaying pipeline fixtures through Supabase-aware mocks
   4. App.test.tsx passes all 3 tests including auth gate rendering with mocked AuthContext
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 46-01-PLAN.md -- Fix API test mocks (createMockReq auth headers + Supabase client mock)
@@ -243,7 +243,7 @@ Plans:
 | 43. Analysis Pipeline Server Writes | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 44. Contract Operations | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
-| 46. Test Restoration | 1/2 | In Progress|  | - |
+| 46. Test Restoration | 2/2 | Complete   | 2026-03-20 | - |
 | 47. Security Audit | v2.1 | 0/? | Not started | - |
 | 48. ESLint and Tooling Upgrade | v2.1 | 0/? | Not started | - |
 | 49. Coverage Push | v2.1 | 0/? | Not started | - |
