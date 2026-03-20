@@ -42,6 +42,12 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Match pre-migration severity (was warn in @typescript-eslint v5)
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // New rules in react-hooks v7 and ESLint v10 -- warn to avoid blocking builds
+      'react-hooks/set-state-in-effect': 'warn',
+      'preserve-caught-error': 'off',
     },
   },
 

@@ -47,10 +47,6 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     }
   }, [contractsError, showToast]);
 
-  if (contractsLoading) {
-    return <LoadingScreen />;
-  }
-
   // 1C: Redirect to dashboard if review view has no active contract (avoids setState during render)
   useEffect(() => {
     if (activeView === 'review' && !activeContract) {
@@ -58,6 +54,10 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
       navigateTo('dashboard');
     }
   }, [activeView, activeContract, navigateTo]);
+
+  if (contractsLoading) {
+    return <LoadingScreen />;
+  }
 
   const handleDeleteContract = (id: string) => {
     const isDeletingActive = activeContract?.id === id;
