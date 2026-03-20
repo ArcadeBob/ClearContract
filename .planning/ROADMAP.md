@@ -147,8 +147,8 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 46-01-PLAN.md -- Fix API test mocks (createMockReq auth headers + Supabase client mock)
-- [ ] 46-02-PLAN.md -- Fix App.test.tsx (useContractStore mock) + full suite verification
+- [x] 46-01-PLAN.md -- Fix API test mocks (createMockReq auth headers + Supabase client mock)
+- [x] 46-02-PLAN.md -- Fix App.test.tsx (useContractStore mock) + full suite verification
 
 ### Phase 47: Security Audit
 **Goal**: Zero high or critical npm vulnerabilities, with all dependency upgrades proven safe by passing tests
@@ -158,10 +158,10 @@ Plans:
   1. `npm audit` reports zero high or critical vulnerabilities
   2. Full test suite still passes after all dependency upgrades (269/269 green)
   3. `npm run build` succeeds with no new warnings from upgraded packages
-**Plans**: 1 plan
+**Plans**: 1/1 plan complete
 
 Plans:
-- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
+- [x] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
 
 ### Phase 48: ESLint and Tooling Upgrade
 **Goal**: ESLint and TypeScript-ESLint are on current major versions with flat config format
@@ -176,7 +176,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
+- [ ] 48-01-PLAN.md -- Upgrade ESLint 8 to 10+ with flat config, fix lint errors
 
 ### Phase 49: Coverage Push
 **Goal**: Statement coverage crosses the 60% CI threshold so the GitHub Actions pipeline passes
@@ -190,7 +190,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
+- [ ] 49-01-PLAN.md -- [to be planned]
 
 ### Phase 50: Dead Code Cleanup
 **Goal**: Residual dead code from Supabase migration is removed, env documentation is accurate
@@ -204,7 +204,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
+- [ ] 50-01-PLAN.md -- [to be planned]
 
 ## Progress
 
@@ -255,8 +255,8 @@ Plans:
 | 43. Analysis Pipeline Server Writes | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 44. Contract Operations | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
-| 46. Test Restoration | 2/2 | Complete    | 2026-03-20 | - |
-| 47. Security Audit | 1/1 | Complete    | 2026-03-20 | - |
-| 48. ESLint and Tooling Upgrade | v2.1 | 0/? | Not started | - |
+| 46. Test Restoration | v2.1 | 2/2 | Complete | 2026-03-20 |
+| 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
+| 48. ESLint and Tooling Upgrade | v2.1 | 0/1 | Not started | - |
 | 49. Coverage Push | v2.1 | 0/? | Not started | - |
 | 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
