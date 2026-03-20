@@ -85,7 +85,12 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(No active requirements -- plan next milestone with `/gsd:new-milestone`)
+- [ ] Fix broken API integration tests for Supabase-backed analysis pipeline
+- [ ] Fix broken App.test.tsx for auth gate rendering
+- [ ] Resolve all npm audit vulnerabilities
+- [ ] Upgrade ESLint and @typescript-eslint to current majors
+- [ ] Statement coverage above 60% CI threshold
+- [ ] Remove dead code (orphaned exports, stale env example)
 
 ### Out of Scope
 
@@ -201,6 +206,18 @@ Known issues: Pre-existing test failures in api/analyze.test.ts (16/18), api/reg
 | Optimistic updates with closure snapshot rollback | [...contracts] snapshot before mutation for safe rollback | ✓ Good -- instant UI feedback with safety net |
 | Non-blocking batch write for finding preservation | Partial failures logged to console.error, no user toast | ✓ Good -- preservation is best-effort, not blocking |
 
+## Current Milestone: v2.1 Quality Restoration
+
+**Goal:** Restore full test coverage broken by Supabase migration, resolve npm vulnerabilities, upgrade ESLint/tooling to current majors, and clean up dead code.
+
+**Target features:**
+- Fix 23 broken tests (api/analyze.test.ts, api/regression.test.ts, App.test.tsx) with Supabase-aware mocks
+- Resolve npm audit vulnerabilities (13 total, 1 critical)
+- Upgrade ESLint 8→10+, @typescript-eslint 5→8, and related tooling
+- Push statement coverage past 60% CI threshold
+- Remove orphaned isUploading/setIsUploading from useContractStore
+- Fix .env.example key mismatch (SUPABASE_ANON_KEY → VITE_SUPABASE_ANON_KEY)
+
 ## Completed Milestones
 
 - **v1.0** Enhanced Analysis Release (2026-03-06) -- 16-pass analysis pipeline, findings with clause quotes
@@ -213,4 +230,4 @@ Known issues: Pre-existing test failures in api/analyze.test.ts (16/18), api/reg
 - **v2.0** Enterprise Foundation (2026-03-19) -- Supabase Postgres + Auth, all data in DB, server-owned analysis, optimistic CRUD
 
 ---
-*Last updated: 2026-03-19 after v2.0 milestone*
+*Last updated: 2026-03-19 after v2.1 milestone start*

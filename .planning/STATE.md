@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-stopped_at: v2.0 milestone completed and archived
-last_updated: "2026-03-19T20:52:07.341Z"
-last_activity: 2026-03-19 -- v2.0 Enterprise Foundation milestone archived
+milestone: v2.1
+milestone_name: Quality Restoration
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-19T21:00:00.000Z"
+last_activity: 2026-03-19 -- Milestone v2.1 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,12 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v2.1 Quality Restoration
 
 ## Current Position
 
-Status: Between milestones (v2.0 shipped, next milestone not yet started)
-Last milestone: v2.0 Enterprise Foundation (shipped 2026-03-19)
+Phase: Not started (defining requirements)
+Plan: --
+Status: Defining requirements
+Last activity: 2026-03-19 -- Milestone v2.1 started
 
 ## Performance Metrics
 
@@ -54,9 +56,11 @@ None.
 - Pre-existing test failures: api/analyze.test.ts (16/18), api/regression.test.ts (6/6), App.test.tsx (1/3) -- need Supabase mocking updates
 - Statement coverage vs 60% CI threshold (carried from v1.6)
 - Orphaned isUploading/setIsUploading in useContractStore
+- 13 npm audit vulnerabilities (1 critical, 8 high)
+- ESLint 8.x and @typescript-eslint 5.x are 2+ majors behind
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: v2.0 milestone archived
+Stopped at: Starting v2.1 milestone
 Resume file: None
