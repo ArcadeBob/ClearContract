@@ -37,6 +37,17 @@
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   },
+  "overrides": {
+    "@vercel/node": {
+      "undici": "^6.24.0",
+      "path-to-regexp": "^6.3.0"
+    },
+    "@vercel/build-utils": {
+      "@vercel/python-analysis": {
+        "minimatch": "^10.2.3"
+      }
+    }
+  },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
