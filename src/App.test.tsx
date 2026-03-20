@@ -16,6 +16,20 @@ vi.mock('./components/LoadingScreen', () => ({
   LoadingScreen: () => <div data-testid="loading-screen">LoadingScreen</div>,
 }));
 
+vi.mock('./hooks/useContractStore', () => ({
+  useContractStore: () => ({
+    contracts: [],
+    isLoading: false,
+    error: null,
+    addContract: vi.fn(),
+    updateContract: vi.fn(),
+    deleteContract: vi.fn(),
+    toggleFindingResolved: vi.fn(),
+    updateFindingNote: vi.fn(),
+    renameContract: vi.fn(),
+  }),
+}));
+
 import { App } from './App';
 
 describe('App auth gate', () => {
