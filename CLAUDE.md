@@ -12,7 +12,7 @@ ClearContract is a **Glazing Contract Review AI** web application for Clean Glas
 npm install          # Install dependencies
 npm run dev          # Start Vite dev server
 npm run build        # Production build (vite build)
-npm run lint         # ESLint: eslint . --ext .js,.jsx,.ts,.tsx
+npm run lint         # ESLint: eslint . (flat config, v10+)
 npm run preview      # Preview production build
 ```
 

@@ -21,10 +21,10 @@ Requirements for Quality Restoration milestone. Each maps to roadmap phases.
 
 ### Tooling
 
-- [ ] **TOOL-01**: ESLint upgraded to v10+ with flat config (eslint.config.js)
-- [ ] **TOOL-02**: @typescript-eslint upgraded to v8+
-- [ ] **TOOL-03**: All ESLint plugins compatible with new config format
-- [ ] **TOOL-04**: `npm run lint` passes with zero errors on current codebase
+- [x] **TOOL-01**: ESLint upgraded to v10+ with flat config (eslint.config.js)
+- [x] **TOOL-02**: @typescript-eslint upgraded to v8+
+- [x] **TOOL-03**: All ESLint plugins compatible with new config format
+- [x] **TOOL-04**: `npm run lint` passes with zero errors on current codebase
 
 ### Coverage
 
@@ -76,10 +76,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-04 | Phase 46 | Complete |
 | SEC-01 | Phase 47 | Complete |
 | SEC-02 | Phase 47 | Complete |
-| TOOL-01 | Phase 48 | Pending |
-| TOOL-02 | Phase 48 | Pending |
-| TOOL-03 | Phase 48 | Pending |
-| TOOL-04 | Phase 48 | Pending |
+| TOOL-01 | Phase 48 | Complete |
+| TOOL-02 | Phase 48 | Complete |
+| TOOL-03 | Phase 48 | Complete |
+| TOOL-04 | Phase 48 | Complete |
 | COV-01 | Phase 49 | Pending |
 | COV-02 | Phase 49 | Pending |
 | COV-03 | Phase 49 | Pending |
