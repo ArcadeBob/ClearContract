@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Quality Restoration
 status: Ready
-stopped_at: Completed 46-02-PLAN.md
-last_updated: "2026-03-20T01:36:32.703Z"
-last_activity: 2026-03-19 -- Completed 46-02 (App.test.tsx fix, full suite 269/269 green)
+stopped_at: Completed 47-01-PLAN.md
+last_updated: "2026-03-20T02:38:41.709Z"
+last_activity: 2026-03-20 -- Completed 47-01 (npm audit zero high/critical, overrides for transitive deps)
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v2.1 Quality Restoration -- Phase 46 complete, Phase 47 next
+**Current focus:** v2.1 Quality Restoration -- Phase 47 complete, Phase 48 next
 
 ## Current Position
 
 Phase: 47 of 50 (Security Audit)
-Plan: 0 of ?
+Plan: 1 of 1
 Status: Ready
-Last activity: 2026-03-19 -- Completed 46-02 (App.test.tsx fix, full suite 269/269 green)
+Last activity: 2026-03-20 -- Completed 47-01 (npm audit zero high/critical, overrides for transitive deps)
 
-Progress: [██████████] 100% (Phase 46)
+Progress: [██████████] 100% (Phase 47)
 
 ## Performance Metrics
 
@@ -50,6 +50,8 @@ Progress: [██████████] 100% (Phase 46)
 Full decision log in PROJECT.md Key Decisions table (66 decisions across 8 milestones).
 - [Phase 46]: Used createTableMock factory for Supabase query builder mock with dual .single()/.then() paths
 - [Phase 46]: Mock useContractStore at module level with isLoading: false for App auth gate tests
+- [Phase 47]: Used undici ^6.24.0 override (not ^5.29.0) because all 5.x in vulnerable range <=6.23.0
+- [Phase 47]: Left esbuild/ajv moderate vulns unresolved -- require breaking vite 8.x / @vercel/node 3.x upgrades
 
 ### Pending Todos
 
@@ -59,11 +61,11 @@ None.
 
 - ~~23 failing tests across 3 files~~ RESOLVED -- Phase 46 complete, 269/269 green
 - Statement coverage 40.74% vs 60% CI threshold -- Phase 49
-- 13 npm audit vulnerabilities (1 critical, 8 high) -- Phase 47
+- ~~13 npm audit vulnerabilities (1 critical, 8 high)~~ RESOLVED -- Phase 47 complete, 0 high/critical (5 moderate remain)
 - ESLint 8.x and @typescript-eslint 5.x are 2+ majors behind -- Phase 48
 
 ## Session Continuity
 
-Last session: 2026-03-20T01:32:04.012Z
-Stopped at: Completed 46-02-PLAN.md
+Last session: 2026-03-20T02:38:41.707Z
+Stopped at: Completed 47-01-PLAN.md
 Resume file: None

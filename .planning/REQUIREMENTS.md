@@ -16,8 +16,8 @@ Requirements for Quality Restoration milestone. Each maps to roadmap phases.
 
 ### Security
 
-- [ ] **SEC-01**: `npm audit` reports zero high or critical vulnerabilities
-- [ ] **SEC-02**: All dependency upgrades pass existing test suite
+- [x] **SEC-01**: `npm audit` reports zero high or critical vulnerabilities
+- [x] **SEC-02**: All dependency upgrades pass existing test suite
 
 ### Tooling
 
@@ -74,8 +74,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-02 | Phase 46 | Complete |
 | TEST-03 | Phase 46 | Complete |
 | TEST-04 | Phase 46 | Complete |
-| SEC-01 | Phase 47 | Pending |
-| SEC-02 | Phase 47 | Pending |
+| SEC-01 | Phase 47 | Complete |
+| SEC-02 | Phase 47 | Complete |
 | TOOL-01 | Phase 48 | Pending |
 | TOOL-02 | Phase 48 | Pending |
 | TOOL-03 | Phase 48 | Pending |

@@ -128,7 +128,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 **Milestone Goal:** Restore full test suite health broken by Supabase migration, resolve security vulnerabilities, upgrade ESLint tooling to current majors, push statement coverage past CI threshold, and clean up residual dead code.
 
 - [x] **Phase 46: Test Restoration** - Fix all 23 failing tests with Supabase-aware mocks (completed 2026-03-20)
-- [ ] **Phase 47: Security Audit** - Resolve all npm audit vulnerabilities
+- [x] **Phase 47: Security Audit** - Resolve all npm audit vulnerabilities (completed 2026-03-20)
 - [ ] **Phase 48: ESLint and Tooling Upgrade** - Migrate ESLint 8 to 10+ with flat config
 - [ ] **Phase 49: Coverage Push** - Reach 60% statement coverage CI threshold
 - [ ] **Phase 50: Dead Code Cleanup** - Remove orphaned exports and fix env example
@@ -256,7 +256,7 @@ Plans:
 | 44. Contract Operations | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
 | 46. Test Restoration | 2/2 | Complete    | 2026-03-20 | - |
-| 47. Security Audit | v2.1 | 0/? | Not started | - |
+| 47. Security Audit | 1/1 | Complete   | 2026-03-20 | - |
 | 48. ESLint and Tooling Upgrade | v2.1 | 0/? | Not started | - |
 | 49. Coverage Push | v2.1 | 0/? | Not started | - |
 | 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
