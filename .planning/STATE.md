@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Quality Restoration
-status: defining_requirements
+status: roadmap_complete
 stopped_at: null
-last_updated: "2026-03-19T21:00:00.000Z"
-last_activity: 2026-03-19 -- Milestone v2.1 started
+last_updated: "2026-03-19T22:00:00.000Z"
+last_activity: 2026-03-19 -- Roadmap created for v2.1 (5 phases, 16 requirements)
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Defining requirements for v2.1 Quality Restoration
+**Current focus:** v2.1 Quality Restoration -- Phase 46 ready to plan
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 46 of 50 (Test Restoration)
 Plan: --
-Status: Defining requirements
-Last activity: 2026-03-19 -- Milestone v2.1 started
+Status: Ready to plan
+Last activity: 2026-03-19 -- Roadmap created for v2.1
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -53,14 +55,13 @@ None.
 
 ### Blockers/Concerns
 
-- Pre-existing test failures: api/analyze.test.ts (16/18), api/regression.test.ts (6/6), App.test.tsx (1/3) -- need Supabase mocking updates
-- Statement coverage vs 60% CI threshold (carried from v1.6)
-- Orphaned isUploading/setIsUploading in useContractStore
-- 13 npm audit vulnerabilities (1 critical, 8 high)
-- ESLint 8.x and @typescript-eslint 5.x are 2+ majors behind
+- 23 failing tests across 3 files (api/analyze.test.ts 16/18, api/regression.test.ts 6/6, App.test.tsx 1/3) -- Phase 46
+- Statement coverage 40.74% vs 60% CI threshold -- Phase 49
+- 13 npm audit vulnerabilities (1 critical, 8 high) -- Phase 47
+- ESLint 8.x and @typescript-eslint 5.x are 2+ majors behind -- Phase 48
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Starting v2.1 milestone
+Stopped at: Roadmap created for v2.1 Quality Restoration
 Resume file: None

@@ -70,28 +70,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | - | Pending |
-| TEST-02 | - | Pending |
-| TEST-03 | - | Pending |
-| TEST-04 | - | Pending |
-| SEC-01 | - | Pending |
-| SEC-02 | - | Pending |
-| TOOL-01 | - | Pending |
-| TOOL-02 | - | Pending |
-| TOOL-03 | - | Pending |
-| TOOL-04 | - | Pending |
-| COV-01 | - | Pending |
-| COV-02 | - | Pending |
-| COV-03 | - | Pending |
-| CLEAN-01 | - | Pending |
-| CLEAN-02 | - | Pending |
-| CLEAN-03 | - | Pending |
+| TEST-01 | Phase 46 | Pending |
+| TEST-02 | Phase 46 | Pending |
+| TEST-03 | Phase 46 | Pending |
+| TEST-04 | Phase 46 | Pending |
+| SEC-01 | Phase 47 | Pending |
+| SEC-02 | Phase 47 | Pending |
+| TOOL-01 | Phase 48 | Pending |
+| TOOL-02 | Phase 48 | Pending |
+| TOOL-03 | Phase 48 | Pending |
+| TOOL-04 | Phase 48 | Pending |
+| COV-01 | Phase 49 | Pending |
+| COV-02 | Phase 49 | Pending |
+| COV-03 | Phase 49 | Pending |
+| CLEAN-01 | Phase 50 | Pending |
+| CLEAN-02 | Phase 50 | Pending |
+| CLEAN-03 | Phase 50 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 after roadmap creation*

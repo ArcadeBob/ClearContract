@@ -10,6 +10,7 @@
 - ✅ **v1.5 Code Health** -- Phases 27-32 (shipped 2026-03-15)
 - ✅ **v1.6 Quality & Validation** -- Phases 33-38 (shipped 2026-03-16)
 - ✅ **v2.0 Enterprise Foundation** -- Phases 39-45 (shipped 2026-03-19)
+- 🚧 **v2.1 Quality Restoration** -- Phases 46-50
 
 ## Phases
 
@@ -122,6 +123,73 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
+### 🚧 v2.1 Quality Restoration (In Progress)
+
+**Milestone Goal:** Restore full test suite health broken by Supabase migration, resolve security vulnerabilities, upgrade ESLint tooling to current majors, push statement coverage past CI threshold, and clean up residual dead code.
+
+- [ ] **Phase 46: Test Restoration** - Fix all 23 failing tests with Supabase-aware mocks
+- [ ] **Phase 47: Security Audit** - Resolve all npm audit vulnerabilities
+- [ ] **Phase 48: ESLint and Tooling Upgrade** - Migrate ESLint 8 to 10+ with flat config
+- [ ] **Phase 49: Coverage Push** - Reach 60% statement coverage CI threshold
+- [ ] **Phase 50: Dead Code Cleanup** - Remove orphaned exports and fix env example
+
+## Phase Details
+
+### Phase 46: Test Restoration
+**Goal**: All 269 tests pass again after Supabase migration broke API integration and app-level tests
+**Depends on**: Nothing (first phase -- unblocks all coverage work)
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
+**Success Criteria** (what must be TRUE):
+  1. `npm run test` exits with 0 failures and 269/269 (or more) tests passing
+  2. api/analyze.test.ts passes all 18 tests using mocked Supabase client (JWT auth, DB writes)
+  3. api/regression.test.ts passes all 6 tests replaying pipeline fixtures through Supabase-aware mocks
+  4. App.test.tsx passes all 3 tests including auth gate rendering with mocked AuthContext
+**Plans**: TBD
+
+### Phase 47: Security Audit
+**Goal**: Zero high or critical npm vulnerabilities, with all dependency upgrades proven safe by passing tests
+**Depends on**: Phase 46 (need passing tests to verify upgrades don't break anything)
+**Requirements**: SEC-01, SEC-02
+**Success Criteria** (what must be TRUE):
+  1. `npm audit` reports zero high or critical vulnerabilities
+  2. Full test suite still passes after all dependency upgrades (269/269 green)
+  3. `npm run build` succeeds with no new warnings from upgraded packages
+**Plans**: TBD
+
+### Phase 48: ESLint and Tooling Upgrade
+**Goal**: ESLint and TypeScript-ESLint are on current major versions with flat config format
+**Depends on**: Phase 46 (need passing tests to verify lint rule changes don't mask issues)
+**Requirements**: TOOL-01, TOOL-02, TOOL-03, TOOL-04
+**Success Criteria** (what must be TRUE):
+  1. `npx eslint --version` reports v10+ and eslint.config.js (flat config) is the active config file
+  2. @typescript-eslint packages are v8+ in package.json
+  3. All ESLint plugins load without errors under the new flat config format
+  4. `npm run lint` passes with zero errors on the current codebase
+  5. No functional regressions -- test suite still passes after lint config migration
+**Plans**: TBD
+
+### Phase 49: Coverage Push
+**Goal**: Statement coverage crosses the 60% CI threshold so the GitHub Actions pipeline passes
+**Depends on**: Phase 46 (need all existing tests passing to get accurate baseline measurement)
+**Requirements**: COV-01, COV-02, COV-03
+**Success Criteria** (what must be TRUE):
+  1. `npm run test:coverage` reports statement coverage >= 60%
+  2. Function coverage remains >= 60% (no regression from v1.6 baseline)
+  3. New tests target previously uncovered API handlers, components, or utility code paths
+  4. CI pipeline (GitHub Actions) passes the coverage threshold check
+**Plans**: TBD
+
+### Phase 50: Dead Code Cleanup
+**Goal**: Residual dead code from Supabase migration is removed, env documentation is accurate
+**Depends on**: Phase 46 (tests must pass before removing code to verify no hidden dependencies)
+**Requirements**: CLEAN-01, CLEAN-02, CLEAN-03
+**Success Criteria** (what must be TRUE):
+  1. isUploading and setIsUploading no longer exist in useContractStore.ts
+  2. .env.example lists VITE_SUPABASE_ANON_KEY (not SUPABASE_ANON_KEY)
+  3. mockContracts.ts is either excluded from coverage reporting or deleted if no production code imports it
+  4. Full test suite and build still pass after cleanup
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -171,3 +239,8 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 | 43. Analysis Pipeline Server Writes | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 44. Contract Operations | v2.0 | 2/2 | Complete | 2026-03-18 |
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
+| 46. Test Restoration | v2.1 | 0/? | Not started | - |
+| 47. Security Audit | v2.1 | 0/? | Not started | - |
+| 48. ESLint and Tooling Upgrade | v2.1 | 0/? | Not started | - |
+| 49. Coverage Push | v2.1 | 0/? | Not started | - |
+| 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
