@@ -158,7 +158,10 @@ Plans:
   1. `npm audit` reports zero high or critical vulnerabilities
   2. Full test suite still passes after all dependency upgrades (269/269 green)
   3. `npm run build` succeeds with no new warnings from upgraded packages
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
 
 ### Phase 48: ESLint and Tooling Upgrade
 **Goal**: ESLint and TypeScript-ESLint are on current major versions with flat config format
@@ -170,7 +173,10 @@ Plans:
   3. All ESLint plugins load without errors under the new flat config format
   4. `npm run lint` passes with zero errors on the current codebase
   5. No functional regressions -- test suite still passes after lint config migration
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
 
 ### Phase 49: Coverage Push
 **Goal**: Statement coverage crosses the 60% CI threshold so the GitHub Actions pipeline passes
@@ -181,7 +187,10 @@ Plans:
   2. Function coverage remains >= 60% (no regression from v1.6 baseline)
   3. New tests target previously uncovered API handlers, components, or utility code paths
   4. CI pipeline (GitHub Actions) passes the coverage threshold check
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
 
 ### Phase 50: Dead Code Cleanup
 **Goal**: Residual dead code from Supabase migration is removed, env documentation is accurate
@@ -192,7 +201,10 @@ Plans:
   2. .env.example lists VITE_SUPABASE_ANON_KEY (not SUPABASE_ANON_KEY)
   3. mockContracts.ts is either excluded from coverage reporting or deleted if no production code imports it
   4. Full test suite and build still pass after cleanup
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 47-01-PLAN.md -- Resolve all high/critical npm audit vulnerabilities (audit fix + overrides)
 
 ## Progress
 
