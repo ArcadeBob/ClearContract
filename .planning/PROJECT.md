@@ -82,15 +82,15 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Server-owned analysis pipeline with JWT auth, DB profile read, and Postgres writes -- v2.0
 - ✓ All CRUD mutations wired to Supabase with optimistic updates and rollback -- v2.0
 - ✓ localStorage contract code removed, storageManager trimmed to UI preferences only -- v2.0
+- ✓ Full test suite restored (269/269 green) with Supabase-aware mocks -- v2.1
+- ✓ Zero high/critical npm audit vulnerabilities -- v2.1
+- ✓ ESLint 10+ flat config with typescript-eslint v8 -- v2.1
+- ✓ 76.92% statement / 64.01% function coverage (429 tests total) -- v2.1
+- ✓ Dead code removed (isUploading, stale env vars, phantom references) -- v2.1
 
 ### Active
 
-- [ ] Fix broken API integration tests for Supabase-backed analysis pipeline
-- [ ] Fix broken App.test.tsx for auth gate rendering
-- [ ] Resolve all npm audit vulnerabilities
-- [ ] Upgrade ESLint and @typescript-eslint to current majors
-- [ ] Statement coverage above 60% CI threshold
-- [ ] Remove dead code (orphaned exports, stale env example)
+(None yet — define during next milestone planning)
 
 ### Out of Scope
 
@@ -114,8 +114,8 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ## Context
 
-Shipped v2.0 with ~15,658 LOC TypeScript across client, server, knowledge modules, and test suites.
-Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF, Supabase (Postgres + Auth), Vitest, React Testing Library.
+Shipped v2.1 with ~15,658 LOC TypeScript across client, server, knowledge modules, and test suites.
+Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF, Supabase (Postgres + Auth), Vitest, React Testing Library, ESLint 10 (flat config).
 Deployed on Vercel with serverless function (api/analyze.ts + api/passes.ts + api/pdf.ts).
 17-pass analysis pipeline (16 specialized + 1 synthesis) via Files API upload-once/analyze-many pattern.
 16 knowledge modules across 3 domains (regulatory, trade, standards) with expiration-based staleness warnings.
@@ -126,10 +126,8 @@ All contract data persists in Supabase Postgres with RLS. Auth via Supabase emai
 Finding workflow: resolve/annotate, hide resolved, multi-select filters, filter-aware CSV export. All mutations use optimistic updates with rollback.
 Actionable output: PDF reports, action priority badges, negotiation checklist tab, bid signal factor breakdown.
 Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, finding preservation across re-analysis.
-Code health: shared utilities (storageManager for UI prefs only, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors.
-Test coverage: 269 automated tests (some failing post-Supabase migration), mocked regression suite, live API test suite, GitHub Actions CI with coverage thresholds.
-
-Known issues: Pre-existing test failures in api/analyze.test.ts (16/18), api/regression.test.ts (6/6), App.test.tsx (1/3) due to Supabase migration. Statement coverage 40.74% vs 60% CI threshold (intentional forcing function). Vercel Pro plan active (300s timeout confirmed). Orphaned isUploading/setIsUploading in useContractStore.
+Code health: shared utilities (storageManager for UI prefs only, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors. No dead code or orphaned exports.
+Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked regression suite, live API test suite, GitHub Actions CI with coverage thresholds passing. ESLint 10 flat config with zero errors.
 
 ## Constraints
 
@@ -205,18 +203,18 @@ Known issues: Pre-existing test failures in api/analyze.test.ts (16/18), api/reg
 | Fire-and-forget upsert for company profile | UI updates immediately, Supabase write async with toast on failure | ✓ Good -- responsive UX |
 | Optimistic updates with closure snapshot rollback | [...contracts] snapshot before mutation for safe rollback | ✓ Good -- instant UI feedback with safety net |
 | Non-blocking batch write for finding preservation | Partial failures logged to console.error, no user toast | ✓ Good -- preservation is best-effort, not blocking |
+| createTableMock factory for Supabase query builder | Chainable mock with dual .single()/.then() paths for all DB operations | ✓ Good -- unified mock pattern across all API tests |
+| undici ^6.24.0 override (not ^5.29.0) | All 5.x in vulnerable range <=6.23.0 | ✓ Good -- resolved critical CVE |
+| Leave moderate ajv/esbuild vulns | Require breaking vite 8.x / @vercel/node 3.x upgrades | ✓ Good -- accepted risk, documented |
+| ESLint no-unused-vars/no-explicit-any as warn | Match pre-migration v5 severity levels | ✓ Good -- gradual strictness |
+| --legacy-peer-deps for react-hooks v7 | Peer dep fix merged but unpublished for ESLint 10 | ✓ Good -- temporary workaround |
+| describe.each parameterized testing | All 12 knowledge modules + 15 MetaBadge variants | ✓ Good -- DRY test coverage |
+| vi.hoisted() for mock variables | jsPDF mock variables referenced in vi.mock() factory | ✓ Good -- correct Vitest hoisting |
+| Props-based page testing | Dashboard/AllContracts/ContractUpload tested via props, no hook mocking | ✓ Good -- simpler, more maintainable |
 
-## Current Milestone: v2.1 Quality Restoration
+## Current Milestone
 
-**Goal:** Restore full test coverage broken by Supabase migration, resolve npm vulnerabilities, upgrade ESLint/tooling to current majors, and clean up dead code.
-
-**Target features:**
-- Fix 23 broken tests (api/analyze.test.ts, api/regression.test.ts, App.test.tsx) with Supabase-aware mocks
-- Resolve npm audit vulnerabilities (13 total, 1 critical)
-- Upgrade ESLint 8→10+, @typescript-eslint 5→8, and related tooling
-- Push statement coverage past 60% CI threshold
-- Remove orphaned isUploading/setIsUploading from useContractStore
-- Fix .env.example key mismatch (SUPABASE_ANON_KEY → VITE_SUPABASE_ANON_KEY)
+Planning next milestone. Run `/gsd:new-milestone` to begin.
 
 ## Completed Milestones
 
@@ -228,6 +226,7 @@ Known issues: Pre-existing test failures in api/analyze.test.ts (16/18), api/reg
 - **v1.5** Code Health (2026-03-15) -- shared utilities, hook extraction, component decomposition, type safety
 - **v1.6** Quality & Validation (2026-03-16) -- 269 automated tests, CI pipeline, UAT checklist, regression suite
 - **v2.0** Enterprise Foundation (2026-03-19) -- Supabase Postgres + Auth, all data in DB, server-owned analysis, optimistic CRUD
+- **v2.1** Quality Restoration (2026-03-21) -- test suite restored, npm vulns fixed, ESLint 10, 76.92% coverage, dead code removed
 
 ---
-*Last updated: 2026-03-19 after v2.1 milestone start*
+*Last updated: 2026-03-21 after v2.1 milestone*

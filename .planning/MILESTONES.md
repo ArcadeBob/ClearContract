@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.1 Quality Restoration (Shipped: 2026-03-21)
+
+**Phases:** 46-50 (8 plans)
+**Timeline:** 3 days (2026-03-19 → 2026-03-21)
+**Code:** 50 commits, 137 files changed, +9,420 / -2,430 lines
+**Requirements:** 16/16 satisfied
+**Audit:** PASSED (16/16 requirements, 5/5 phases, 8/8 integrations, 4/4 E2E flows)
+
+**Key accomplishments:**
+- Restored full test suite to green (269/269) with Supabase-aware mocks — chainable query builder mock, JWT auth headers, createTableMock factory for dual .single()/.then() paths
+- Eliminated all high/critical npm audit vulnerabilities via non-breaking fixes and targeted npm overrides for transitive deps in @vercel/node and @vercel/build-utils
+- Migrated ESLint 8→10 with flat config (eslint.config.js), typescript-eslint 5→8, react-hooks v7, zero-error lint pass
+- Pushed test coverage to 76.92% statements / 64.01% functions with 160 new tests — knowledge modules, registry, utilities, hooks, 16 components, 15 MetaBadge variants, 4 pages
+- Removed dead code: orphaned isUploading state, stale SUPABASE_ANON_KEY env entry, phantom mockContracts.ts references
+
+**Tech debt carried forward:**
+- 5 moderate npm audit vulnerabilities (ajv via @vercel/node, esbuild via vite) — require breaking major upgrades
+- 26 lint warnings (no-unused-vars in test mocks, react-refresh advisory) — intentional advisory severity
+- Function coverage at 64.01% (4% above 60% threshold, tighter buffer than statements)
+- Nyquist validation partial (4 draft, 1 missing)
+
+---
+
 ## v2.0 Enterprise Foundation (Shipped: 2026-03-19)
 
 **Phases:** 39-45 (11 plans)

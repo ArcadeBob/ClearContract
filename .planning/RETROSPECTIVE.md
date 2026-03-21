@@ -342,17 +342,66 @@
 
 ---
 
+## Milestone: v2.1 -- Quality Restoration
+
+**Shipped:** 2026-03-21
+**Phases:** 5 | **Plans:** 8 | **Commits:** 50
+**Timeline:** 3 days (2026-03-19 -> 2026-03-21)
+
+### What Was Built
+- Restored full test suite to green (269/269) with Supabase-aware mocks (createTableMock factory, JWT auth headers)
+- Eliminated all high/critical npm audit vulnerabilities via targeted overrides for transitive deps
+- Migrated ESLint 8→10 with flat config, typescript-eslint 5→8, react-hooks v7 -- zero-error lint pass
+- 160 new tests pushing coverage to 76.92% statements / 64.01% functions (429 total tests)
+- Removed dead code: orphaned isUploading state, stale env vars, phantom mockContracts references
+
+### What Worked
+- Milestone directly addressed all tech debt items carried forward from v2.0 -- systematic debt resolution
+- createTableMock factory pattern unified all Supabase mock patterns across API test files
+- describe.each parameterized testing compressed 12 knowledge modules and 15 MetaBadge variants into compact test blocks
+- Props-based page testing (passing data as props) avoided complex hook mocking for Dashboard/AllContracts/ContractUpload
+- vi.hoisted() solved the Vitest mock variable hoisting problem cleanly for jsPDF mock
+- Phase ordering (tests first → security → lint → coverage → cleanup) was correct -- each phase needed the previous
+
+### What Was Inefficient
+- Phase 50 ROADMAP.md plan checkbox not updated to [x] (recurring issue, 10th milestone)
+- Progress table had formatting drift on phases 49-50 (missing milestone column values)
+- Nyquist validation remained partial (4 draft, 1 missing) -- 10th consecutive milestone without compliance
+- npm overrides are a maintenance burden -- undici and cookie overrides will need revisiting on next major upgrades
+
+### Patterns Established
+- createTableMock factory: chainable Supabase query builder mock with .select().eq().single() + .then() paths
+- vi.hoisted() for mock variables referenced in vi.mock() factories
+- describe.each parameterized testing for families of similar components/modules
+- Props-based page testing as alternative to hook mocking for data-driven pages
+- npm overrides for transitive dependency vulnerability resolution without breaking changes
+
+### Key Lessons
+- Quality restoration milestones are fast (3 days, 8 plans) because the scope is well-defined by prior tech debt tracking
+- Parameterized testing (describe.each) is dramatically more efficient than individual test cases for similar modules
+- Props-based testing > hook mocking when components accept data via props -- simpler, more maintainable, fewer false failures
+- npm overrides are effective for CVE resolution but create invisible maintenance burden -- track override freshness
+- Test restoration after infrastructure migration is best done as a dedicated milestone, not inline during the migration
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution
+- Sessions: ~3 sessions across 3 days
+- Notable: 8 plans in 3 days; coverage push phase (49) was the largest with 3 plans producing 160 tests
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 | v1.6 | v2.0 |
-|--------|------|------|------|------|------|------|------|
-| Phases | 6 | 4 | 7 | 5 | 6 | 6 | 7 |
-| Plans | 13 | 8 | 8 | 11 | 12 | 13 | 11 |
-| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min | ~3.6min | ~5min |
-| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 | 29/29 | 28/28 |
-| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) | tech_debt | tech_debt |
-| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 | ~11,122 | ~15,658 |
-| Sessions | ~10 | ~6 | 1 | ~4 | ~3 | 1 | ~4 |
+| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 | v1.6 | v2.0 | v2.1 |
+|--------|------|------|------|------|------|------|------|------|
+| Phases | 6 | 4 | 7 | 5 | 6 | 6 | 7 | 5 |
+| Plans | 13 | 8 | 8 | 11 | 12 | 13 | 11 | 8 |
+| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min | ~3.6min | ~5min | ~4min |
+| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 | 29/29 | 28/28 | 16/16 |
+| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) | tech_debt | tech_debt | passed |
+| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 | ~11,122 | ~15,658 | ~15,658 |
+| Tests | 0 | 0 | 0 | 0 | 0 | 269 | 269* | 429 |
+| Sessions | ~10 | ~6 | 1 | ~4 | ~3 | 1 | ~4 | ~3 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -366,4 +415,6 @@
 8. SUMMARY.md one_liner field consistently missing -- template or tooling should enforce it (v1.4, v1.5, v1.6, v2.0)
 9. Test infrastructure is most effective when built on clean module boundaries (v1.5 code health enabled v1.6 test velocity)
 10. Infrastructure migrations (localStorage→Supabase) are cleanest as phase-by-phase progression: schema→auth→reads→writes→cleanup (v2.0)
-11. Test suite damage from storage backend changes is unavoidable -- plan a separate remediation phase rather than fixing inline (v2.0)
+11. Test suite damage from storage backend changes is unavoidable -- plan a separate remediation phase rather than fixing inline (v2.0, v2.1)
+12. Parameterized testing (describe.each) is dramatically more efficient than individual test cases for families of similar modules (v2.1)
+13. Quality restoration milestones are fast and well-scoped when prior milestones track tech debt systematically (v2.1)
