@@ -173,10 +173,10 @@ Plans:
   3. All ESLint plugins load without errors under the new flat config format
   4. `npm run lint` passes with zero errors on the current codebase
   5. No functional regressions -- test suite still passes after lint config migration
-**Plans**: 1 plan
+**Plans**: 1/1 plan complete
 
 Plans:
-- [ ] 48-01-PLAN.md -- Upgrade ESLint 8 to 10+ with flat config, fix lint errors
+- [x] 48-01-PLAN.md -- Upgrade ESLint 8 to 10+ with flat config, fix lint errors
 
 ### Phase 49: Coverage Push
 **Goal**: Statement coverage crosses the 60% CI threshold so the GitHub Actions pipeline passes
@@ -187,10 +187,12 @@ Plans:
   2. Function coverage remains >= 60% (no regression from v1.6 baseline)
   3. New tests target previously uncovered API handlers, components, or utility code paths
   4. CI pipeline (GitHub Actions) passes the coverage threshold check
-**Plans**: 1 plan
+**Plans**: 3 plans
 
 Plans:
-- [ ] 49-01-PLAN.md -- [to be planned]
+- [ ] 49-01-PLAN.md -- Knowledge module, registry, tokenBudget, and composeSystemPrompt tests
+- [ ] 49-02-PLAN.md -- Utility function tests (CSV/PDF export, settings, palette) and useContractStore hook tests
+- [ ] 49-03-PLAN.md -- Component render tests, MetaBadge parameterized tests, page shallow renders, coverage gate
 
 ### Phase 50: Dead Code Cleanup
 **Goal**: Residual dead code from Supabase migration is removed, env documentation is accurate
@@ -257,6 +259,6 @@ Plans:
 | 45. Cleanup | v2.0 | 1/1 | Complete | 2026-03-18 |
 | 46. Test Restoration | v2.1 | 2/2 | Complete | 2026-03-20 |
 | 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
-| 48. ESLint and Tooling Upgrade | 1/1 | Complete    | 2026-03-20 | - |
-| 49. Coverage Push | v2.1 | 0/? | Not started | - |
+| 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
+| 49. Coverage Push | v2.1 | 0/3 | Not started | - |
 | 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
