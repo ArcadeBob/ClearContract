@@ -32,7 +32,6 @@ export default defineConfig({
         '**/*.d.ts',
         'src/index.tsx',
         'src/vite-env.d.ts',
-        'src/data/mockContracts.ts',
       ],
       thresholds: {
         statements: 60,

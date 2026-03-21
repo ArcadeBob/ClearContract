@@ -65,7 +65,6 @@ src/
 ├── types/contract.ts         # All domain type definitions
 ├── hooks/useContractStore.ts # Central app state hook
 ├── api/analyzeContract.ts    # Client-side API wrapper (base64 encode + fetch)
-├── data/mockContracts.ts     # Sample contract data (3 contracts at varying risk levels)
 ├── components/               # Reusable UI (SeverityBadge, FindingCard, Sidebar, UploadZone, etc.)
 └── pages/                    # Page components (Dashboard, ContractReview, ContractUpload, AllContracts, Settings)
 ```
