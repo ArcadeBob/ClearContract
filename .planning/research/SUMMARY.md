@@ -1,200 +1,184 @@
 # Project Research Summary
 
-**Project:** ClearContract v2.0 — Supabase Auth + Postgres Integration
-**Domain:** Authentication and database persistence migration for a React SPA
-**Researched:** 2026-03-16
+**Project:** ClearContract v2.2 — Analysis Parallelization, Token/Cost Tracking, Contract Lifecycle & Date Intelligence
+**Domain:** AI-powered contract analysis SaaS (glazing/construction vertical) — feature expansion milestone
+**Researched:** 2026-03-21
 **Confidence:** HIGH
 
 ## Executive Summary
 
-ClearContract v2.0 is a focused migration of an existing, working contract review application from in-memory/localStorage state to Supabase-backed authentication and Postgres persistence. This is not a greenfield build — the UI, AI pipeline, and domain types are all complete. The work is a data layer replacement: swap localStorage reads/writes for Supabase queries, add an auth gate, and move database writes for the analysis pipeline to the serverless function. The recommended approach uses a single new dependency (`@supabase/supabase-js`), a conventional `AuthProvider` context pattern, and an explicit `dbMapper.ts` for type-safe snake_case/camelCase translation at the boundary.
+ClearContract v2.2 is a well-scoped feature expansion on a stable, already-working stack. The critical insight from all three research files is that **the architecture for this milestone is almost entirely additive** — the hardest work is exposing data already flowing through the system (token usage in streaming events) rather than building new infrastructure. Analysis parallelization is already implemented at the API call level via `Promise.allSettled`; the enhancement is restructuring the execution order to achieve prompt cache hits, capturing timing per pass, and surfacing that data to the user.
 
-The research is unanimous on execution order: schema and RLS must come first because every other layer depends on the tables existing and being secure. Auth comes second because all data access requires a `user.id`. Contract reads validate the schema works before writing is attempted. The analysis pipeline server-side writes are the most complex change and should come last among the core features. All research sources are official Supabase documentation, giving HIGH confidence in the patterns.
+The recommended approach is a four-phase sequence driven by dependencies: (1) server-side token capture and DB schema, (2) client cost display UI, (3) contract lifecycle status, (4) date intelligence and portfolio timeline. Zero new npm dependencies are needed. The entire stack — React 18, TypeScript, Anthropic SDK, Supabase, Tailwind — already supports all three features through code-level changes and one DB migration. The only non-trivial engineering decision is whether to use a separate `analysis_usage` table (preferred — supports per-run history and portfolio queries) or a JSONB column on `contracts` (simpler but loses re-analysis history).
 
-The primary risk is security misconfiguration: exposing the `service_role` key to the client (bypasses all RLS) or failing to enable RLS on tables (exposes all data with the anon key). Both are easy mistakes with severe consequences. The secondary risk is the upload flow race condition if a client-side placeholder approach is naively transplanted from the current localStorage architecture. Research recommends a clean break: the server owns full contract creation and returns only a contract ID; the client fetches and navigates. This eliminates the race condition at the cost of a minor UX change (no immediate navigation to review page during analysis).
+The primary risk is prompt cache behavior with parallel API calls. Anthropic's ephemeral cache only activates after the first response begins streaming, meaning all 16 currently-concurrent passes pay full input token cost. Restructuring to a two-stage pipeline (1 primer pass to warm the cache, then 15 parallel passes) is the single most impactful change in v2.2 — it reduces per-analysis API cost by an estimated 5-6x. This restructuring should be done first, before token tracking is instrumented, because measuring costs against the current broken cache behavior would produce misleading baselines.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The migration requires exactly one new dependency: `@supabase/supabase-js` v2. No auth-helpers library (designed for SSR/Next.js), no ORM (supabase-js is the query builder), no separate JWT library (token validated via `supabaseAdmin.auth.getUser(token)`). Supabase was selected over alternatives (Auth0, PlanetScale, Neon) because it bundles auth + database + RLS in a single service that maps cleanly onto the existing single-user architecture. The free tier is sufficient for single-user text data volumes.
+v2.2 requires **zero new npm dependencies**. All three features build entirely on the existing stack. The Anthropic SDK (`@anthropic-ai/sdk ^0.78.0`) already emits `usage` fields in `message_start` and `message_delta` streaming events — the current code simply ignores them. Supabase Postgres handles the new `analysis_usage` table via a single migration file. Native `Date` and `Intl.DateTimeFormat` cover all date intelligence requirements; date-fns/dayjs would add bundle weight for 3-4 operations the browser handles natively.
 
-Infrastructure is already in place: Vercel handles hosting and serverless functions. The existing `ANTHROPIC_API_KEY` environment variable pattern extends to four new variables — two client-safe with `VITE_` prefix (URL and anon key), and two server-only secrets (URL and service_role key).
+**Core technologies (unchanged):**
+- `@anthropic-ai/sdk ^0.78.0`: Streaming API — `message_start`/`message_delta` events contain token usage; already in use, extend don't replace
+- `@supabase/supabase-js ^2.99.2`: Postgres + Auth — new `analysis_usage` table via migration; existing RLS pattern applies
+- React 18 / TypeScript / Tailwind: New components (`TokenUsageDisplay`, `LifecycleStatusSelect`, `PortfolioTimeline`) follow existing component patterns exactly
+- Native `Promise.allSettled`: Already orchestrates 16 parallel API calls; restructure to two-stage, do not introduce p-limit or p-queue
+- Native `Date` / `Intl.DateTimeFormat`: Date intelligence is arithmetic (day diffs, urgency bands); `getDateUrgency()` already exists in Dashboard.tsx, extract and reuse
 
-**Core technologies:**
-- `@supabase/supabase-js` v2: Auth + database client — handles session persistence, token refresh, and RLS-enforced queries automatically
-- Supabase free tier: Postgres + Auth backend — bundles everything needed; free tier covers single-user data volumes
-- Vercel Pro (existing): Serverless function host — already deployed; no changes to hosting or build pipeline
+**What NOT to add:** p-limit, date-fns, dayjs, xstate, Recharts, Chart.js, Helicone, LangSmith, Temporal polyfill.
 
 ### Expected Features
 
-The feature scope is fully bounded by the existing application. All migration targets have direct equivalents in the current codebase; this is a persistence layer swap, not a feature expansion.
+FEATURES.md was not produced for this milestone. Features are derived from ARCHITECTURE.md and PITFALLS.md.
 
-**Must have (table stakes):**
-- Email/password login — gates access to the app; single form, Supabase handles auth logic
-- Session persistence — stay logged in across browser sessions; Supabase handles automatically
-- Protected app shell — unauthenticated users see login only; conditional render in App.tsx
-- Contracts in Postgres — replaces localStorage; schema + RLS + mapper + hook rewrite
-- Findings in Postgres — individual CRUD on findings; separate table with foreign key to contracts
-- Contract dates in Postgres — date/milestone persistence; simple table, read-only after analysis
-- Company profile in Postgres — settings persist across devices; single row per user, upsert pattern
-- Server-side auth validation — API endpoint rejects unauthenticated requests; JWT extraction + getUser() check
-- Server-side DB writes — analysis results written by server; replaces JSON response with DB inserts
-- Sign out — clears session; single button addition to Sidebar
+**Must have (table stakes for v2.2 milestone):**
+- Token usage capture per analysis pass — users need cost visibility; data is already in streaming events
+- Total and per-pass cost display on contract review page — directly tied to usage capture
+- Contract lifecycle status (`Draft / Negotiating / Signed / Active / Expired / Archived`) — user-controlled business state orthogonal to AI analysis state
+- Portfolio-wide deadline timeline on Dashboard — cross-contract urgency view
 
-**Should have (differentiators):**
-- Optimistic updates — UI responds instantly to user actions; update state first, sync to DB async
-- Error recovery on DB failure — revert state if Supabase write fails; same structuredClone rollback pattern already used in re-analyze
-- Auth error messages — clear feedback for wrong password; Supabase returns typed errors
+**Should have:**
+- Per-pass duration tracking alongside token counts — natural addition when restructuring streaming loops
+- Lifecycle status filter on AllContracts page — discovery feature once status exists
+- Portfolio cost aggregate stat card on Dashboard — summarizes spend at a glance
 
-**Defer (v2+):**
-- User registration UI — single user, pre-create account in Supabase dashboard
-- Password reset flow — single user, reset manually via Supabase dashboard
-- Real-time subscriptions — single user, no concurrent editors; optimistic updates are sufficient
-- localStorage data migration — PROJECT.md specifies a fresh start; no migration code needed
-- OAuth / social login — not needed for a single-user deployment
+**Defer (v3+):**
+- Budget alerts / spending limits — sole-user app, cost visibility is sufficient for now
+- Audit trail / status history — overkill for sole user; can add if needed later
+- Recharts cost charts — summary table suffices; charts add complexity before value is proven
+- Supabase Realtime progress streaming — indeterminate spinner is adequate; Vercel serverless does not support SSE responses
 
 ### Architecture Approach
 
-The architecture follows a two-client pattern: the React SPA uses the anon key for auth operations and RLS-enforced database reads, while the Vercel serverless function uses the service_role key for trusted database writes after validating the user's JWT. A new `AuthProvider` context wraps the entire application above `App.tsx` and exposes `user`, `session`, `loading`, `signIn`, and `signOut`. App.tsx conditionally renders the login page or the authenticated app shell based on auth state. A new `dbMapper.ts` module provides explicit, type-safe mapping functions between Postgres snake_case rows and TypeScript camelCase domain types — no generic conversion library.
-
-The database schema normalizes findings and contract_dates into separate tables rather than JSONB arrays on contracts, because findings have individual CRUD operations (resolve, update note). Read-only complex structures (score_breakdown, bid_signal, legal_meta, scope_meta) use JSONB. The upload flow changes meaningfully: the server now owns the full contract creation and returns only a UUID; the client calls `refreshContract(contractId)` and navigates after receiving it.
+The architecture follows a clean server-to-client pipeline with additive changes at each layer. The server (`api/analyze.ts`) gains token capture in the streaming loop and a bulk insert to `analysis_usage` after the existing contract/findings/dates writes. The client gains three new components and one new utility module. The store gains a fourth parallel query for usage data. The DB gains one new table and one new column via a single migration. All changes are additive — no existing files are restructured, no existing APIs are broken.
 
 **Major components:**
-1. `src/lib/supabase.ts` — singleton Supabase client (anon key); imported wherever DB or auth access is needed
-2. `src/contexts/AuthContext.tsx` (AuthProvider + useAuth) — session state, auth methods, loading gate; wraps entire app above ToastProvider
-3. `src/pages/Login.tsx` — email/password sign-in form; rendered when user is null
-4. `api/supabaseAdmin.ts` — server-side Supabase client (service_role key); used only in Vercel functions
-5. `src/lib/dbMapper.ts` — explicit snake_case/camelCase mapping at the data boundary; bidirectional functions for all 4 tables
-6. `src/hooks/useContractStore.ts` (modified) — replace localStorage sync with Supabase queries; optimistic mutations pattern
-7. `api/analyze.ts` (modified) — add JWT validation gate, read company profile from DB, write analysis results to all three tables in parallel
-
-**Files to remove:** `src/storage/contractStorage.ts`, `src/data/mockContracts.ts`
-**Files to simplify:** `src/storage/storageManager.ts` (keep only for `hide-resolved` UI preference)
+1. `api/analyze.ts` (modified) — Extended streaming loop captures `message_start`/`message_delta` usage; two-stage parallel execution for cache efficiency; bulk insert to `analysis_usage` post-merge
+2. `analysis_usage` table (new DB) — Per-analysis token counts, per-pass JSONB breakdown, cost, duration; indexed by contract_id and user_id
+3. `src/types/usage.ts` (new) — `AnalysisUsage`, `PassUsageDetail`, `TimelineEntry` client types
+4. `src/utils/dates.ts` (new) — Extracted `getDateUrgency()` + new `buildPortfolioTimeline()` for cross-contract deadline aggregation
+5. `src/utils/costs.ts` (new) — Cost and token formatting utilities (`$0.04`, `12.3K tokens`, cache hit rate)
+6. `TokenUsageDisplay` (new component) — Collapsible per-pass cost breakdown on ContractReview page
+7. `LifecycleStatusSelect` (new component) — Dropdown for user-controlled contract lifecycle state
+8. `PortfolioTimeline` (new component) — Urgency-grouped cross-contract deadline view on Dashboard
 
 ### Critical Pitfalls
 
-1. **Exposing service_role key to client** — Use `VITE_` prefix only for `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Service role key in Vercel env vars only (no `VITE_` prefix). Audit: search for `VITE_SUPABASE_SERVICE` must return zero results.
+1. **Prompt cache misses on all 16 concurrent passes** — Restructure to two-stage pipeline: fire one "primer" pass (risk-overview) first, wait for streaming to begin (cache entry created), then fire remaining 15 in parallel. Detection: check `cache_creation_input_tokens` vs `cache_read_input_tokens` on passes 2-16; all should show read hits, not creation hits.
 
-2. **Missing RLS on tables** — Run `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` and add policies in the same migration as table creation. Test from browser DevTools with anon key to verify only owned data returns. Supabase dashboard shows a warning icon on unprotected tables.
+2. **Token usage lost in streaming loop** — The current loop only handles `content_block_delta`. Add handlers for `message_start` (input tokens + cache fields) and `message_delta` (cumulative output tokens). Beta streaming types may lack full TypeScript definitions for usage fields — use defensive access (`(event as any).message?.usage`) and verify with a real API call.
 
-3. **Upload flow race condition** — Server owns full contract creation; client does not create a placeholder row. Server returns only the contract ID after analysis; client calls `refreshContract(contractId)` and navigates. No DB row exists during the analysis window — local component state tracks the loading indicator instead.
+3. **Lifecycle status state machine without transition validation** — Do NOT expand the existing `status` CHECK constraint in place. Add a separate `lifecycle_status` column (nullable, additive migration) with its own CHECK constraint. Keep existing `status` column unchanged. Validate transitions in application layer via a TypeScript `Record<LifecycleStatus, LifecycleStatus[]>` transition map.
 
-4. **Missing Authorization header on API calls** — Update `analyzeContract.ts` to call `supabase.auth.getSession()` immediately before the fetch and include `Authorization: Bearer <access_token>`. Update client and server simultaneously; test full upload flow end-to-end before shipping.
+4. **Vercel 300s timeout with two-stage parallelization** — Two-stage execution adds primer pass latency (~15-25s) on top of existing parallel execution. Mitigate with per-pass `AbortController` timeouts at ~90s each (not the current 280s whole-function timeout). Consider progressive DB writes as each pass completes so partial results survive a timeout.
 
-5. **Silently ignoring Supabase error tuples** — Every Supabase query returns `{ data, error }`. Always destructure and check `error`. Silent empty results from failed queries are the most common source of hard-to-debug issues in Supabase integrations.
+5. **Schema migration breaks existing contracts** — Never rename or drop the existing `status` column. Add `lifecycle_status` as a new nullable column. The existing `status` field (`Analyzing | Reviewed | Draft`) continues unchanged for the AI pipeline.
 
 ## Implications for Roadmap
 
-Research is unambiguous about execution order due to hard dependencies. Each phase unblocks the next.
+Based on research, suggested phase structure:
 
-### Phase 1: Supabase Project Setup + Schema + RLS
+### Phase 1: Server-Side Token Capture and DB Foundation
 
-**Rationale:** Every subsequent phase depends on tables existing with correct RLS. This has no code dependencies and can be done entirely in the Supabase dashboard and SQL editor. It is the highest-security-risk phase — getting RLS wrong here affects everything built on top of it.
-**Delivers:** Working Supabase project; all 4 tables created with correct types, constraints, indexes, and RLS policies; 4 environment variables documented and configured in Vercel
-**Addresses:** Foundation for contracts, findings, contract_dates, company_profiles persistence
-**Avoids:** Pitfall 2 (missing RLS) — run RLS enable + policy SQL in same migration as table creation
+**Rationale:** This is the riskiest change (modifying the core analysis pipeline) and everything else depends on it. The cache structure fix (two-stage pipeline) and token capture must be done together because restructuring the parallel execution order is the right moment to modify the streaming loop — doing it twice is wasteful. Get server-side right before layering any UI.
 
-### Phase 2: Auth Layer
+**Delivers:** Working per-pass token capture, accurate prompt cache utilization, `analysis_usage` table populated on every new analysis, total and per-pass cost computed server-side.
 
-**Rationale:** All data access requires a user ID from an authenticated session. Auth must exist before any Supabase query can be written. The AuthProvider pattern is well-established and low-risk; this phase is fast and mechanical.
-**Delivers:** `src/lib/supabase.ts`, `src/contexts/AuthContext.tsx`, `src/pages/Login.tsx`; App.tsx modified for conditional render; session persistence working; sign-out button in Sidebar
-**Addresses:** Email/password login, session persistence, protected app shell, sign out, auth error messages
-**Avoids:** Pitfall 3 (loading state flash) — AuthProvider `loading` boolean prevents render until session is confirmed
+**Implements:** Two-stage `Promise.allSettled` pipeline, extended streaming loop in `runAnalysisPass` and `runSynthesisPass`, `PRICING` constants, `computeCost()`, DB migration for `analysis_usage` table.
 
-### Phase 3: Contract Reads + dbMapper
+**Avoids:** Pitfall 1 (cache misses), Pitfall 2 (lost token data), Pitfall 4 (timeout budget with two-stage), Pitfall 7 (failed pass risk score inflation from synthetic findings).
 
-**Rationale:** Reading from the DB before writing validates that schema, RLS, and client setup are correct. The dbMapper is required for every subsequent data operation; building it here forces a complete type audit before any write logic is introduced.
-**Delivers:** `src/lib/dbMapper.ts` with full mapping functions; `useContractStore` modified to load from Supabase on mount; contracts list renders from DB
-**Addresses:** Contracts in Postgres (read path); findings and dates nested in single query; data type safety across the DB boundary
-**Avoids:** Pitfall 11 (mapping drift) — build mapper against full schema before writing any mutations
+### Phase 2: Token and Cost Display (Client UI)
 
-### Phase 4: Company Profile Migration
+**Rationale:** Depends on Phase 1 data being available in Supabase. This phase is purely additive client work with no server risk. All new components follow established patterns exactly.
 
-**Rationale:** Company profile uses a simpler upsert pattern than contract CRUD and validates the full read/write cycle before tackling the complex analysis pipeline. Single table, no cascade dependencies, no server-side writes.
-**Delivers:** `useCompanyProfile` reading/writing to `company_profiles` table; Settings page data persists across devices; graceful null handling for new users
-**Addresses:** Company profile in Postgres; validates upsert pattern for subsequent work
-**Avoids:** Pitfall 7 (null profile on first analysis) — handle missing profile gracefully with defaults, since server reads profile from DB during analysis
+**Delivers:** `TokenUsageDisplay` component on ContractReview page (collapsible, pass-by-pass cost table), portfolio cost stat card on Dashboard, `useAnalysisUsage` hook, cost formatting utilities.
 
-### Phase 5: Analysis Pipeline Server Writes
+**Uses:** `analysis_usage` table (Phase 1), existing Supabase query patterns, existing Tailwind component patterns.
 
-**Rationale:** The most complex change — requires JWT validation, server-side company profile read, parallel DB inserts across three tables, and a new client-side response handling pattern. All prior phases must be complete and verified.
-**Delivers:** `api/supabaseAdmin.ts`; `api/analyze.ts` modified for JWT gate, DB writes, and company profile DB read; `analyzeContract.ts` sends Bearer token; upload flow uses `refreshContract` after analysis
-**Addresses:** Server-side auth validation, server-side DB writes, analysis pipeline end-to-end
-**Avoids:** Pitfall 3 (race condition) — server owns full contract creation; Pitfall 4 (missing auth header) — client and server updated together and tested end-to-end
+**Avoids:** Pitfall 11 (schema overdesign — the table structure from Phase 1 is kept simple).
 
-### Phase 6: Remaining CRUD Operations
+### Phase 3: Contract Lifecycle Status
 
-**Rationale:** Delete, resolve finding, update note, rename contract, and re-analyze are all straightforward optimistic-update patterns once the data layer is established. Grouping them after the analysis pipeline ensures the full data lifecycle is working before adding mutation complexity.
-**Delivers:** All mutation operations wired to Supabase with optimistic updates; deleteContract CASCADE working; re-analyze flow using server-write pattern; rollback on DB failure
-**Addresses:** Optimistic updates, error recovery, individual finding CRUD, contract deletion
-**Avoids:** Pitfall 5 (async behavior change) — setState synchronous, Supabase call fire-and-forget
+**Rationale:** Independent of token tracking; simpler than date intelligence. The lifecycle status must exist before the date intelligence phase because urgency filtering is more meaningful when contracts have `Active` or `Negotiating` status. Schema design must be right before any UI is built.
 
-### Phase 7: Cleanup + Validation
+**Delivers:** `lifecycle_status` column on contracts, `LifecycleStatusSelect` dropdown on ContractReview and AllContracts, lifecycle status badges on ContractCard, status filter on AllContracts, `updateContractStatus()` store method.
 
-**Rationale:** Remove localStorage artifacts only after all Supabase paths are verified working. This phase eliminates technical debt and surfaces any remaining hardcoded ID patterns before they become future bugs.
-**Delivers:** `src/storage/contractStorage.ts` deleted; `src/data/mockContracts.ts` deleted; `storageManager.ts` simplified to single key; all `c-${...}` and `f-${...}` ID patterns removed from codebase
-**Addresses:** Dead code removal, mock data removal, ID format consistency
-**Avoids:** Pitfall 8 (UUID vs string ID mismatch) — audit `c-` and `f-` patterns across codebase before deletion
+**Implements:** Non-destructive DB migration (additive `lifecycle_status` column), TypeScript transition map, optimistic update pattern (matches `renameContract` pattern exactly).
+
+**Avoids:** Pitfall 3 (state machine without transitions), Pitfall 6 (migration breaks existing data), Pitfall 8 (mixed AI and user date sources), Pitfall 12 (UI status confusion — show both analysis and lifecycle badges).
+
+### Phase 4: Date Intelligence and Portfolio Timeline
+
+**Rationale:** Purely additive, lowest risk, depends on lifecycle status for meaningful urgency filtering by contract state. All computation is client-side over already-loaded data.
+
+**Delivers:** `src/utils/dates.ts` with extracted `getDateUrgency()` and new `buildPortfolioTimeline()`, `PortfolioTimeline` component on Dashboard (grouped by overdue/this week/this month/later), date range query optimization with index on `contract_dates.date`.
+
+**Implements:** Client-side urgency computation, cross-contract deadline aggregation, clickable timeline entries navigating to contract review.
+
+**Avoids:** Pitfall 8 (AI-extracted vs user-set dates kept separate), Pitfall 10 (portfolio query performance — date range filter added from the start).
 
 ### Phase Ordering Rationale
 
-- Schema before code: Every hook and function references specific table and column names. Creating tables first eliminates "table does not exist" bugs during development.
-- Auth before queries: Supabase RLS requires an authenticated session to return any data. Writing queries before auth works produces empty results that look like schema bugs.
-- Reads before writes: Validates the full stack (client → Supabase → RLS → mapper → state) before adding mutation complexity.
-- Simple writes before complex writes: Company profile (single-table upsert) before analysis pipeline (multi-table insert with JWT validation) follows a natural complexity escalation.
-- CRUD after pipeline: User-initiated mutations are straightforward once the data layer is proven working.
-- Cleanup last: Removing localStorage before Supabase is verified creates a window where the app has no persistence at all.
+- Phase 1 before Phase 2: Client UI has nothing to display until server writes usage data to Supabase. Must verify end-to-end with a real analysis before building the display layer.
+- Phase 1 before Phase 3: The schema migrations for `analysis_usage` and `lifecycle_status` can be combined into one migration file to reduce migration count, but Phase 1 work must be complete before Phase 3 UI is useful.
+- Phase 3 before Phase 4: Portfolio timeline is more valuable when contracts have lifecycle status (filtering `Active` contracts' deadlines is a key use case). The `buildPortfolioTimeline()` utility should accept an optional lifecycle status filter from day one.
+- Phase 4 last: No upstream dependencies. Lowest risk. Clean separation.
 
 ### Research Flags
 
-Phases with standard, well-documented patterns (skip `/gsd:research-phase`):
-- **Phase 1 (Schema):** SQL provided in ARCHITECTURE.md is ready to execute; Supabase table creation and RLS are thoroughly documented
-- **Phase 2 (Auth):** AuthProvider pattern is the exact Supabase React quickstart; full implementation code in ARCHITECTURE.md
-- **Phase 3 (Reads + Mapper):** Standard TypeScript boundary pattern; mapper stubs in ARCHITECTURE.md
-- **Phase 4 (Profile):** Upsert pattern is well-documented; simpler than any other phase
-- **Phase 6 (CRUD):** Optimistic update pattern already exists in the codebase for re-analyze rollback
-- **Phase 7 (Cleanup):** No research needed — grep and delete
+Phases likely needing deeper research during planning:
 
-Phases that may benefit from closer review during planning:
-- **Phase 5 (Analysis Pipeline):** Most complex change; involves rewriting the upload flow UX and coordinating three parallel DB inserts. No new patterns required, but integration complexity is high. Review the exact server response contract and client handling before starting.
+- **Phase 1 (two-stage cache pipeline):** The exact Anthropic behavior for "cache available after streaming begins" (vs after streaming completes) needs empirical validation. Research is HIGH confidence on the limitation but MEDIUM confidence on exact timing. Recommend a two-request spike before committing to the full implementation.
+- **Phase 1 (beta streaming types):** `client.beta.messages.create({ stream: true })` TypeScript types for `message_start`/`message_delta` usage fields may be incomplete. Needs a real API call to confirm field presence and correct type narrowing approach.
+
+Phases with standard patterns (skip research-phase):
+
+- **Phase 2 (token display UI):** Standard React component work following existing patterns. No research needed.
+- **Phase 3 (lifecycle status):** Additive column migration and optimistic update store method. Both patterns are already in the codebase and well-understood.
+- **Phase 4 (date intelligence):** Pure client-side computation. `getDateUrgency()` already exists. Extraction and extension require no new patterns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Single dependency decision backed by official Supabase docs; no ambiguity |
-| Features | HIGH | Migration targets map 1:1 to existing app features; scope bounded by PROJECT.md |
-| Architecture | HIGH | Exact patterns from Supabase React quickstart and official API key docs; code samples in ARCHITECTURE.md are implementation-ready |
-| Pitfalls | HIGH | Derived from official docs + direct codebase analysis; not speculative |
+| Stack | HIGH | Zero new dependencies; all capabilities verified in existing SDK and native APIs |
+| Features | MEDIUM | Derived from architecture and pitfalls research (FEATURES.md not produced); feature list is consistent with v2.2 milestone scope but not independently validated |
+| Architecture | HIGH | Based on direct codebase analysis + Anthropic official docs; specific file locations and line numbers cited |
+| Pitfalls | HIGH (codebase) / MEDIUM (API specifics) | Cache behavior, streaming event structure, and schema patterns are HIGH; rate limit tier and cache TTL extension on beta endpoint are MEDIUM |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Upload UX change:** The server-owns-creation pattern eliminates the current "navigate immediately to review page with Analyzing placeholder" behavior. The UX will show a loading state on the upload page until analysis completes. If the current UX is strongly preferred, the alternative (client creates placeholder UUID via Supabase insert, passes to server, server updates it) is viable but adds coordination complexity. This decision should be confirmed before Phase 5 begins.
-
-- **Re-analyze flow:** The re-analyze flow (snapshot + rollback on failure + finding preservation via composite keys) is more complex than a simple delete/re-insert when findings have Postgres UUIDs. The exact strategy for preserving finding IDs across re-analysis should be designed explicitly in Phase 6 planning.
-
-- **Test suite impact:** The existing test suite (269 tests) mocks localStorage. Many tests will need Supabase mocking or will break after migration. The scope of test updates per phase is not yet estimated and should be factored into phase sizing.
-
-- **Token expiry edge case:** Access tokens default to 1-hour expiry. For analyses running close to the Vercel Pro 5-minute timeout, an edge-case token expiry is theoretically possible. The client should call `getSession()` immediately before the analysis fetch to get a fresh token. Post-validation writes use the service_role client and are unaffected by user token expiry.
+- **Beta streaming TypeScript types:** `client.beta.messages.create({ stream: true })` usage field types may require `as any` casts. Validate with a real API call in Phase 1. If types are missing, document the workaround in a code comment referencing the SDK gap.
+- **Prompt cache timing:** Research confirms cache is available "after streaming begins," but the exact implementation (first byte of content vs. connection established) needs empirical testing. A two-request spike before full Phase 1 implementation is recommended.
+- **API tier rate limits:** Pitfall 9 notes that 16 concurrent streaming requests may hit RPM limits on Tier 1. The current account tier is unknown. Check the Anthropic Console before Phase 1 ships to decide whether to add a concurrency limiter.
+- **Cache TTL extension on beta endpoint:** `cache_control: { type: 'ephemeral', ttl: '1h' }` is documented for the standard API but needs validation that it works with `client.beta.messages.create`. If not supported, the default 5-minute TTL is still sufficient for a single serverless invocation.
+- **Analysis cost estimate accuracy:** ARCHITECTURE.md estimates $0.03-0.08 per analysis with cache hits. This will be validated by Phase 1 token tracking; treat pre-Phase-1 cost numbers as rough estimates only.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Supabase JavaScript Client Reference](https://supabase.com/docs/reference/javascript/introduction) — client API, auth methods, query builder
-- [Supabase API Keys Documentation](https://supabase.com/docs/guides/api/api-keys) — anon vs service_role key usage and security model
-- [Supabase Auth React Quickstart](https://supabase.com/docs/guides/auth/quickstarts/react) — AuthProvider pattern, session management
-- [Supabase RLS Documentation](https://supabase.com/docs/guides/database/postgres/row-level-security) — policy syntax, subquery patterns for derived ownership
-- [Supabase Joins and Nesting](https://supabase.com/docs/guides/database/joins-and-nesting) — `select('*, findings(*)')` nested relation pattern
-- [Supabase Auth Helpers SessionContext](https://github.com/supabase/auth-helpers/blob/main/packages/react/src/components/SessionContext.tsx) — reference implementation for AuthProvider
-- Project codebase analysis (CLAUDE.md, existing hooks, types) — current patterns and migration constraints
+
+- Anthropic Streaming Messages API: https://platform.claude.com/docs/en/api/messages-streaming — `message_start`/`message_delta` event structure, usage field presence, cumulative token counts
+- Anthropic Prompt Caching Documentation: https://platform.claude.com/docs/en/build-with-claude/prompt-caching — concurrent request cache limitation (primer pattern required)
+- Anthropic Pricing: https://platform.claude.com/docs/en/about-claude/pricing — Sonnet 4.5: $3/$15 per million tokens, cache write 1.25x, cache read 0.1x
+- Anthropic Rate Limits: https://platform.claude.com/docs/en/api/rate-limits — tier-based RPM limits
+- Project codebase: `api/analyze.ts`, `api/merge.ts`, `api/scoring.ts`, `src/hooks/useContractStore.ts`, `src/pages/Dashboard.tsx`, `supabase/migrations/` — direct analysis of current implementation
 
 ### Secondary (MEDIUM confidence)
-- [Supabase Auth in Serverless Functions Discussion](https://github.com/supabase/supabase/discussions/1067) — JWT validation pattern in Vercel functions
-- [Vercel + Supabase Auth Pattern](https://skdev.substack.com/p/how-to-setup-auth-with-vercel-serverless) — serverless auth integration approach
+
+- Anthropic SDK TypeScript source: https://github.com/anthropics/anthropic-sdk-typescript — beta streaming type completeness uncertain
+- Vercel Functions Timeout Documentation: https://vercel.com/docs/limits — 300s maxDuration confirmed
+- State machine transition patterns — general software design principles applied to lifecycle status design
+
+### Tertiary (LOW confidence / needs validation)
+
+- Cache TTL extension (`ttl: '1h'`) on beta endpoint — documented for standard API, beta compatibility unverified
+- Per-analysis cost estimate ($0.03-0.08) — theoretical based on token counts and pricing; actual cache hit rates unknown until Phase 1 ships
 
 ---
-*Research completed: 2026-03-16*
+*Research completed: 2026-03-21*
 *Ready for roadmap: yes*
