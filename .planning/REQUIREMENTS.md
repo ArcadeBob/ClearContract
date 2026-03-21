@@ -28,9 +28,9 @@ Requirements for Quality Restoration milestone. Each maps to roadmap phases.
 
 ### Coverage
 
-- [ ] **COV-01**: Statement coverage >= 60% (CI threshold passes)
+- [x] **COV-01**: Statement coverage >= 60% (CI threshold passes)
 - [ ] **COV-02**: Function coverage >= 60% (maintained from v1.6)
-- [ ] **COV-03**: New tests target uncovered API and component code paths
+- [x] **COV-03**: New tests target uncovered API and component code paths
 
 ### Cleanup
 
@@ -80,9 +80,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-02 | Phase 48 | Complete |
 | TOOL-03 | Phase 48 | Complete |
 | TOOL-04 | Phase 48 | Complete |
-| COV-01 | Phase 49 | Pending |
+| COV-01 | Phase 49 | Complete |
 | COV-02 | Phase 49 | Pending |
-| COV-03 | Phase 49 | Pending |
+| COV-03 | Phase 49 | Complete |
 | CLEAN-01 | Phase 50 | Pending |
 | CLEAN-02 | Phase 50 | Pending |
 | CLEAN-03 | Phase 50 | Pending |

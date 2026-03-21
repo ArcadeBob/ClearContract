@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Quality Restoration
-status: completed
-stopped_at: Phase 49 context gathered
-last_updated: "2026-03-21T02:48:05.985Z"
+status: in-progress
+stopped_at: Completed 49-01-PLAN.md
+last_updated: "2026-03-21T03:24:07.635Z"
 last_activity: 2026-03-20 -- Completed 48-01 (ESLint v10 flat config, typescript-eslint v8, zero-error lint)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v2.1 Quality Restoration -- Phase 48 complete, Phase 49 next
+**Current focus:** v2.1 Quality Restoration -- Phase 49 in progress (plan 1 of 3 complete)
 
 ## Current Position
 
-Phase: 48 of 50 (ESLint and Tooling Upgrade)
-Plan: 1 of 1
-Status: Complete
-Last activity: 2026-03-20 -- Completed 48-01 (ESLint v10 flat config, typescript-eslint v8, zero-error lint)
+Phase: 49 of 50 (Coverage Push)
+Plan: 2 of 3
+Status: In Progress
+Last activity: 2026-03-20 -- Completed 49-01 (Knowledge module, registry, tokenBudget, composeSystemPrompt tests)
 
-Progress: [██████████] 100% (Phase 48)
+Progress: [███░░░░░░░] 33% (Phase 49)
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Full decision log in PROJECT.md Key Decisions table (66 decisions across 8 miles
 - [Phase 47]: Left esbuild/ajv moderate vulns unresolved -- require breaking vite 8.x / @vercel/node 3.x upgrades
 - [Phase 48]: Downgraded no-unused-vars/no-explicit-any to warn to match pre-migration v5 severity
 - [Phase 48]: Used --legacy-peer-deps for react-hooks v7 (peer dep fix merged but unpublished for ESLint 10)
+- [Phase 49]: Used describe.each parameterized testing for all 12 knowledge modules
+- [Phase 49]: Imported barrel exports to trigger registerModule side effects in registry/composeSystemPrompt tests
 
 ### Pending Todos
 
@@ -68,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T02:48:05.983Z
-Stopped at: Phase 49 context gathered
-Resume file: .planning/phases/49-coverage-push/49-CONTEXT.md
+Last session: 2026-03-21T03:23:04Z
+Stopped at: Completed 49-01-PLAN.md
+Resume file: .planning/phases/49-coverage-push/49-01-SUMMARY.md
