@@ -327,19 +327,5 @@ describe('useContractStore', () => {
     expect(result.current.contracts[0].name).toBe('New Name');
   });
 
-  it('exposes isUploading and setIsUploading', async () => {
-    const { result } = renderHook(() => useContractStore());
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.isUploading).toBe(false);
-
-    act(() => {
-      result.current.setIsUploading(true);
-    });
-
-    expect(result.current.isUploading).toBe(true);
-  });
 });

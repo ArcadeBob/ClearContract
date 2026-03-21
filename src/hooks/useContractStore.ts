@@ -9,7 +9,6 @@ export function useContractStore() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -170,8 +169,6 @@ export function useContractStore() {
     contracts,
     isLoading,
     error,
-    isUploading,
-    setIsUploading,
     addContract,
     updateContract,
     deleteContract,
