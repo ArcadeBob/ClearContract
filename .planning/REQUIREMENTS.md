@@ -34,9 +34,9 @@ Requirements for Quality Restoration milestone. Each maps to roadmap phases.
 
 ### Cleanup
 
-- [ ] **CLEAN-01**: isUploading/setIsUploading removed from useContractStore
-- [ ] **CLEAN-02**: .env.example corrected (VITE_SUPABASE_ANON_KEY, not SUPABASE_ANON_KEY)
-- [ ] **CLEAN-03**: mockContracts.ts excluded from coverage (already in config) or deleted if unused
+- [x] **CLEAN-01**: isUploading/setIsUploading removed from useContractStore
+- [x] **CLEAN-02**: .env.example corrected (VITE_SUPABASE_ANON_KEY, not SUPABASE_ANON_KEY)
+- [x] **CLEAN-03**: mockContracts.ts excluded from coverage (already in config) or deleted if unused
 
 ## Future Requirements
 
@@ -83,9 +83,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COV-01 | Phase 49 | Complete |
 | COV-02 | Phase 49 | Complete |
 | COV-03 | Phase 49 | Complete |
-| CLEAN-01 | Phase 50 | Pending |
-| CLEAN-02 | Phase 50 | Pending |
-| CLEAN-03 | Phase 50 | Pending |
+| CLEAN-01 | Phase 50 | Complete |
+| CLEAN-02 | Phase 50 | Complete |
+| CLEAN-03 | Phase 50 | Complete |
 
 **Coverage:**
 - v2.1 requirements: 16 total

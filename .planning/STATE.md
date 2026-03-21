@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Quality Restoration
-status: Not Started
-stopped_at: Phase 50 context gathered
-last_updated: "2026-03-21T04:13:42.786Z"
-last_activity: 2026-03-20 -- Completed 49-03 (Component/page tests -- 76.92% statement coverage)
+status: completed
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-03-21T05:03:06.837Z"
+last_activity: 2026-03-20 -- Completed 50-01 (Dead code cleanup -- isUploading, env, mockContracts refs)
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 5
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v2.1 Quality Restoration -- Phase 49 complete, Phase 50 next
+**Current focus:** v2.1 Quality Restoration -- COMPLETE (all 5 phases done)
 
 ## Current Position
 
 Phase: 50 of 50 (Dead Code Cleanup)
-Plan: 1 of 1
-Status: Not Started
-Last activity: 2026-03-20 -- Completed 49-03 (Component/page tests -- 76.92% statement coverage)
+Plan: 1 of 1 -- COMPLETE
+Status: Complete
+Last activity: 2026-03-20 -- Completed 50-01 (Dead code cleanup -- isUploading, env, mockContracts refs)
 
-Progress: [██████████] 100% (Phase 49 complete)
+Progress: [██████████] 100% (v2.1 Quality Restoration complete)
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Progress: [██████████] 100% (Phase 49 complete)
 **v1.5 (Phases 27-32):** 12 plans, 2 days
 **v1.6 (Phases 33-38):** 13 plans, 47min total
 **v2.0 (Phases 39-45):** 11 plans, 2 days, ~5min avg
+**v2.1 (Phases 46-50):** 8 plans, 2 days
 
 ## Accumulated Context
 
@@ -61,6 +62,7 @@ Full decision log in PROJECT.md Key Decisions table (66 decisions across 8 miles
 - [Phase 49]: Chainable Supabase query mock with thenable for Promise.all resolution
 - [Phase 49]: Used describe.each parameterized testing for MetaBadge component families
 - [Phase 49]: Props-based page testing for Dashboard/AllContracts/ContractUpload (no hook mocking needed)
+- [Phase 50]: No decisions required -- straightforward dead code removal per plan
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T04:13:42.784Z
-Stopped at: Phase 50 context gathered
-Resume file: .planning/phases/50-dead-code-cleanup/50-CONTEXT.md
+Last session: 2026-03-21T05:03:01.277Z
+Stopped at: Completed 50-01-PLAN.md
+Resume file: None

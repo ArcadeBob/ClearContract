@@ -131,7 +131,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 - [x] **Phase 47: Security Audit** - Resolve all npm audit vulnerabilities (completed 2026-03-20)
 - [x] **Phase 48: ESLint and Tooling Upgrade** - Migrate ESLint 8 to 10+ with flat config (completed 2026-03-20)
 - [x] **Phase 49: Coverage Push** - Reach 60% statement coverage CI threshold (completed 2026-03-21)
-- [ ] **Phase 50: Dead Code Cleanup** - Remove orphaned exports and fix env example
+- [x] **Phase 50: Dead Code Cleanup** - Remove orphaned exports and fix env example (completed 2026-03-21)
 
 ## Phase Details
 
@@ -261,4 +261,4 @@ Plans:
 | 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | Complete    | 2026-03-21 | 2026-03-20 |
-| 50. Dead Code Cleanup | v2.1 | 0/1 | Not started | - |
+| 50. Dead Code Cleanup | 1/1 | Complete   | 2026-03-21 | - |
