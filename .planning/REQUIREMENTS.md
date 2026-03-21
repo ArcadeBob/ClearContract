@@ -1,0 +1,97 @@
+# Requirements: ClearContract
+
+**Defined:** 2026-03-21
+**Core Value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
+
+## v2.2 Requirements
+
+Requirements for Performance & Intelligence milestone. Each maps to roadmap phases.
+
+### Analysis Performance
+
+- [ ] **PERF-01**: Two-stage cache pipeline sends primer pass first, then 15 passes in parallel with cache hits
+- [ ] **PERF-02**: Each pass has individual AbortController timeout (~90s) instead of single 280s timeout
+- [ ] **PERF-03**: Completed pass results are progressively saved to DB, surviving function timeout
+
+### Token & Cost Tracking
+
+- [ ] **COST-01**: Streaming event loop captures input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens per pass
+- [ ] **COST-02**: Server computes per-pass and total cost using pricing constants and writes to analysis_usage table
+- [ ] **COST-03**: Contract review page shows total cost and per-pass breakdown (tokens, cache hit rate, cost, duration)
+- [ ] **COST-04**: Dashboard shows portfolio cost stats (total API spend, average cost per contract)
+
+### Contract Lifecycle
+
+- [ ] **LIFE-01**: New lifecycle_status column on contracts table (Draft/Under Review/Negotiating/Signed/Active/Expired) separate from analysis status
+- [ ] **LIFE-02**: Color-coded lifecycle badges on contract cards and review header
+- [ ] **LIFE-03**: Dropdown selector with validated transitions on contract review page
+- [ ] **LIFE-04**: Multi-select lifecycle status filter on All Contracts page
+
+### Date Intelligence
+
+- [ ] **DATE-01**: Portfolio-wide deadline timeline on dashboard grouped by urgency (overdue/this week/this month/later)
+- [ ] **DATE-02**: Sidebar badge showing count of deadlines within 7 days
+
+## Future Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Analysis Performance
+
+- **PERF-04**: Concurrency limiter (p-limit) for Tier 1 Anthropic API accounts
+- **PERF-05**: Real-time per-pass progress via Supabase Realtime subscriptions
+
+### Cost Tracking
+
+- **COST-05**: Budget alerts when cumulative spend exceeds threshold
+- **COST-06**: Cost trend chart over time
+
+### Contract Lifecycle
+
+- **LIFE-05**: Lifecycle status audit trail (history of status changes with timestamps)
+- **LIFE-06**: Lifecycle timestamp columns (signed_at, active_at) for reporting
+
+### Date Intelligence
+
+- **DATE-03**: Date range filter on portfolio timeline (custom from/to)
+- **DATE-04**: Calendar view of deadlines
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Observability SaaS (Helicone, LangSmith) | Sole user -- DB-stored usage data + custom UI is simpler |
+| Charting library (Recharts, Chart.js) | Token costs displayed as summary tables and stat cards -- charts can be added later |
+| Date library (date-fns, dayjs) | Native Date + Intl handles all operations -- not worth 20KB+ for 3-4 functions |
+| State machine library (xstate) | 6 lifecycle states with simple transition map -- solvable in 10 lines of TypeScript |
+| New npm dependencies | All features build on existing stack (Anthropic SDK, Supabase, React, Tailwind) |
+| Server-Sent Events for progress | Vercel serverless doesn't support long-lived SSE -- indeterminate spinner is adequate |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PERF-01 | TBD | Pending |
+| PERF-02 | TBD | Pending |
+| PERF-03 | TBD | Pending |
+| COST-01 | TBD | Pending |
+| COST-02 | TBD | Pending |
+| COST-03 | TBD | Pending |
+| COST-04 | TBD | Pending |
+| LIFE-01 | TBD | Pending |
+| LIFE-02 | TBD | Pending |
+| LIFE-03 | TBD | Pending |
+| LIFE-04 | TBD | Pending |
+| DATE-01 | TBD | Pending |
+| DATE-02 | TBD | Pending |
+
+**Coverage:**
+- v2.2 requirements: 13 total
+- Mapped to phases: 0
+- Unmapped: 13 ⚠️
+
+---
+*Requirements defined: 2026-03-21*
+*Last updated: 2026-03-21 after initial definition*
