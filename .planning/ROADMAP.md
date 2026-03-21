@@ -206,7 +206,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 50-01-PLAN.md -- [to be planned]
+- [ ] 50-01-PLAN.md -- Remove dead isUploading state, fix .env.example, clean phantom mockContracts refs
 
 ## Progress
 
@@ -261,4 +261,4 @@ Plans:
 | 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | Complete    | 2026-03-21 | 2026-03-20 |
-| 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
+| 50. Dead Code Cleanup | v2.1 | 0/1 | Not started | - |
