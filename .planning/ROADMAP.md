@@ -260,5 +260,5 @@ Plans:
 | 46. Test Restoration | v2.1 | 2/2 | Complete | 2026-03-20 |
 | 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
-| 49. Coverage Push | 1/3 | In Progress|  | - |
+| 49. Coverage Push | 2/3 | In Progress|  | - |
 | 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
