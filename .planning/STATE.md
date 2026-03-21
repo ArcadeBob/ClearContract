@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Quality Restoration
-status: completed
-stopped_at: Completed 50-01-PLAN.md
-last_updated: "2026-03-21T15:07:41.875Z"
-last_activity: 2026-03-20 -- Completed 50-01 (Dead code cleanup -- isUploading, env, mockContracts refs)
+milestone: v2.2
+milestone_name: Performance & Intelligence
+status: active
+stopped_at: null
+last_updated: "2026-03-21"
+last_activity: 2026-03-21 -- Milestone v2.2 started
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,12 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone
+**Current focus:** v2.2 Performance & Intelligence
 
 ## Current Position
 
-Milestone v2.1 Quality Restoration shipped 2026-03-21.
-No active milestone. Run `/gsd:new-milestone` to begin next.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-21 — Milestone v2.2 started
 
 ## Performance Metrics
 

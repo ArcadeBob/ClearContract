@@ -90,7 +90,9 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-(None yet — define during next milestone planning)
+- [ ] Analysis parallelization
+- [ ] Token/cost tracking
+- [ ] Contract lifecycle & date intelligence
 
 ### Out of Scope
 
@@ -212,9 +214,15 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 | vi.hoisted() for mock variables | jsPDF mock variables referenced in vi.mock() factory | ✓ Good -- correct Vitest hoisting |
 | Props-based page testing | Dashboard/AllContracts/ContractUpload tested via props, no hook mocking | ✓ Good -- simpler, more maintainable |
 
-## Current Milestone
+## Current Milestone: v2.2 Performance & Intelligence
 
-Planning next milestone. Run `/gsd:new-milestone` to begin.
+**Goal:** Parallelize the analysis pipeline for speed, add token/cost tracking for visibility, and build contract lifecycle management with date intelligence for actionable portfolio insights.
+
+**Target features:**
+- Analysis parallelization (independent passes run concurrently)
+- Token/cost tracking per pass and per contract
+- Contract lifecycle status tracking (Draft → Negotiating → Signed → Active)
+- Portfolio-wide deadline timeline and date intelligence
 
 ## Completed Milestones
 
@@ -229,4 +237,4 @@ Planning next milestone. Run `/gsd:new-milestone` to begin.
 - **v2.1** Quality Restoration (2026-03-21) -- test suite restored, npm vulns fixed, ESLint 10, 76.92% coverage, dead code removed
 
 ---
-*Last updated: 2026-03-21 after v2.1 milestone*
+*Last updated: 2026-03-21 after v2.2 milestone start*
