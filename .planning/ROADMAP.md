@@ -190,9 +190,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 49-01-PLAN.md -- Knowledge module, registry, tokenBudget, and composeSystemPrompt tests
-- [ ] 49-02-PLAN.md -- Utility function tests (CSV/PDF export, settings, palette) and useContractStore hook tests
-- [ ] 49-03-PLAN.md -- Component render tests, MetaBadge parameterized tests, page shallow renders, coverage gate
+- [x] 49-01-PLAN.md -- Knowledge module, registry, tokenBudget, and composeSystemPrompt tests
+- [x] 49-02-PLAN.md -- Utility function tests (CSV/PDF export, settings, palette) and useContractStore hook tests
+- [x] 49-03-PLAN.md -- Component render tests, MetaBadge parameterized tests, page shallow renders, coverage gate
 
 ### Phase 50: Dead Code Cleanup
 **Goal**: Residual dead code from Supabase migration is removed, env documentation is accurate
@@ -260,5 +260,5 @@ Plans:
 | 46. Test Restoration | v2.1 | 2/2 | Complete | 2026-03-20 |
 | 47. Security Audit | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
-| 49. Coverage Push | 2/3 | In Progress|  | - |
+| 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-20 |
 | 50. Dead Code Cleanup | v2.1 | 0/? | Not started | - |
