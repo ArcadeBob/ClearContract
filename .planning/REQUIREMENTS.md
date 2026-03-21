@@ -73,25 +73,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PERF-01 | TBD | Pending |
-| PERF-02 | TBD | Pending |
-| PERF-03 | TBD | Pending |
-| COST-01 | TBD | Pending |
-| COST-02 | TBD | Pending |
-| COST-03 | TBD | Pending |
-| COST-04 | TBD | Pending |
-| LIFE-01 | TBD | Pending |
-| LIFE-02 | TBD | Pending |
-| LIFE-03 | TBD | Pending |
-| LIFE-04 | TBD | Pending |
-| DATE-01 | TBD | Pending |
-| DATE-02 | TBD | Pending |
+| PERF-01 | Phase 51 | Pending |
+| PERF-02 | Phase 51 | Pending |
+| PERF-03 | Phase 51 | Pending |
+| COST-01 | Phase 51 | Pending |
+| COST-02 | Phase 51 | Pending |
+| COST-03 | Phase 52 | Pending |
+| COST-04 | Phase 52 | Pending |
+| LIFE-01 | Phase 53 | Pending |
+| LIFE-02 | Phase 53 | Pending |
+| LIFE-03 | Phase 53 | Pending |
+| LIFE-04 | Phase 53 | Pending |
+| DATE-01 | Phase 54 | Pending |
+| DATE-02 | Phase 54 | Pending |
 
 **Coverage:**
 - v2.2 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 after roadmap creation*

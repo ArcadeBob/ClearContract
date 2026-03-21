@@ -5,9 +5,9 @@ milestone_name: Performance & Intelligence
 status: active
 stopped_at: null
 last_updated: "2026-03-21"
-last_activity: 2026-03-21 -- Milestone v2.2 started
+last_activity: 2026-03-21 -- Roadmap created for v2.2 (Phases 51-54)
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v2.2 Performance & Intelligence
+**Current focus:** Phase 51 - Analysis Pipeline Parallelization and Token Capture
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-21 — Milestone v2.2 started
+Phase: 51 (1 of 4 in v2.2)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-03-21 -- Roadmap created for v2.2 milestone
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -46,21 +48,13 @@ Last activity: 2026-03-21 — Milestone v2.2 started
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (66 decisions across 8 milestones).
-- [Phase 46]: Used createTableMock factory for Supabase query builder mock with dual .single()/.then() paths
-- [Phase 46]: Mock useContractStore at module level with isLoading: false for App auth gate tests
-- [Phase 47]: Used undici ^6.24.0 override (not ^5.29.0) because all 5.x in vulnerable range <=6.23.0
-- [Phase 47]: Left esbuild/ajv moderate vulns unresolved -- require breaking vite 8.x / @vercel/node 3.x upgrades
-- [Phase 48]: Downgraded no-unused-vars/no-explicit-any to warn to match pre-migration v5 severity
-- [Phase 48]: Used --legacy-peer-deps for react-hooks v7 (peer dep fix merged but unpublished for ESLint 10)
-- [Phase 49]: Used describe.each parameterized testing for all 12 knowledge modules
-- [Phase 49]: Imported barrel exports to trigger registerModule side effects in registry/composeSystemPrompt tests
-- [Phase 49]: Used vi.hoisted() for jsPDF mock variables referenced in vi.mock() factory
-- [Phase 49]: Mocked mappers as identity pass-through to simplify useContractStore testing
-- [Phase 49]: Chainable Supabase query mock with thenable for Promise.all resolution
-- [Phase 49]: Used describe.each parameterized testing for MetaBadge component families
-- [Phase 49]: Props-based page testing for Dashboard/AllContracts/ContractUpload (no hook mocking needed)
-- [Phase 50]: No decisions required -- straightforward dead code removal per plan
+Full decision log in PROJECT.md Key Decisions table (66 decisions across 9 milestones).
+Recent decisions affecting current work:
+
+- [v2.0]: Server owns contract creation -- eliminates orphaned placeholder rows
+- [v2.0]: Two-client pattern (anon + service_role) -- proper security boundary
+- [v2.1]: createTableMock factory for Supabase query builder
+- [v2.1]: ESLint no-unused-vars/no-explicit-any as warn -- gradual strictness
 
 ### Pending Todos
 
@@ -68,13 +62,12 @@ None.
 
 ### Blockers/Concerns
 
-- ~~23 failing tests across 3 files~~ RESOLVED -- Phase 46 complete, 269/269 green
-- ~~Statement coverage 40.74% vs 60% CI threshold~~ RESOLVED -- Phase 49 complete, 76.92% statements / 64.01% functions
-- ~~13 npm audit vulnerabilities (1 critical, 8 high)~~ RESOLVED -- Phase 47 complete, 0 high/critical (5 moderate remain)
-- ~~ESLint 8.x and @typescript-eslint 5.x are 2+ majors behind~~ RESOLVED -- Phase 48 complete, ESLint 10.1.0 + typescript-eslint 8.57.1
+- Phase 51 (research flag): Prompt cache timing needs empirical validation -- "cache available after streaming begins" exact behavior unknown
+- Phase 51 (research flag): Beta streaming TypeScript types for usage fields may be incomplete -- may need defensive access
+- Phase 51 (concern): 16 concurrent streaming requests may hit Tier 1 RPM limits -- check Anthropic Console before shipping
 
 ## Session Continuity
 
-Last session: 2026-03-21T05:03:01.277Z
-Stopped at: Completed 50-01-PLAN.md
+Last session: 2026-03-21
+Stopped at: Roadmap created for v2.2 milestone (Phases 51-54)
 Resume file: None

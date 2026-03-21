@@ -11,6 +11,7 @@
 - ✅ **v1.6 Quality & Validation** -- Phases 33-38 (shipped 2026-03-16)
 - ✅ **v2.0 Enterprise Foundation** -- Phases 39-45 (shipped 2026-03-19)
 - ✅ **v2.1 Quality Restoration** -- Phases 46-50 (shipped 2026-03-21)
+- **v2.2 Performance & Intelligence** -- Phases 51-54 (in progress)
 
 ## Phases
 
@@ -136,7 +137,76 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 
 </details>
 
+### v2.2 Performance & Intelligence (In Progress)
+
+**Milestone Goal:** Parallelize the analysis pipeline for speed, add token/cost tracking for visibility, and build contract lifecycle management with date intelligence.
+
+- [ ] **Phase 51: Analysis Pipeline Parallelization and Token Capture** - Two-stage cache pipeline, per-pass timeouts, progressive DB saves, and streaming token capture
+- [ ] **Phase 52: Cost Display and Portfolio Spend** - Per-pass cost breakdown on contract review, portfolio cost stats on dashboard
+- [ ] **Phase 53: Contract Lifecycle Status** - Lifecycle column, status badges, transition dropdown, status filtering
+- [ ] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge
+
+## Phase Details
+
+### Phase 51: Analysis Pipeline Parallelization and Token Capture
+**Goal**: User gets faster, more reliable analysis with full cost visibility data captured server-side
+**Depends on**: Phase 50 (v2.1 complete)
+**Requirements**: PERF-01, PERF-02, PERF-03, COST-01, COST-02
+**Success Criteria** (what must be TRUE):
+  1. Analyzing a contract fires one primer pass first, then remaining 15 passes run concurrently -- passes 2-16 show cache_read_input_tokens (not cache_creation) confirming cache hits
+  2. A single pass that exceeds ~90 seconds is aborted independently without killing the entire analysis
+  3. If the serverless function times out mid-analysis, passes that already completed have their findings and dates persisted in the database
+  4. After analysis completes, the analysis_usage table contains per-pass token counts (input, output, cache_creation, cache_read), computed cost, and duration for the run
+**Plans**: TBD
+
+Plans:
+- [ ] 51-01: TBD
+- [ ] 51-02: TBD
+
+### Phase 52: Cost Display and Portfolio Spend
+**Goal**: User can see exactly what each analysis costs -- per pass and in total -- and track cumulative API spend across all contracts
+**Depends on**: Phase 51
+**Requirements**: COST-03, COST-04
+**Success Criteria** (what must be TRUE):
+  1. Contract review page shows total analysis cost, total tokens, and cache hit rate for the most recent analysis run
+  2. User can expand a collapsible section to see per-pass breakdown (pass name, tokens in/out, cache hit rate, cost, duration)
+  3. Dashboard shows portfolio-wide cost stats: total API spend across all contracts and average cost per contract
+**Plans**: TBD
+
+Plans:
+- [ ] 52-01: TBD
+
+### Phase 53: Contract Lifecycle Status
+**Goal**: User can track where each contract stands in its business lifecycle independently from AI analysis status
+**Depends on**: Phase 51 (schema migration can be combined; no dependency on cost display)
+**Requirements**: LIFE-01, LIFE-02, LIFE-03, LIFE-04
+**Success Criteria** (what must be TRUE):
+  1. Contracts have a lifecycle_status field (Draft, Under Review, Negotiating, Signed, Active, Expired) stored in Supabase, separate from the existing analysis status field
+  2. Contract cards on dashboard and All Contracts page show a color-coded lifecycle badge
+  3. User can change lifecycle status via a dropdown on the contract review page, with only valid transitions available
+  4. All Contracts page has a multi-select lifecycle status filter that narrows the visible contract list
+**Plans**: TBD
+
+Plans:
+- [ ] 53-01: TBD
+
+### Phase 54: Date Intelligence and Portfolio Timeline
+**Goal**: User sees all upcoming contract deadlines across their entire portfolio in one place, with urgency signals that surface what needs attention now
+**Depends on**: Phase 51 (needs contracts loaded; benefits from lifecycle status but not strictly required)
+**Requirements**: DATE-01, DATE-02
+**Success Criteria** (what must be TRUE):
+  1. Dashboard shows a portfolio-wide deadline timeline with entries grouped by urgency: overdue, this week, this month, and later
+  2. Each timeline entry shows the date, contract name, and date description -- clicking navigates to that contract's review page
+  3. Sidebar shows a badge with the count of deadlines due within 7 days (disappears when count is zero)
+**Plans**: TBD
+
+Plans:
+- [ ] 54-01: TBD
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -190,3 +260,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-21 |
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
+| 51. Analysis Pipeline Parallelization and Token Capture | v2.2 | 0/? | Not started | - |
+| 52. Cost Display and Portfolio Spend | v2.2 | 0/? | Not started | - |
+| 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
+| 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
