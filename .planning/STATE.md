@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
-status: executing
-stopped_at: Completed 54-01-PLAN.md
-last_updated: "2026-03-22T22:49:54.241Z"
-last_activity: 2026-03-22 -- Completed 54-01 (Date urgency utility & DeadlineTimeline)
+status: completed
+stopped_at: Completed 54-02-PLAN.md
+last_updated: "2026-03-22T22:59:59.837Z"
+last_activity: 2026-03-22 -- Completed 54-02 (Wire timeline into Dashboard + sidebar badge)
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
-  percent: 83
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 54 (4 of 4 in v2.2)
-Plan: 1 of 2 in current phase
-Status: Executing
-Last activity: 2026-03-22 -- Completed 54-01 (Date urgency utility & DeadlineTimeline)
+Plan: 2 of 2 in current phase
+Status: Complete
+Last activity: 2026-03-22 -- Completed 54-02 (Wire timeline into Dashboard + sidebar badge)
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Recent decisions affecting current work:
 - [Phase 53]: Lifecycle transition map as const Record -- compile-time safety for valid transitions
 - [Phase 53]: LifecycleBadge placed between upload date and analysis status badge on ContractCard for business-then-technical visual hierarchy
 - [Phase 54]: Local date parsing via split/Number to avoid UTC offset issues with YYYY-MM-DD strings
+- [Phase 54]: Separate urgentBadge field on navItems (red) vs existing badge (slate) for visual distinction
 
 ### Pending Todos
 
@@ -77,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T22:49:54.238Z
-Stopped at: Completed 54-01-PLAN.md
+Last session: 2026-03-22T22:59:59.834Z
+Stopped at: Completed 54-02-PLAN.md
 Resume file: None

@@ -144,7 +144,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 - [x] **Phase 51: Analysis Pipeline Parallelization and Token Capture** - Two-stage cache pipeline, per-pass timeouts, progressive DB saves, and streaming token capture (completed 2026-03-22)
 - [x] **Phase 52: Cost Display and Portfolio Spend** - Per-pass cost breakdown on contract review, portfolio cost stats on dashboard (completed 2026-03-22)
 - [x] **Phase 53: Contract Lifecycle Status** - Lifecycle column, status badges, transition dropdown, status filtering (completed 2026-03-22)
-- [ ] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge
+- [x] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge (completed 2026-03-22)
 
 ## Phase Details
 
@@ -266,4 +266,4 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 51. Analysis Pipeline Parallelization and Token Capture | 2/2 | Complete    | 2026-03-22 | - |
 | 52. Cost Display and Portfolio Spend | 2/2 | Complete    | 2026-03-22 | - |
 | 53. Contract Lifecycle Status | 2/2 | Complete    | 2026-03-22 | - |
-| 54. Date Intelligence and Portfolio Timeline | 1/2 | In Progress|  | - |
+| 54. Date Intelligence and Portfolio Timeline | 2/2 | Complete   | 2026-03-22 | - |

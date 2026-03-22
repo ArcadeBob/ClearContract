@@ -30,7 +30,7 @@ Requirements for Performance & Intelligence milestone. Each maps to roadmap phas
 ### Date Intelligence
 
 - [x] **DATE-01**: Portfolio-wide deadline timeline on dashboard grouped by urgency (overdue/this week/this month/later)
-- [ ] **DATE-02**: Sidebar badge showing count of deadlines within 7 days
+- [x] **DATE-02**: Sidebar badge showing count of deadlines within 7 days
 
 ## Future Requirements
 
@@ -85,7 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIFE-03 | Phase 53 | Complete |
 | LIFE-04 | Phase 53 | Complete |
 | DATE-01 | Phase 54 | Complete |
-| DATE-02 | Phase 54 | Pending |
+| DATE-02 | Phase 54 | Complete |
 
 **Coverage:**
 - v2.2 requirements: 13 total
