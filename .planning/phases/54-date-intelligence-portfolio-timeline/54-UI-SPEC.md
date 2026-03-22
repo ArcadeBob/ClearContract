@@ -47,10 +47,10 @@ Exceptions: none
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 14px (text-sm) | 400 (font-normal) | 1.5 |
-| Label | 12px (text-xs) | 500 (font-medium) | 1.5 |
-| Heading | 18px (text-lg) | 600 (font-semibold) | 1.2 |
-| Section header | 14px (text-sm) | 600 (font-semibold) | 1.2 |
+| Body / Label | 14px (text-sm) / 12px (text-xs) | 400 (font-normal) | 1.5 |
+| Heading / Section header | 18px (text-lg) / 14px (text-sm) | 600 (font-semibold) | 1.2 |
+
+Two weights only: 400 (font-normal) for body and label text, 600 (font-semibold) for headings and emphasized text. This aligns with the existing app convention of Inter at weight 400 for body copy.
 
 Source: Existing Dashboard.tsx and Sidebar.tsx patterns. Inter font at these sizes throughout the app.
 
@@ -100,7 +100,7 @@ Accent reserved for: Primary CTA button, active sidebar nav indicator, "This Mon
 - **Section header layout:** `flex items-center gap-2 mb-3 mt-4` with group icon (Calendar for overdue/this-week, Clock for this-month/later) and label in group text color
 - **First section header:** No `mt-4` (no top margin on first group)
 - **Timeline entries:** Clickable button, `w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100` (matches existing upcoming dates widget entry pattern exactly)
-- **Entry row 1:** Date label (text-sm font-medium text-slate-900 truncate) + urgency relative label on right (text-xs font-medium in group text color)
+- **Entry row 1:** Date label (text-sm font-semibold text-slate-900 truncate) + urgency relative label on right (text-xs font-semibold in group text color)
 - **Entry row 2:** Contract name (text-xs text-slate-500 truncate) + formatted date on right (text-xs text-slate-500)
 - **Entry click:** Calls `onNavigate('review', contractId)` -- navigates to that contract's review page
 - **Empty groups:** Not rendered. Only groups with at least one entry display their header + entries.
