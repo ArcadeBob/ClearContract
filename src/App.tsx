@@ -28,6 +28,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     toggleFindingResolved,
     updateFindingNote,
     renameContract,
+    updateLifecycleStatus,
   } = useContractStore();
   const { activeView, activeContractId, compareIds, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
@@ -238,6 +239,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
             onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
             isReanalyzing={reanalyzingId === activeContract.id}
             onRename={(id, name) => renameContract(id, name)}
+            onLifecycleChange={updateLifecycleStatus}
           />
         );
 

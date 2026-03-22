@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { Contract, Finding, SEVERITIES, CATEGORIES } from '../types/contract';
+import type { LifecycleStatus } from '../types/contract';
+import { LifecycleSelect } from './LifecycleSelect';
 import { useInlineEdit } from '../hooks/useInlineEdit';
 import { useToast } from '../hooks/useToast';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
@@ -26,6 +28,7 @@ interface ReviewHeaderProps {
   onReanalyze?: (file: File) => void;
   isReanalyzing?: boolean;
   onRename?: (id: string, name: string) => void;
+  onLifecycleChange?: (id: string, status: LifecycleStatus) => void;
   visibleFindings: Finding[];
   filters: FilterState;
   hideResolved: boolean;
@@ -38,6 +41,7 @@ export function ReviewHeader({
   onReanalyze,
   isReanalyzing,
   onRename,
+  onLifecycleChange,
   visibleFindings,
   filters,
   hideResolved,
@@ -100,6 +104,11 @@ export function ReviewHeader({
             <span>{contract.client}</span>
             <span>&bull;</span>
             <span>{contract.type}</span>
+            <span>&bull;</span>
+            <LifecycleSelect
+              current={contract.lifecycleStatus}
+              onChange={(status) => onLifecycleChange?.(contract.id, status)}
+            />
           </div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">

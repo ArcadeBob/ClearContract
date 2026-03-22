@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Contract } from '../types/contract';
+import type { LifecycleStatus } from '../types/contract';
 import { FindingCard } from '../components/FindingCard';
 import { CategorySection } from '../components/CategorySection';
 import { DateTimeline } from '../components/DateTimeline';
@@ -41,9 +42,10 @@ interface ContractReviewProps {
   onReanalyze?: (file: File) => void;
   isReanalyzing?: boolean;
   onRename?: (id: string, name: string) => void;
+  onLifecycleChange?: (id: string, status: LifecycleStatus) => void;
 }
 
-export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onRename }: ContractReviewProps) {
+export function ContractReview({ contract, onBack, onDelete, onToggleResolved, onUpdateNote, onReanalyze, isReanalyzing, onRename, onLifecycleChange }: ContractReviewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('by-category');
   const [showBanner, setShowBanner] = useState(true);
 
@@ -84,6 +86,7 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
         onReanalyze={onReanalyze}
         isReanalyzing={isReanalyzing}
         onRename={onRename}
+        onLifecycleChange={onLifecycleChange}
         visibleFindings={visibleFindings}
         filters={filters}
         hideResolved={hideResolved}

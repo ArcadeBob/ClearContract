@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Contract } from '../types/contract';
 import { FileText, Trash2, CheckCircle2 } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
+import { LifecycleBadge } from './LifecycleBadge';
 import { getRiskBadgeColor } from '../utils/palette';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -69,6 +70,7 @@ export function ContractCard({ contract, onClick, onDelete, selectable, selected
           <span className="text-xs text-slate-400 mb-1">
             {contract.uploadDate}
           </span>
+          <LifecycleBadge status={contract.lifecycleStatus} className="mb-1" />
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded-full ${contract.status === 'Reviewed' ? 'bg-emerald-100 text-emerald-700' : contract.status === 'Analyzing' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}
           >
