@@ -1,6 +1,9 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Contract, ViewState } from '../types/contract';
+import { Contract, ViewState, LIFECYCLE_STATUSES } from '../types/contract';
+import type { LifecycleStatus } from '../types/contract';
 import { ContractCard } from '../components/ContractCard';
+import { MultiSelectDropdown } from '../components/MultiSelectDropdown';
+import { LIFECYCLE_BADGE_COLORS } from '../utils/palette';
 import { Search, SlidersHorizontal, Plus, ArrowUpDown, GitCompareArrows } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 interface AllContractsProps {
@@ -42,6 +45,9 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>('date-desc');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [lifecycleFilter, setLifecycleFilter] = useState<Set<LifecycleStatus>>(
+    new Set(LIFECYCLE_STATUSES)
+  );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Clear stale selections when contracts change
@@ -81,6 +87,10 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
     if (typeFilter !== 'All') {
       result = result.filter((c) => c.type === typeFilter);
     }
+    // Lifecycle filter
+    if (lifecycleFilter.size < LIFECYCLE_STATUSES.length) {
+      result = result.filter((c) => lifecycleFilter.has(c.lifecycleStatus));
+    }
     // Sort
     result.sort((a, b) => {
       switch (sortBy) {
@@ -105,7 +115,7 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
       }
     });
     return result;
-  }, [contracts, searchQuery, typeFilter, sortBy]);
+  }, [contracts, searchQuery, typeFilter, lifecycleFilter, sortBy]);
   const totalFindings = contracts.reduce(
     (acc, c) => acc + c.findings.length,
     0
@@ -174,6 +184,19 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
               </button>
             ))}
           </div>
+
+          <MultiSelectDropdown
+            label="Lifecycle"
+            options={LIFECYCLE_STATUSES}
+            selected={lifecycleFilter}
+            onChange={(s) => setLifecycleFilter(s as Set<LifecycleStatus>)}
+            renderOption={(option) => (
+              <span className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${LIFECYCLE_BADGE_COLORS[option as LifecycleStatus].split(' ')[0]}`} />
+                {option}
+              </span>
+            )}
+          />
 
           <div className="relative">
             <button
@@ -260,6 +283,7 @@ export function AllContracts({ contracts, onNavigate, onDelete }: AllContractsPr
                 onClick={() => {
                   setSearchQuery('');
                   setTypeFilter('All');
+                  setLifecycleFilter(new Set(LIFECYCLE_STATUSES));
                 }}
                 className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
