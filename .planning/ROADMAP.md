@@ -260,7 +260,7 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-21 |
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
-| 51. Analysis Pipeline Parallelization and Token Capture | v2.2 | 0/2 | Not started | - |
+| 51. Analysis Pipeline Parallelization and Token Capture | 1/2 | In Progress|  | - |
 | 52. Cost Display and Portfolio Spend | v2.2 | 0/? | Not started | - |
 | 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
