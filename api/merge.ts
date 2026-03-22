@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import type { PassResult, RiskOverviewResult, MergedAnalysisResult, FindingResult } from '../src/schemas/analysis';
+import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis';
 import type { Severity, Category, LegalMeta, ScopeMeta } from '../src/types/contract';
-import { computeRiskScore, applySeverityGuard, type ScoreBreakdown } from './scoring';
+import { computeRiskScore, applySeverityGuard } from './scoring';
 import { getAllModules } from '../src/knowledge/registry';
 
 import {
@@ -320,16 +320,16 @@ function convertLaborComplianceFinding(finding: LaborComplianceFinding, passName
 // Pass handler dispatch map (generic helper avoids casts)
 // ---------------------------------------------------------------------------
 
-interface PassHandler<T extends z.ZodTypeAny = z.ZodTypeAny> {
-  schema: T;
-  convert: (finding: z.infer<T>, passName: string) => UnifiedFinding;
+interface PassHandler {
+  schema: z.ZodTypeAny;
+  convert: (finding: never, passName: string) => UnifiedFinding;
 }
 
 function createHandler<T extends z.ZodTypeAny>(
   schema: T,
   convert: (finding: z.infer<T>, passName: string) => UnifiedFinding
-): PassHandler<T> {
-  return { schema, convert };
+): PassHandler {
+  return { schema, convert: convert as PassHandler['convert'] };
 }
 
 const passHandlers: Record<string, PassHandler> = {
@@ -387,13 +387,16 @@ function checkModuleStaleness(): UnifiedFinding[] {
 // Main merge function
 // ---------------------------------------------------------------------------
 
+/** MergedAnalysisResult with findings widened to UnifiedFinding[] */
+export type MergedResult = Omit<MergedAnalysisResult, 'findings'> & { findings: UnifiedFinding[] };
+
 export function mergePassResults(
   results: PromiseSettledResult<{
     passName: string;
     result: PassResult | RiskOverviewResult;
   }>[],
   passes: AnalysisPassInfo[]
-): MergedAnalysisResult {
+): MergedResult {
   const allFindings: UnifiedFinding[] = [];
   const allDates: Array<PassResult['dates'][number]> = [];
   const passResults: MergedAnalysisResult['passResults'] = [];
@@ -429,7 +432,7 @@ export function mergePassResults(
         for (const f of result.findings) {
           const parsed = handler.schema.safeParse(f);
           if (parsed.success) {
-            allFindings.push(handler.convert(parsed.data, passName));
+            allFindings.push(handler.convert(parsed.data as never, passName));
           } else {
             console.error('Malformed finding in pass %s:', passName, parsed.error.issues);
           }

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
 import { mergePassResults, type AnalysisPassInfo } from './merge';
+import type { PassResult, RiskOverviewResult } from '../src/schemas/analysis';
 import { MergedFindingSchema } from '../src/schemas/finding';
 import {
   createIndemnificationFinding,
@@ -31,25 +32,25 @@ vi.mock('../src/knowledge/registry', () => ({
 
 function fulfilled(
   passName: string,
-  findings: unknown[],
-  dates: unknown[] = []
+  findings: PassResult['findings'],
+  dates: PassResult['dates'] = []
 ) {
   return {
     status: 'fulfilled' as const,
-    value: { passName, result: { findings, dates } },
+    value: { passName, result: { findings, dates } as PassResult },
   };
 }
 
 function fulfilledOverview(
   passName: string,
-  findings: unknown[],
+  findings: RiskOverviewResult['findings'],
   client: string,
   contractType: string,
-  dates: unknown[] = []
+  dates: RiskOverviewResult['dates'] = []
 ) {
   return {
     status: 'fulfilled' as const,
-    value: { passName, result: { findings, dates, client, contractType } },
+    value: { passName, result: { findings, dates, client, contractType } as RiskOverviewResult },
   };
 }
 
@@ -373,12 +374,14 @@ describe('mergePassResults - deduplication', () => {
       severity: 'High',
     });
     const generic = {
-      severity: 'Critical',
-      category: 'Legal Issues',
+      severity: 'Critical' as const,
+      category: 'Legal Issues' as const,
       title: 'Generic Indemnification Issue',
       clauseReference: 'Section 5.1',
       description: 'Generic description',
       recommendation: 'Generic recommendation',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
     };
     const result = mergePassResults(
       [
@@ -500,12 +503,14 @@ describe('mergePassResults - deduplication', () => {
 describe('mergePassResults - generic/overview handler', () => {
   it('extracts client and contractType from overview pass', () => {
     const finding = {
-      severity: 'Medium',
-      category: 'Risk Assessment',
+      severity: 'Medium' as const,
+      category: 'Risk Assessment' as const,
       title: 'Overall Risk Assessment',
       description: 'General risk overview',
       recommendation: 'Review all findings',
       clauseReference: 'N/A',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
     };
     const result = mergePassResults(
       [fulfilledOverview('risk-overview', [finding], 'Acme Corp', 'Prime Contract')],
@@ -517,12 +522,14 @@ describe('mergePassResults - generic/overview handler', () => {
 
   it('uses generic handler for unknown pass name (no meta)', () => {
     const finding = {
-      severity: 'Low',
-      category: 'Scope of Work',
+      severity: 'Low' as const,
+      category: 'Scope of Work' as const,
       title: 'Unknown Pass Finding',
       description: 'From unknown pass',
       recommendation: 'Review manually',
       clauseReference: 'Section 9.9',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
     };
     const result = mergePassResults(
       [fulfilled('unknown-pass', [finding])],
@@ -605,7 +612,7 @@ describe('mergePassResults - risk score', () => {
 describe('mergePassResults - MergedFindingSchema validation (UNIT-06)', () => {
   const passConfigs: Array<{
     name: string;
-    factory: () => unknown;
+    factory: () => PassResult['findings'][number];
   }> = [
     { name: 'legal-indemnification', factory: () => createIndemnificationFinding() },
     { name: 'legal-payment-contingency', factory: () => createPaymentContingencyFinding() },

@@ -760,7 +760,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Return full Contract object with DB-assigned IDs
     const contract = {
-      ...mapRow(contractRow),
+      ...mapRow<Record<string, unknown>>(contractRow),
       findings: findingRows ? mapRows(findingRows) : [],
       dates: dateRows ? mapRows(dateRows) : [],
     };

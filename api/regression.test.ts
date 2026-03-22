@@ -64,7 +64,7 @@ const mockGetUser = vi.fn().mockResolvedValue({
 });
 
 function createTableMock() {
-  let lastInsertPayload: unknown[] = [];
+  let lastInsertPayload: Record<string, unknown>[] = [];
 
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
 
