@@ -48,11 +48,11 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (text-sm) | 400 (font-normal) | 1.5 |
-| Label | 12px (text-xs) | 500 (font-medium) | 1.5 |
+| Label | 12px (text-xs) | 400 (font-normal) | 1.5 |
 | Heading | 20px (text-xl) | 700 (font-bold) | 1.2 |
 | Display | 28px (text-2xl) | 700 (font-bold) | 1.2 |
 
-Source: Existing codebase patterns -- ContractCard uses text-sm for body, text-xs for labels, ReviewHeader uses text-xl font-bold for headings.
+Source: Existing codebase patterns -- ContractCard uses text-sm for body, text-xs for labels, ReviewHeader uses text-xl font-bold for headings. Label role uses size distinction (12px vs 14px) rather than weight distinction to differentiate from Body.
 
 ---
 
@@ -65,7 +65,7 @@ Source: Existing codebase patterns -- ContractCard uses text-sm for body, text-x
 | Accent (10%) | blue-600 (#2563eb) | Primary CTA buttons, focus rings, active nav |
 | Destructive | red-600 (#dc2626) | Delete buttons, expired status badge text |
 
-Accent reserved for: focus rings on LifecycleSelect dropdown, active filter count badge in MultiSelectDropdown, hover states on interactive elements.
+Accent reserved for: LifecycleSelect focus ring, filter count badge in MultiSelectDropdown, active sidebar nav indicator.
 
 ### Lifecycle Badge Color Palette
 
@@ -84,6 +84,14 @@ Source: 53-RESEARCH.md Pattern 2, aligned with existing SEVERITY_BADGE_COLORS.
 
 ---
 
+## Visual Hierarchy
+
+**Primary focal point:** The LifecycleSelect dropdown on the ReviewHeader metadata row. This is the only interactive lifecycle element on the contract review page and the primary action surface for this phase. It appears inline in the header metadata row after the contract type, visually anchored by its bordered select appearance against the flat text of the surrounding metadata.
+
+**Secondary focal points:** LifecycleBadge on ContractCard (top-right badge stack) and the Lifecycle filter button on AllContracts toolbar.
+
+---
+
 ## Component Inventory
 
 ### New Components
@@ -91,7 +99,7 @@ Source: 53-RESEARCH.md Pattern 2, aligned with existing SEVERITY_BADGE_COLORS.
 #### LifecycleBadge
 
 - **Pattern:** Mirrors `SeverityBadge` exactly
-- **Classes:** `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border` + color from palette
+- **Classes:** `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal border` + color from palette
 - **Props:** `status: LifecycleStatus`, `className?: string`
 - **Renders:** Status text as label
 
@@ -114,7 +122,7 @@ Source: 53-RESEARCH.md Pattern 2, aligned with existing SEVERITY_BADGE_COLORS.
 
 #### ReviewHeader
 
-- **Change:** Add `LifecycleBadge` + `LifecycleSelect` in the header metadata area
+- **Change:** Add `LifecycleSelect` in the header metadata area
 - **Placement:** In the metadata row (line 99-103), after the client/type text, add a separator bullet and the LifecycleSelect dropdown
 - **Layout:** `<span>{contract.client}</span> <span>&bull;</span> <span>{contract.type}</span> <span>&bull;</span> <LifecycleSelect current={contract.lifecycleStatus} onChange={...} />`
 - **The select replaces a static badge on this page** since users need to change status here
