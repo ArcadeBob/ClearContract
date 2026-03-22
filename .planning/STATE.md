@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
 status: executing
-stopped_at: Phase 52 context gathered
-last_updated: "2026-03-22T15:23:20.485Z"
-last_activity: 2026-03-22 -- Completed 51-01 (DB migration + shared types)
+stopped_at: Completed 52-01-PLAN.md
+last_updated: "2026-03-22T16:40:54Z"
+last_activity: 2026-03-22 -- Completed 52-01 (CostSummaryBar + formatting utils + useAnalysisUsage hook)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 50
+  total_plans: 4
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 51 - Analysis Pipeline Parallelization and Token Capture
+**Current focus:** Phase 52 - Cost Display and Portfolio Spend
 
 ## Current Position
 
-Phase: 51 (1 of 4 in v2.2)
-Plan: 1 of 2 in current phase
+Phase: 52 (2 of 4 in v2.2)
+Plan: 2 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-22 -- Completed 51-01 (DB migration + shared types)
+Last activity: 2026-03-22 -- Completed 52-01 (CostSummaryBar + formatting utils + useAnalysisUsage hook)
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Recent decisions affecting current work:
 - [v2.2]: Shared API types in api/types.ts, pure cost function in api/cost.ts
 - [Phase 51]: Independent AbortControllers per pass -- simpler than parent-child hierarchy
 - [Phase 51]: Defensive as-casts with ?? 0 for beta streaming usage fields
+- [Phase 52]: costUsd coerced with Number() after mapRows -- Postgres numeric returns string
 
 ### Pending Todos
 
@@ -72,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:23:20.482Z
-Stopped at: Phase 52 context gathered
-Resume file: .planning/phases/52-cost-display-and-portfolio-spend/52-CONTEXT.md
+Last session: 2026-03-22T16:40:54Z
+Stopped at: Completed 52-01-PLAN.md
+Resume file: .planning/phases/52-cost-display-and-portfolio-spend/52-02-PLAN.md

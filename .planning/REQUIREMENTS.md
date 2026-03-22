@@ -17,7 +17,7 @@ Requirements for Performance & Intelligence milestone. Each maps to roadmap phas
 
 - [x] **COST-01**: Streaming event loop captures input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens per pass
 - [x] **COST-02**: Server computes per-pass and total cost using pricing constants and writes to analysis_usage table
-- [ ] **COST-03**: Contract review page shows total cost and per-pass breakdown (tokens, cache hit rate, cost, duration)
+- [x] **COST-03**: Contract review page shows total cost and per-pass breakdown (tokens, cache hit rate, cost, duration)
 - [ ] **COST-04**: Dashboard shows portfolio cost stats (total API spend, average cost per contract)
 
 ### Contract Lifecycle
@@ -78,7 +78,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-03 | Phase 51 | Complete |
 | COST-01 | Phase 51 | Complete |
 | COST-02 | Phase 51 | Complete |
-| COST-03 | Phase 52 | Pending |
+| COST-03 | Phase 52 | Complete |
 | COST-04 | Phase 52 | Pending |
 | LIFE-01 | Phase 53 | Pending |
 | LIFE-02 | Phase 53 | Pending |
