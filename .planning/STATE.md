@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
 status: executing
-stopped_at: Completed 51-01-PLAN.md
-last_updated: "2026-03-22T03:22:00Z"
+stopped_at: Completed 51-02-PLAN.md
+last_updated: "2026-03-22T04:02:06.844Z"
 last_activity: 2026-03-22 -- Completed 51-01 (DB migration + shared types)
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 50
 ---
 
@@ -57,6 +57,8 @@ Recent decisions affecting current work:
 - [v2.1]: ESLint no-unused-vars/no-explicit-any as warn -- gradual strictness
 - [v2.2]: PassWithUsage.result typed as unknown to avoid circular imports with schema types
 - [v2.2]: Shared API types in api/types.ts, pure cost function in api/cost.ts
+- [Phase 51]: Independent AbortControllers per pass -- simpler than parent-child hierarchy
+- [Phase 51]: Defensive as-casts with ?? 0 for beta streaming usage fields
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T03:22:00Z
-Stopped at: Completed 51-01-PLAN.md
-Resume file: .planning/phases/51-analysis-pipeline-parallelization-and-token-capture/51-02-PLAN.md
+Last session: 2026-03-22T04:02:06.842Z
+Stopped at: Completed 51-02-PLAN.md
+Resume file: None

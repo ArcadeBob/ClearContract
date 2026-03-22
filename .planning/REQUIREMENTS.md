@@ -9,9 +9,9 @@ Requirements for Performance & Intelligence milestone. Each maps to roadmap phas
 
 ### Analysis Performance
 
-- [ ] **PERF-01**: Two-stage cache pipeline sends primer pass first, then 15 passes in parallel with cache hits
-- [ ] **PERF-02**: Each pass has individual AbortController timeout (~90s) instead of single 280s timeout
-- [ ] **PERF-03**: Completed pass results are progressively saved to DB, surviving function timeout
+- [x] **PERF-01**: Two-stage cache pipeline sends primer pass first, then 15 passes in parallel with cache hits
+- [x] **PERF-02**: Each pass has individual AbortController timeout (~90s) instead of single 280s timeout
+- [x] **PERF-03**: Completed pass results are progressively saved to DB, surviving function timeout
 
 ### Token & Cost Tracking
 
@@ -73,9 +73,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PERF-01 | Phase 51 | Pending |
-| PERF-02 | Phase 51 | Pending |
-| PERF-03 | Phase 51 | Pending |
+| PERF-01 | Phase 51 | Complete |
+| PERF-02 | Phase 51 | Complete |
+| PERF-03 | Phase 51 | Complete |
 | COST-01 | Phase 51 | Complete |
 | COST-02 | Phase 51 | Complete |
 | COST-03 | Phase 52 | Pending |

@@ -141,7 +141,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 
 **Milestone Goal:** Parallelize the analysis pipeline for speed, add token/cost tracking for visibility, and build contract lifecycle management with date intelligence.
 
-- [ ] **Phase 51: Analysis Pipeline Parallelization and Token Capture** - Two-stage cache pipeline, per-pass timeouts, progressive DB saves, and streaming token capture
+- [x] **Phase 51: Analysis Pipeline Parallelization and Token Capture** - Two-stage cache pipeline, per-pass timeouts, progressive DB saves, and streaming token capture (completed 2026-03-22)
 - [ ] **Phase 52: Cost Display and Portfolio Spend** - Per-pass cost breakdown on contract review, portfolio cost stats on dashboard
 - [ ] **Phase 53: Contract Lifecycle Status** - Lifecycle column, status badges, transition dropdown, status filtering
 - [ ] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge
@@ -260,7 +260,7 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-21 |
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
-| 51. Analysis Pipeline Parallelization and Token Capture | 1/2 | In Progress|  | - |
+| 51. Analysis Pipeline Parallelization and Token Capture | 2/2 | Complete   | 2026-03-22 | - |
 | 52. Cost Display and Portfolio Spend | v2.2 | 0/? | Not started | - |
 | 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
