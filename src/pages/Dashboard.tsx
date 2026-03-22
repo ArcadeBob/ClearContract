@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Contract, ViewState } from '../types/contract';
 import { StatCard } from '../components/StatCard';
 import { PatternsCard } from '../components/PatternsCard';
@@ -12,7 +12,11 @@ import {
   ArrowRight,
   FileSearch,
   Calendar,
+  DollarSign,
+  Coins,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { formatCost, formatTokens } from '../utils/formatCost';
 
 function getDateUrgency(dateStr: string): { label: string; colorClass: string; isPast: boolean } {
   const now = new Date();
@@ -78,6 +82,51 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
     (a, b) =>
       new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
   );
+
+  const [portfolioCost, setPortfolioCost] = useState({ totalSpend: 0, totalTokens: 0, contractCount: 0 });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPortfolioCost() {
+      const { data, error } = await supabase
+        .from('analysis_usage')
+        .select('contract_id, cost_usd, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens');
+
+      if (cancelled || error || !data) return;
+
+      const byContract = new Map<string, { cost: number; tokens: number }>();
+      for (const row of data) {
+        const cid = row.contract_id as string;
+        const existing = byContract.get(cid) ?? { cost: 0, tokens: 0 };
+        existing.cost += Number(row.cost_usd);
+        existing.tokens += (row.input_tokens as number) + (row.output_tokens as number) +
+          (row.cache_read_tokens as number) + (row.cache_creation_tokens as number);
+        byContract.set(cid, existing);
+      }
+
+      let totalSpend = 0;
+      let totalTokens = 0;
+      for (const entry of byContract.values()) {
+        totalSpend += entry.cost;
+        totalTokens += entry.tokens;
+      }
+
+      setPortfolioCost({
+        totalSpend,
+        totalTokens,
+        contractCount: byContract.size,
+      });
+    }
+
+    loadPortfolioCost();
+    return () => { cancelled = true; };
+  }, []);
+
+  const avgCostPerContract = portfolioCost.contractCount > 0
+    ? portfolioCost.totalSpend / portfolioCost.contractCount
+    : 0;
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <header className="mb-8">
@@ -107,7 +156,7 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
               label="Contracts Reviewed"
               value={totalContracts}
@@ -134,6 +183,22 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
               value={avgRiskScore}
               icon={Clock}
               color="green"
+            />
+
+            <StatCard
+              label="Total API Spend"
+              value={portfolioCost.totalSpend > 0
+                ? `${formatCost(portfolioCost.totalSpend)} (${formatTokens(portfolioCost.totalTokens)} tokens)`
+                : '$0.00'}
+              icon={DollarSign}
+              color="slate"
+            />
+
+            <StatCard
+              label="Avg Cost / Contract"
+              value={avgCostPerContract > 0 ? formatCost(avgCostPerContract) : '$0.00'}
+              icon={Coins}
+              color="slate"
             />
           </div>
 
