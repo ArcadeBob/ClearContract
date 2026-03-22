@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
 status: executing
-stopped_at: Completed 52-01-PLAN.md
-last_updated: "2026-03-22T16:40:54Z"
-last_activity: 2026-03-22 -- Completed 52-01 (CostSummaryBar + formatting utils + useAnalysisUsage hook)
+stopped_at: Completed 52-02-PLAN.md
+last_updated: "2026-03-22T16:49:36.887Z"
+last_activity: 2026-03-22 -- Completed 52-02 (Dashboard portfolio cost stat cards)
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 75
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 52 - Cost Display and Portfolio Spend
+**Current focus:** Phase 53 - Contract Lifecycle Status
 
 ## Current Position
 
 Phase: 52 (2 of 4 in v2.2)
 Plan: 2 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-22 -- Completed 52-01 (CostSummaryBar + formatting utils + useAnalysisUsage hook)
+Last activity: 2026-03-22 -- Completed 52-02 (Dashboard portfolio cost stat cards)
 
-Progress: [████████░░] 75%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Recent decisions affecting current work:
 - [Phase 51]: Independent AbortControllers per pass -- simpler than parent-child hierarchy
 - [Phase 51]: Defensive as-casts with ?? 0 for beta streaming usage fields
 - [Phase 52]: costUsd coerced with Number() after mapRows -- Postgres numeric returns string
+- [Phase 52]: Aggregate analysis_usage in-component via useEffect -- single consumer, simple query
 
 ### Pending Todos
 
@@ -73,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:40:54Z
-Stopped at: Completed 52-01-PLAN.md
-Resume file: .planning/phases/52-cost-display-and-portfolio-spend/52-02-PLAN.md
+Last session: 2026-03-22T16:49:36.885Z
+Stopped at: Completed 52-02-PLAN.md
+Resume file: None
