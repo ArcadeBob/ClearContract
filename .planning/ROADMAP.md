@@ -171,10 +171,11 @@ Plans:
   1. Contract review page shows total analysis cost, total tokens, and cache hit rate for the most recent analysis run
   2. User can expand a collapsible section to see per-pass breakdown (pass name, tokens in/out, cache hit rate, cost, duration)
   3. Dashboard shows portfolio-wide cost stats: total API spend across all contracts and average cost per contract
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 52-01: TBD
+- [ ] 52-01-PLAN.md -- Formatting utils + useAnalysisUsage hook + CostSummaryBar component + ContractReview integration
+- [ ] 52-02-PLAN.md -- Dashboard portfolio cost stats (Total API Spend + Avg Cost StatCards, 6-card grid)
 
 ### Phase 53: Contract Lifecycle Status
 **Goal**: User can track where each contract stands in its business lifecycle independently from AI analysis status
@@ -185,7 +186,7 @@ Plans:
   2. Contract cards on dashboard and All Contracts page show a color-coded lifecycle badge
   3. User can change lifecycle status via a dropdown on the contract review page, with only valid transitions available
   4. All Contracts page has a multi-select lifecycle status filter that narrows the visible contract list
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 53-01: TBD
@@ -198,7 +199,7 @@ Plans:
   1. Dashboard shows a portfolio-wide deadline timeline with entries grouped by urgency: overdue, this week, this month, and later
   2. Each timeline entry shows the date, contract name, and date description -- clicking navigates to that contract's review page
   3. Sidebar shows a badge with the count of deadlines due within 7 days (disappears when count is zero)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 54-01: TBD
@@ -261,6 +262,6 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-21 |
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
 | 51. Analysis Pipeline Parallelization and Token Capture | 2/2 | Complete    | 2026-03-22 | - |
-| 52. Cost Display and Portfolio Spend | v2.2 | 0/? | Not started | - |
+| 52. Cost Display and Portfolio Spend | v2.2 | 0/2 | Not started | - |
 | 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
