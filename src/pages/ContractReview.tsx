@@ -12,6 +12,8 @@ import { ReviewHeader } from '../components/ReviewHeader';
 import { FilterToolbar, ViewMode } from '../components/FilterToolbar';
 import { RiskSummary } from '../components/RiskSummary';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
+import { useAnalysisUsage } from '../hooks/useAnalysisUsage';
+import { CostSummaryBar } from '../components/CostSummaryBar';
 import { useContractFiltering } from '../hooks/useContractFiltering';
 import {
   CheckCircle,
@@ -51,6 +53,7 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
   });
 
   const { profile } = useCompanyProfile();
+  const { rows: usageRows, isLoading: usageLoading } = useAnalysisUsage(contract.id);
 
   // Check if core profile fields that affect analysis are empty
   const coreProfileFields: (keyof typeof profile)[] = [
@@ -85,6 +88,12 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
         filters={filters}
         hideResolved={hideResolved}
       />
+
+      <div className="bg-slate-50 px-8 pt-4">
+        <div className="max-w-7xl mx-auto">
+          <CostSummaryBar rows={usageRows} isLoading={usageLoading} />
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-slate-50 p-8">
