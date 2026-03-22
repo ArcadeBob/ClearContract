@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -13,6 +13,7 @@ import { Finding } from './types/contract';
 import { supabase } from './lib/supabase';
 import { analyzeContract } from './api/analyzeContract';
 import { classifyError } from './utils/errors';
+import { countDeadlinesWithin7Days } from './utils/dateUrgency';
 import { useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -35,6 +36,13 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const { showToast } = useToast();
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+
+  const deadlineCount = useMemo(() => {
+    const allDates = contracts
+      .filter(c => c.status === 'Reviewed')
+      .flatMap(c => c.dates);
+    return countDeadlinesWithin7Days(allDates);
+  }, [contracts]);
 
   const activeViewRef = useRef(activeView);
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
@@ -269,6 +277,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
         activeView={activeView}
         onNavigate={(view) => navigateTo(view)}
         contractCount={contracts.length}
+        deadlineBadge={deadlineCount}
         onSignOut={signOut}
       />
 

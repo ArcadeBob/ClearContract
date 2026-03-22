@@ -12,12 +12,14 @@ interface SidebarProps {
   activeView: ViewState;
   onNavigate: (view: ViewState) => void;
   contractCount: number;
+  deadlineBadge?: number;
   onSignOut: () => void;
 }
 export function Sidebar({
   activeView,
   onNavigate,
   contractCount,
+  deadlineBadge,
   onSignOut,
 }: SidebarProps) {
   const navItems = [
@@ -25,6 +27,7 @@ export function Sidebar({
       id: 'dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
+      urgentBadge: deadlineBadge && deadlineBadge > 0 ? deadlineBadge : undefined,
     },
     {
       id: 'upload',
@@ -67,6 +70,11 @@ export function Sidebar({
             {item.badge && (
               <span className="bg-slate-800 text-slate-300 text-xs py-0.5 px-2 rounded-full">
                 {item.badge}
+              </span>
+            )}
+            {item.urgentBadge && (
+              <span className="bg-red-600 text-white text-xs py-0.5 px-2 rounded-full">
+                {item.urgentBadge}
               </span>
             )}
           </button>
