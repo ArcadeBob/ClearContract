@@ -1,4 +1,4 @@
-import type { Severity } from '../types/contract';
+import type { Severity, LifecycleStatus } from '../types/contract';
 
 /**
  * Complete Tailwind class strings for severity badge styling.
@@ -10,6 +10,19 @@ export const SEVERITY_BADGE_COLORS: Record<Severity, string> = {
   Medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   Low: 'bg-blue-100 text-blue-700 border-blue-200',
   Info: 'bg-slate-100 text-slate-700 border-slate-200',
+};
+
+/**
+ * Complete Tailwind class strings for lifecycle status badge styling.
+ * Uses full string literals (no interpolation) to survive Tailwind JIT purge.
+ */
+export const LIFECYCLE_BADGE_COLORS: Record<LifecycleStatus, string> = {
+  'Draft':         'bg-slate-100 text-slate-600 border-slate-200',
+  'Under Review':  'bg-blue-100 text-blue-700 border-blue-200',
+  'Negotiating':   'bg-purple-100 text-purple-700 border-purple-200',
+  'Signed':        'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'Active':        'bg-green-100 text-green-700 border-green-200',
+  'Expired':       'bg-red-100 text-red-600 border-red-200',
 };
 
 /**

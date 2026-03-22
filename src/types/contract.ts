@@ -17,6 +17,25 @@ export const CATEGORIES = [
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+export const LIFECYCLE_STATUSES = [
+  'Draft',
+  'Under Review',
+  'Negotiating',
+  'Signed',
+  'Active',
+  'Expired',
+] as const;
+export type LifecycleStatus = (typeof LIFECYCLE_STATUSES)[number];
+
+export const LIFECYCLE_TRANSITIONS: Record<LifecycleStatus, readonly LifecycleStatus[]> = {
+  'Draft':         ['Under Review', 'Expired'],
+  'Under Review':  ['Negotiating', 'Signed', 'Draft', 'Expired'],
+  'Negotiating':   ['Under Review', 'Signed', 'Expired'],
+  'Signed':        ['Active', 'Expired'],
+  'Active':        ['Expired'],
+  'Expired':       [],
+};
+
 export interface InsuranceCoverageItem {
   coverageType: string;
   requiredLimit: string;
@@ -163,6 +182,7 @@ export interface Contract {
   type: 'Prime Contract' | 'Subcontract' | 'Purchase Order' | 'Change Order';
   uploadDate: string;
   status: 'Analyzing' | 'Reviewed' | 'Draft';
+  lifecycleStatus: LifecycleStatus;
   findings: Finding[];
   dates: ContractDate[];
   riskScore: number; // 0-100

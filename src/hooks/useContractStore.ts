@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Contract } from '../types/contract';
-import type { Finding, ContractDate } from '../types/contract';
+import type { Finding, ContractDate, LifecycleStatus } from '../types/contract';
 import { supabase } from '../lib/supabase';
 import { mapRow, mapRows } from '../lib/mappers';
 import { useToast } from './useToast';
@@ -165,6 +165,24 @@ export function useContractStore() {
     }
   };
 
+  const updateLifecycleStatus = async (id: string, lifecycleStatus: LifecycleStatus) => {
+    const prev = [...contracts];
+    setContracts((cs) =>
+      cs.map((c) => (c.id === id ? { ...c, lifecycleStatus } : c))
+    );
+
+    const { error } = await supabase
+      .from('contracts')
+      .update({ lifecycle_status: lifecycleStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update lifecycle status:', error);
+      setContracts(prev);
+      showToast({ type: 'error', message: 'Failed to update status. Changes reverted.' });
+    }
+  };
+
   return {
     contracts,
     isLoading,
@@ -175,5 +193,6 @@ export function useContractStore() {
     toggleFindingResolved,
     updateFindingNote,
     renameContract,
+    updateLifecycleStatus,
   };
 }
