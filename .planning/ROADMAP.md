@@ -157,11 +157,11 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
   2. A single pass that exceeds ~90 seconds is aborted independently without killing the entire analysis
   3. If the serverless function times out mid-analysis, passes that already completed have their findings and dates persisted in the database
   4. After analysis completes, the analysis_usage table contains per-pass token counts (input, output, cache_creation, cache_read), computed cost, and duration for the run
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 51-01: TBD
-- [ ] 51-02: TBD
+- [ ] 51-01-PLAN.md -- DB migration (analysis_usage table, Partial status) + shared types + cost utility
+- [ ] 51-02-PLAN.md -- Pipeline restructure (two-stage cache, AbortControllers, usage capture, progressive saves)
 
 ### Phase 52: Cost Display and Portfolio Spend
 **Goal**: User can see exactly what each analysis costs -- per pass and in total -- and track cumulative API spend across all contracts
@@ -260,7 +260,7 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 48. ESLint and Tooling Upgrade | v2.1 | 1/1 | Complete | 2026-03-20 |
 | 49. Coverage Push | v2.1 | 3/3 | Complete | 2026-03-21 |
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
-| 51. Analysis Pipeline Parallelization and Token Capture | v2.2 | 0/? | Not started | - |
+| 51. Analysis Pipeline Parallelization and Token Capture | v2.2 | 0/2 | Not started | - |
 | 52. Cost Display and Portfolio Spend | v2.2 | 0/? | Not started | - |
 | 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
