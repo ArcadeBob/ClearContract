@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
 status: executing
-stopped_at: Completed 53-02-PLAN.md
-last_updated: "2026-03-22T19:25:47.863Z"
-last_activity: 2026-03-22 -- Completed 53-01 (Lifecycle status foundation)
+stopped_at: Completed 54-01-PLAN.md
+last_updated: "2026-03-22T22:49:54.241Z"
+last_activity: 2026-03-22 -- Completed 54-01 (Date urgency utility & DeadlineTimeline)
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 83
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 53 - Contract Lifecycle Status
+**Current focus:** Phase 54 - Date Intelligence Portfolio Timeline
 
 ## Current Position
 
-Phase: 53 (3 of 4 in v2.2)
+Phase: 54 (4 of 4 in v2.2)
 Plan: 1 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-22 -- Completed 53-01 (Lifecycle status foundation)
+Last activity: 2026-03-22 -- Completed 54-01 (Date urgency utility & DeadlineTimeline)
 
 Progress: [████████░░] 83%
 
@@ -63,6 +63,7 @@ Recent decisions affecting current work:
 - [Phase 52]: Aggregate analysis_usage in-component via useEffect -- single consumer, simple query
 - [Phase 53]: Lifecycle transition map as const Record -- compile-time safety for valid transitions
 - [Phase 53]: LifecycleBadge placed between upload date and analysis status badge on ContractCard for business-then-technical visual hierarchy
+- [Phase 54]: Local date parsing via split/Number to avoid UTC offset issues with YYYY-MM-DD strings
 
 ### Pending Todos
 
@@ -76,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T19:21:40.238Z
-Stopped at: Completed 53-02-PLAN.md
+Last session: 2026-03-22T22:49:54.238Z
+Stopped at: Completed 54-01-PLAN.md
 Resume file: None
