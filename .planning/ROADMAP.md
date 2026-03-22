@@ -189,7 +189,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 53-01: TBD
+- [ ] 53-01-PLAN.md -- Types, palette, migration, store method, LifecycleBadge + LifecycleSelect components
+- [ ] 53-02-PLAN.md -- Wire lifecycle UI into ContractCard, ReviewHeader, and AllContracts filter
 
 ### Phase 54: Date Intelligence and Portfolio Timeline
 **Goal**: User sees all upcoming contract deadlines across their entire portfolio in one place, with urgency signals that surface what needs attention now
@@ -263,5 +264,5 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 50. Dead Code Cleanup | v2.1 | 1/1 | Complete | 2026-03-21 |
 | 51. Analysis Pipeline Parallelization and Token Capture | 2/2 | Complete    | 2026-03-22 | - |
 | 52. Cost Display and Portfolio Spend | 2/2 | Complete    | 2026-03-22 | - |
-| 53. Contract Lifecycle Status | v2.2 | 0/? | Not started | - |
+| 53. Contract Lifecycle Status | v2.2 | 0/2 | Not started | - |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 0/? | Not started | - |
