@@ -1,11 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { randomUUID } from 'crypto';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types';
 import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers';
-import type { PassUsage, PassWithUsage } from './types';
-import { computePassCost } from './cost';
 
 // 2A: Allow larger base64-encoded PDFs through Vercel body parser
 export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
@@ -30,10 +28,12 @@ import '../src/knowledge/standards/index';
 import { fetch as undiciFetch, Agent } from 'undici';
 import { preparePdfForAnalysis } from './pdf';
 import { mergePassResults } from './merge';
-import type { AnalysisPassInfo, UnifiedFinding } from './merge';
+import type { UnifiedFinding } from './merge';
 import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 import { ANALYSIS_PASSES, SYNTHESIS_SYSTEM_PROMPT } from './passes';
 import type { AnalysisPass } from './passes';
+import type { PassUsage, PassWithUsage } from './types';
+import { computePassCost } from './cost';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -80,7 +80,7 @@ function zodToOutputFormat(zodSchema: Parameters<typeof zodToJsonSchema>[0]) {
     target: 'jsonSchema7',
     $refStrategy: 'none',
   });
-  // Remove the $schema meta key — Anthropic does not expect it
+  // Remove the $schema meta key -- Anthropic does not expect it
   const { $schema: _, ...schema } = raw as Record<string, unknown>;
   return {
     type: 'json_schema' as const,
@@ -89,7 +89,7 @@ function zodToOutputFormat(zodSchema: Parameters<typeof zodToJsonSchema>[0]) {
 }
 
 // ---------------------------------------------------------------------------
-// Run a single analysis pass
+// Run a single analysis pass (with usage capture and AbortSignal support)
 // ---------------------------------------------------------------------------
 
 async function runAnalysisPass(
@@ -100,7 +100,12 @@ async function runAnalysisPass(
   signal?: AbortSignal
 ): Promise<PassWithUsage> {
   const startTime = Date.now();
-  const passUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+  const passUsage: PassUsage = {
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheCreationTokens: 0,
+    cacheReadTokens: 0,
+  };
 
   const outputFormat = pass.schema
     ? zodToOutputFormat(pass.schema)
@@ -116,7 +121,7 @@ async function runAnalysisPass(
     PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined
   );
 
-  // Use streaming to avoid HeadersTimeoutError — headers are sent immediately
+  // Use streaming to avoid HeadersTimeoutError -- headers are sent immediately
   // via SSE, keeping the connection alive while Claude processes the document.
   const response = await client.beta.messages.create({
     model: MODEL,
@@ -143,7 +148,7 @@ async function runAnalysisPass(
     output_config: { format: outputFormat },
   }, signal ? { signal } : {});
 
-  // Collect streamed text chunks into complete response, capturing usage from streaming events
+  // Collect streamed text chunks and capture usage from streaming events
   let responseText = '';
   for await (const event of response) {
     if (event.type === 'message_start') {
@@ -178,9 +183,9 @@ async function runAnalysisPass(
 }
 
 
-
-
-
+// ---------------------------------------------------------------------------
+// Run synthesis pass (with usage capture and AbortSignal support)
+// ---------------------------------------------------------------------------
 
 async function runSynthesisPass(
   client: Anthropic,
@@ -188,7 +193,12 @@ async function runSynthesisPass(
   signal?: AbortSignal
 ): Promise<{ findings: UnifiedFinding[]; usage: PassUsage; durationMs: number }> {
   const startTime = Date.now();
-  const passUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+  const passUsage: PassUsage = {
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheCreationTokens: 0,
+    cacheReadTokens: 0,
+  };
 
   try {
     // Not enough findings to detect compound risk patterns
@@ -228,7 +238,7 @@ async function runSynthesisPass(
       output_config: { format: outputFormat },
     }, signal ? { signal } : {});
 
-    // Collect streamed text chunks into complete response, capturing usage
+    // Collect streamed text chunks and capture usage from streaming events
     let responseText = '';
     for await (const event of response) {
       if (event.type === 'message_start') {
@@ -261,7 +271,7 @@ async function runSynthesisPass(
     const parsed = SynthesisPassResultSchema.parse(JSON.parse(responseText));
 
     // Convert synthesis findings to UnifiedFinding format
-    const convertedFindings = parsed.findings.map((sf) => ({
+    const converted = parsed.findings.map((sf) => ({
       severity: 'High' as const,
       category: 'Compound Risk' as const,
       title: sf.title,
@@ -273,7 +283,8 @@ async function runSynthesisPass(
       crossReferences: sf.constituentFindings,
       actionPriority: sf.actionPriority,
     }));
-    return { findings: convertedFindings, usage: passUsage, durationMs: Date.now() - startTime };
+
+    return { findings: converted as unknown as UnifiedFinding[], usage: passUsage, durationMs: Date.now() - startTime };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[analyze] Synthesis pass failed (non-fatal): ${msg}`);
@@ -333,6 +344,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let fileId: string | null = null;
   let client: Anthropic | null = null;
   let dispatcher: Agent | null = null;
+  let globalTimeout: ReturnType<typeof setTimeout> | null = null;
 
   try {
     const parseResult = AnalyzeRequestSchema.safeParse(req.body);
@@ -370,10 +382,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // However, undici's fetch doesn't support FormData file uploads, so we use
     // a separate client with the default fetch for file uploads.
     dispatcher = new Agent({
-      headersTimeout: 0, // disabled — let SDK AbortController handle timeout
-      bodyTimeout: 0, // disabled — streaming responses can be long
+      headersTimeout: 0, // disabled -- let SDK AbortController handle timeout
+      bodyTimeout: 0, // disabled -- streaming responses can be long
       connectTimeout: 30_000, // 30s to establish TCP connection
-      connections: 20, // pool size — peak concurrency is 16 parallel API calls
+      connections: 20, // pool size -- peak concurrency is 16 parallel API calls
     });
     const customFetch: typeof globalThis.fetch = (input, init) =>
       undiciFetch(
@@ -392,10 +404,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Message client uses custom undici fetch (configurable timeouts)
+    // 280s SDK timeout kept as last-resort safety net -- per-pass AbortControllers
+    // at 90s and global 250s timeout handle all normal timeout scenarios
     client = new Anthropic({
       apiKey,
-      timeout: 280 * 1000, // 280s — under Vercel maxDuration (300s), allows room for cleanup
-      maxRetries: 0, // Don't retry inside serverless function — wastes budget
+      timeout: 280 * 1000, // 280s -- under Vercel maxDuration (300s), allows room for cleanup
+      maxRetries: 0, // Don't retry inside serverless function -- wastes budget
       fetch: customFetch,
     });
 
@@ -430,14 +444,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Global safety timeout: 250s -- leaves ~50s for merge + DB writes before Vercel's 300s kill
     const globalController = new AbortController();
-    const globalTimeout = setTimeout(() => {
+    globalTimeout = setTimeout(() => {
       isGlobalTimeout = true;
       console.log('[analyze] Global 250s timeout fired -- aborting in-flight passes');
       allControllers.forEach(c => c.abort());
       globalController.abort();
     }, 250_000);
 
-    try {
     // --- STAGE 1: Primer pass (risk-overview) ---
     // Sent first and alone to create Anthropic prompt cache.
     const primerPass = ANALYSIS_PASSES.find(p => p.name === 'risk-overview')!;
@@ -525,9 +538,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ),
     ];
 
-    // Filter out aborted passes -- timed-out passes are dropped silently per locked decision.
-    // mergePassResults creates "Analysis Pass Failed" findings for rejected promises,
-    // but timed-out passes should NOT generate findings.
+    // Filter out aborted passes before mergePassResults -- timed-out passes
+    // are dropped silently (logged but no finding created for the user).
+    // mergePassResults creates "Analysis Pass Failed" findings for rejected
+    // promises, so we filter out abort errors to prevent those findings.
     const nonAbortSettled = allSettled.filter((s, i) => {
       if (s.status === 'rejected') {
         const reason = s.reason;
@@ -640,7 +654,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (updateError || !data) throw new Error(`Failed to update contract: ${updateError?.message || 'not found'}`);
       contractRow = data as Record<string, unknown>;
 
-      // Delete old findings, dates, and usage for this contract (new ones inserted below)
+      // Delete old findings, dates, and usage rows for this contract (new ones inserted below)
       await supabaseAdmin.from('findings').delete().eq('contract_id', existingContractId);
       await supabaseAdmin.from('contract_dates').delete().eq('contract_id', existingContractId);
       await supabaseAdmin.from('analysis_usage').delete().eq('contract_id', existingContractId);
@@ -752,9 +766,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     return res.status(200).json(contract);
-    } finally {
-      clearTimeout(globalTimeout);
-    }
   } catch (error: unknown) {
     const classified = classifyError(error);
     console.error('Analysis error:', classified.userMessage);
@@ -764,6 +775,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : 500;
     return res.status(statusCode).json(formatApiError(classified));
   } finally {
+    // Clear global timeout to prevent it firing during cleanup
+    if (globalTimeout) {
+      clearTimeout(globalTimeout);
+    }
     // Clean up: delete the uploaded file from Files API (best-effort)
     if (client && fileId) {
       try {
