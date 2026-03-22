@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Contract, ViewState } from '../types/contract';
 import { StatCard } from '../components/StatCard';
 import { PatternsCard } from '../components/PatternsCard';
@@ -11,35 +11,13 @@ import {
   Plus,
   ArrowRight,
   FileSearch,
-  Calendar,
   DollarSign,
   Coins,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { formatCost, formatTokens } from '../utils/formatCost';
+import { DeadlineTimeline } from '../components/DeadlineTimeline';
 
-function getDateUrgency(dateStr: string): { label: string; colorClass: string; isPast: boolean } {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr);
-  target.setHours(0, 0, 0, 0);
-  const diffMs = target.getTime() - now.getTime();
-  const diffDays = Math.round(diffMs / 86400000);
-
-  if (diffDays < 0) {
-    return { label: `${Math.abs(diffDays)}d ago`, colorClass: 'text-slate-400', isPast: true };
-  }
-  if (diffDays === 0) {
-    return { label: 'Today', colorClass: 'text-red-600', isPast: false };
-  }
-  if (diffDays <= 7) {
-    return { label: `${diffDays}d away`, colorClass: 'text-red-600', isPast: false };
-  }
-  if (diffDays <= 30) {
-    return { label: `${diffDays}d away`, colorClass: 'text-amber-600', isPast: false };
-  }
-  return { label: `${diffDays}d away`, colorClass: 'text-emerald-600', isPast: false };
-}
 interface DashboardProps {
   contracts: Contract[];
   onNavigate: (view: ViewState, id?: string) => void;
@@ -63,21 +41,6 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
           reviewed.reduce((acc, c) => acc + c.riskScore, 0) / totalContracts
         )
       : 0;
-  const upcomingDates = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return contracts
-      .filter(c => c.status === 'Reviewed')
-      .flatMap(c => c.dates.map(d => ({ ...d, contractId: c.id, contractName: c.name })))
-      .filter(d => {
-        const target = new Date(d.date);
-        target.setHours(0, 0, 0, 0);
-        return target.getTime() >= now.getTime() - 86400000;
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 5);
-  }, [contracts]);
-
   const recentContracts = [...contracts].sort(
     (a, b) =>
       new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
@@ -242,44 +205,7 @@ export function Dashboard({ contracts, onNavigate }: DashboardProps) {
                 </button>
               </div>
 
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-slate-500" />
-                  Upcoming Deadlines
-                </h3>
-                {upcomingDates.length === 0 ? (
-                  <div className="text-center py-6">
-                    <Calendar className="w-10 h-10 text-slate-200 mx-auto mb-2" />
-                    <p className="text-sm text-slate-400">No upcoming deadlines</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {upcomingDates.map((d, i) => {
-                      const urgency = getDateUrgency(d.date);
-                      return (
-                        <button
-                          key={`${d.contractId}-${d.label}-${i}`}
-                          onClick={() => onNavigate('review', d.contractId)}
-                          className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-900 truncate mr-2">{d.label}</span>
-                            <span className={`text-xs font-medium whitespace-nowrap ${urgency.colorClass}`}>
-                              {urgency.label}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-xs text-slate-500 truncate mr-2">{d.contractName}</span>
-                            <span className={`text-xs ${urgency.isPast ? 'text-slate-400' : 'text-slate-500'}`}>
-                              {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <DeadlineTimeline contracts={contracts} onNavigate={onNavigate} />
             </div>
           </div>
         </>
