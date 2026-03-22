@@ -23,9 +23,9 @@ Requirements for Performance & Intelligence milestone. Each maps to roadmap phas
 ### Contract Lifecycle
 
 - [x] **LIFE-01**: New lifecycle_status column on contracts table (Draft/Under Review/Negotiating/Signed/Active/Expired) separate from analysis status
-- [ ] **LIFE-02**: Color-coded lifecycle badges on contract cards and review header
-- [ ] **LIFE-03**: Dropdown selector with validated transitions on contract review page
-- [ ] **LIFE-04**: Multi-select lifecycle status filter on All Contracts page
+- [x] **LIFE-02**: Color-coded lifecycle badges on contract cards and review header
+- [x] **LIFE-03**: Dropdown selector with validated transitions on contract review page
+- [x] **LIFE-04**: Multi-select lifecycle status filter on All Contracts page
 
 ### Date Intelligence
 
@@ -81,9 +81,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COST-03 | Phase 52 | Complete |
 | COST-04 | Phase 52 | Complete |
 | LIFE-01 | Phase 53 | Complete |
-| LIFE-02 | Phase 53 | Pending |
-| LIFE-03 | Phase 53 | Pending |
-| LIFE-04 | Phase 53 | Pending |
+| LIFE-02 | Phase 53 | Complete |
+| LIFE-03 | Phase 53 | Complete |
+| LIFE-04 | Phase 53 | Complete |
 | DATE-01 | Phase 54 | Pending |
 | DATE-02 | Phase 54 | Pending |
 
