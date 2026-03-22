@@ -1,8 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types';
 import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers';
+import type { PassUsage, PassWithUsage } from './types';
+import { computePassCost } from './cost';
 
 // 2A: Allow larger base64-encoded PDFs through Vercel body parser
 export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
@@ -93,8 +96,12 @@ async function runAnalysisPass(
   client: Anthropic,
   fileId: string,
   pass: AnalysisPass,
-  companyProfile?: CompanyProfile
-): Promise<{ passName: string; result: PassResult | RiskOverviewResult }> {
+  companyProfile?: CompanyProfile,
+  signal?: AbortSignal
+): Promise<PassWithUsage> {
+  const startTime = Date.now();
+  const passUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+
   const outputFormat = pass.schema
     ? zodToOutputFormat(pass.schema)
     : pass.isOverview
@@ -134,11 +141,25 @@ async function runAnalysisPass(
       },
     ],
     output_config: { format: outputFormat },
-  });
+  }, signal ? { signal } : {});
 
-  // Collect streamed text chunks into complete response
+  // Collect streamed text chunks into complete response, capturing usage from streaming events
   let responseText = '';
   for await (const event of response) {
+    if (event.type === 'message_start') {
+      const usage = (event as { message?: { usage?: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } } }).message?.usage;
+      if (usage) {
+        passUsage.inputTokens = usage.input_tokens ?? 0;
+        passUsage.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0;
+        passUsage.cacheReadTokens = usage.cache_read_input_tokens ?? 0;
+      }
+    }
+    if (event.type === 'message_delta') {
+      const deltaUsage = (event as { usage?: { output_tokens?: number } }).usage;
+      if (deltaUsage) {
+        passUsage.outputTokens = deltaUsage.output_tokens ?? 0;
+      }
+    }
     if (
       event.type === 'content_block_delta' &&
       event.delta.type === 'text_delta'
@@ -153,7 +174,7 @@ async function runAnalysisPass(
   const parsed = JSON.parse(responseText);
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
-  return { passName: pass.name, result: parsed };
+  return { passName: pass.name, result: parsed, usage: passUsage, durationMs: Date.now() - startTime };
 }
 
 
@@ -163,13 +184,17 @@ async function runAnalysisPass(
 
 async function runSynthesisPass(
   client: Anthropic,
-  findings: UnifiedFinding[]
-): Promise<UnifiedFinding[]> {
+  findings: UnifiedFinding[],
+  signal?: AbortSignal
+): Promise<{ findings: UnifiedFinding[]; usage: PassUsage; durationMs: number }> {
+  const startTime = Date.now();
+  const passUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+
   try {
     // Not enough findings to detect compound risk patterns
     if (findings.length < 3) {
       console.log('[analyze] Synthesis pass skipped: fewer than 3 findings');
-      return [];
+      return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
     }
 
     // Build compact summaries to stay within token limits
@@ -201,11 +226,25 @@ async function runSynthesisPass(
         },
       ],
       output_config: { format: outputFormat },
-    });
+    }, signal ? { signal } : {});
 
-    // Collect streamed text chunks into complete response
+    // Collect streamed text chunks into complete response, capturing usage
     let responseText = '';
     for await (const event of response) {
+      if (event.type === 'message_start') {
+        const usage = (event as { message?: { usage?: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } } }).message?.usage;
+        if (usage) {
+          passUsage.inputTokens = usage.input_tokens ?? 0;
+          passUsage.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0;
+          passUsage.cacheReadTokens = usage.cache_read_input_tokens ?? 0;
+        }
+      }
+      if (event.type === 'message_delta') {
+        const deltaUsage = (event as { usage?: { output_tokens?: number } }).usage;
+        if (deltaUsage) {
+          passUsage.outputTokens = deltaUsage.output_tokens ?? 0;
+        }
+      }
       if (
         event.type === 'content_block_delta' &&
         event.delta.type === 'text_delta'
@@ -216,15 +255,15 @@ async function runSynthesisPass(
 
     if (!responseText.trim()) {
       console.log('[analyze] Synthesis pass returned empty response');
-      return [];
+      return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
     }
 
     const parsed = SynthesisPassResultSchema.parse(JSON.parse(responseText));
 
     // Convert synthesis findings to UnifiedFinding format
-    return parsed.findings.map((sf) => ({
-      severity: 'High',
-      category: 'Compound Risk',
+    const convertedFindings = parsed.findings.map((sf) => ({
+      severity: 'High' as const,
+      category: 'Compound Risk' as const,
       title: sf.title,
       description: sf.description,
       recommendation: sf.recommendation,
@@ -234,10 +273,11 @@ async function runSynthesisPass(
       crossReferences: sf.constituentFindings,
       actionPriority: sf.actionPriority,
     }));
+    return { findings: convertedFindings, usage: passUsage, durationMs: Date.now() - startTime };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(`[analyze] Synthesis pass failed (non-fatal): ${msg}`);
-    return [];
+    return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
   }
 }
 
@@ -374,33 +414,191 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`
     );
 
-    // Execute all analysis passes in parallel (production allows 300s via
-    // vercel.json maxDuration; vercel dev defaults to 120s).
+    // --- Two-stage cache pipeline ---
+    const runId = randomUUID();
+    const allControllers: AbortController[] = [];
+    const usageRows: Array<{
+      pass_name: string;
+      input_tokens: number;
+      output_tokens: number;
+      cache_creation_tokens: number;
+      cache_read_tokens: number;
+      cost_usd: number;
+      duration_ms: number;
+    }> = [];
+    let isGlobalTimeout = false;
+
+    // Global safety timeout: 250s -- leaves ~50s for merge + DB writes before Vercel's 300s kill
+    const globalController = new AbortController();
+    const globalTimeout = setTimeout(() => {
+      isGlobalTimeout = true;
+      console.log('[analyze] Global 250s timeout fired -- aborting in-flight passes');
+      allControllers.forEach(c => c.abort());
+      globalController.abort();
+    }, 250_000);
+
+    try {
+    // --- STAGE 1: Primer pass (risk-overview) ---
+    // Sent first and alone to create Anthropic prompt cache.
+    const primerPass = ANALYSIS_PASSES.find(p => p.name === 'risk-overview')!;
+    const remainingPasses = ANALYSIS_PASSES.filter(p => p.name !== 'risk-overview');
+
+    console.log('[analyze] Stage 1: Running primer pass (risk-overview)...');
+    const primerController = new AbortController();
+    allControllers.push(primerController);
+    const primerTimeout = setTimeout(() => primerController.abort(), 90_000);
+
+    let primerResult: PassWithUsage;
+    try {
+      primerResult = await runAnalysisPass(
+        client!, fileId!, primerPass, companyProfile, primerController.signal
+      );
+    } catch (primerError) {
+      clearTimeout(primerTimeout);
+      // If primer fails, abort entire analysis per locked decision
+      const msg = primerError instanceof Error ? primerError.message : String(primerError);
+      console.error(`[analyze] Primer pass failed -- aborting analysis: ${msg}`);
+      throw new Error(`Analysis aborted: primer pass failed (${msg})`);
+    } finally {
+      clearTimeout(primerTimeout);
+    }
+
+    // Record primer usage
+    usageRows.push({
+      pass_name: primerResult.passName,
+      input_tokens: primerResult.usage.inputTokens,
+      output_tokens: primerResult.usage.outputTokens,
+      cache_creation_tokens: primerResult.usage.cacheCreationTokens,
+      cache_read_tokens: primerResult.usage.cacheReadTokens,
+      cost_usd: computePassCost(primerResult.usage),
+      duration_ms: primerResult.durationMs,
+    });
+
     console.log(
-      `[analyze] Running all ${ANALYSIS_PASSES.length} passes in parallel...`
+      `[analyze] Primer done in ${(primerResult.durationMs / 1000).toFixed(1)}s, ` +
+      `cache_creation=${primerResult.usage.cacheCreationTokens}, ` +
+      `cache_read=${primerResult.usage.cacheReadTokens}`
     );
+
+    // --- STAGE 2: Remaining 15 passes in parallel ---
+    console.log(`[analyze] Stage 2: Running ${remainingPasses.length} passes in parallel...`);
     const passStart = Date.now();
+
     const settledResults = await Promise.allSettled(
-      ANALYSIS_PASSES.map((pass) =>
-        runAnalysisPass(client!, fileId!, pass, companyProfile)
-      )
+      remainingPasses.map((pass) => {
+        const ctrl = new AbortController();
+        allControllers.push(ctrl);
+        const timeout = setTimeout(() => {
+          console.log(`[analyze] Pass "${pass.name}" timed out at 90s`);
+          ctrl.abort();
+        }, 90_000);
+
+        return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal)
+          .finally(() => clearTimeout(timeout));
+      })
     );
-    const failed = settledResults.filter((r) => r.status === 'rejected').length;
+
+    // Record usage for settled parallel passes
+    for (const settled of settledResults) {
+      if (settled.status === 'fulfilled') {
+        const r = settled.value;
+        usageRows.push({
+          pass_name: r.passName,
+          input_tokens: r.usage.inputTokens,
+          output_tokens: r.usage.outputTokens,
+          cache_creation_tokens: r.usage.cacheCreationTokens,
+          cache_read_tokens: r.usage.cacheReadTokens,
+          cost_usd: computePassCost(r.usage),
+          duration_ms: r.durationMs,
+        });
+      }
+    }
+
+    // Build the full settled results array for mergePassResults:
+    // Primer is index 0, then remaining passes in order
+    const allSettled: PromiseSettledResult<{ passName: string; result: PassResult | RiskOverviewResult }>[] = [
+      { status: 'fulfilled' as const, value: { passName: primerResult.passName, result: primerResult.result as PassResult | RiskOverviewResult } },
+      ...settledResults.map(s =>
+        s.status === 'fulfilled'
+          ? { status: 'fulfilled' as const, value: { passName: s.value.passName, result: s.value.result as PassResult | RiskOverviewResult } }
+          : s
+      ),
+    ];
+
+    // Filter out aborted passes -- timed-out passes are dropped silently per locked decision.
+    // mergePassResults creates "Analysis Pass Failed" findings for rejected promises,
+    // but timed-out passes should NOT generate findings.
+    const nonAbortSettled = allSettled.filter((s, i) => {
+      if (s.status === 'rejected') {
+        const reason = s.reason;
+        const isAbort = reason instanceof Error && (reason.name === 'AbortError' || reason.message?.includes('abort'));
+        if (isAbort) {
+          const passName = i === 0 ? 'risk-overview' : remainingPasses[i - 1]?.name || 'unknown';
+          console.log(`[analyze] Pass "${passName}" dropped (timed out)`);
+          return false; // Filter out -- drop silently
+        }
+      }
+      return true;
+    });
+
+    // Build matching passes array (same order/length as nonAbortSettled)
+    const allPasses = [primerPass, ...remainingPasses];
+    const nonAbortPasses = allPasses.filter((_, i) => {
+      const s = allSettled[i];
+      if (s.status === 'rejected') {
+        const reason = s.reason;
+        return !(reason instanceof Error && (reason.name === 'AbortError' || reason.message?.includes('abort')));
+      }
+      return true;
+    });
+
+    const failed = settledResults.filter(r => r.status === 'rejected').length;
     console.log(
-      `[analyze] All passes done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed)`
+      `[analyze] Stage 2 done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed/timed-out)`
     );
 
-    // Merge results from all passes
-    const merged = mergePassResults(settledResults, ANALYSIS_PASSES);
+    // --- MERGE ---
+    const merged = mergePassResults(nonAbortSettled, nonAbortPasses);
 
-    // Run synthesis pass with deduplicated findings (17th pass)
-    const synthStart = Date.now();
-    const synthFindings = await runSynthesisPass(client!, merged.findings as unknown as UnifiedFinding[]);
-    console.log(`[analyze] Synthesis pass done in ${((Date.now() - synthStart) / 1000).toFixed(1)}s, ${synthFindings.length} compound risks`);
+    // --- SYNTHESIS (skip on timeout path) ---
+    let synthUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+    let synthDuration = 0;
 
-    // Append synthesis findings (excluded from score via Compound Risk category weight 0,
-    // and appended after mergePassResults which already computed the risk score)
-    merged.findings.push(...synthFindings as unknown as typeof merged.findings[number][]);
+    if (!isGlobalTimeout) {
+      const synthController = new AbortController();
+      allControllers.push(synthController);
+      const synthTimeout = setTimeout(() => synthController.abort(), 90_000);
+
+      const synthResult = await runSynthesisPass(
+        client!, merged.findings as unknown as UnifiedFinding[], synthController.signal
+      );
+      clearTimeout(synthTimeout);
+
+      synthUsage = synthResult.usage;
+      synthDuration = synthResult.durationMs;
+
+      console.log(
+        `[analyze] Synthesis pass done in ${(synthResult.durationMs / 1000).toFixed(1)}s, ${synthResult.findings.length} compound risks`
+      );
+
+      merged.findings.push(...synthResult.findings as unknown as typeof merged.findings[number][]);
+    } else {
+      console.log('[analyze] Synthesis pass skipped (global timeout path)');
+    }
+
+    // Record synthesis usage (even if skipped -- zeros)
+    usageRows.push({
+      pass_name: 'synthesis',
+      input_tokens: synthUsage.inputTokens,
+      output_tokens: synthUsage.outputTokens,
+      cache_creation_tokens: synthUsage.cacheCreationTokens,
+      cache_read_tokens: synthUsage.cacheReadTokens,
+      cost_usd: computePassCost(synthUsage),
+      duration_ms: synthDuration,
+    });
+
+    // --- DB WRITES ---
+    const contractStatus = isGlobalTimeout ? 'Partial' : 'Reviewed';
 
     const allFindings = [...merged.findings];
 
@@ -417,7 +615,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       client: merged.client,
       type: merged.contractType,
       uploadDate: new Date().toISOString().split('T')[0],
-      status: 'Reviewed',
+      status: contractStatus,
       riskScore: merged.riskScore,
       scoreBreakdown: merged.scoreBreakdown,
       bidSignal,
@@ -442,9 +640,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (updateError || !data) throw new Error(`Failed to update contract: ${updateError?.message || 'not found'}`);
       contractRow = data as Record<string, unknown>;
 
-      // Delete old findings and dates for this contract (new ones inserted below)
+      // Delete old findings, dates, and usage for this contract (new ones inserted below)
       await supabaseAdmin.from('findings').delete().eq('contract_id', existingContractId);
       await supabaseAdmin.from('contract_dates').delete().eq('contract_id', existingContractId);
+      await supabaseAdmin.from('analysis_usage').delete().eq('contract_id', existingContractId);
     } else {
       // New analysis: insert contract row
       const { data, error: insertError } = await supabaseAdmin
@@ -524,6 +723,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dateRows = data;
     }
 
+    // Bulk insert analysis_usage rows
+    if (usageRows.length > 0) {
+      const usagePayloads = usageRows.map(row => ({
+        contract_id: contractId,
+        user_id: userId,
+        run_id: runId,
+        ...row,
+      }));
+
+      const { error: usageError } = await supabaseAdmin
+        .from('analysis_usage')
+        .insert(usagePayloads);
+
+      if (usageError) {
+        console.error(`[analyze] Usage insert failed: ${usageError.message}`);
+      } else {
+        const totalCost = usageRows.reduce((sum, r) => sum + r.cost_usd, 0);
+        console.log(`[analyze] Usage saved: ${usageRows.length} rows, total cost $${totalCost.toFixed(4)}`);
+      }
+    }
+
     // Return full Contract object with DB-assigned IDs
     const contract = {
       ...mapRow(contractRow),
@@ -532,6 +752,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     return res.status(200).json(contract);
+    } finally {
+      clearTimeout(globalTimeout);
+    }
   } catch (error: unknown) {
     const classified = classifyError(error);
     console.error('Analysis error:', classified.userMessage);
