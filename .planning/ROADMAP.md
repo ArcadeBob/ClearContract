@@ -11,7 +11,7 @@
 - ✅ **v1.6 Quality & Validation** -- Phases 33-38 (shipped 2026-03-16)
 - ✅ **v2.0 Enterprise Foundation** -- Phases 39-45 (shipped 2026-03-19)
 - ✅ **v2.1 Quality Restoration** -- Phases 46-50 (shipped 2026-03-21)
-- **v2.2 Performance & Intelligence** -- Phases 51-54 (in progress)
+- **v2.2 Performance & Intelligence** -- Phases 51-55 (in progress)
 
 ## Phases
 
@@ -145,6 +145,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 - [x] **Phase 52: Cost Display and Portfolio Spend** - Per-pass cost breakdown on contract review, portfolio cost stats on dashboard (completed 2026-03-22)
 - [x] **Phase 53: Contract Lifecycle Status** - Lifecycle column, status badges, transition dropdown, status filtering (completed 2026-03-22)
 - [x] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge (completed 2026-03-22)
+- [ ] **Phase 55: Partial Status Type Gap Closure** - Add Partial to Contract.status type union, handle in UI components [GAP CLOSURE]
 
 ## Phase Details
 
@@ -206,10 +207,24 @@ Plans:
 - [ ] 54-01-PLAN.md -- Date urgency utility + DeadlineTimeline component
 - [ ] 54-02-PLAN.md -- Wire timeline into Dashboard + sidebar deadline badge
 
+### Phase 55: Partial Status Type Gap Closure
+**Goal**: Client-side TypeScript type and UI components correctly model the `Partial` analysis status that the server writes on global timeout
+**Depends on**: Phase 54
+**Requirements**: PERF-03 (integration gap closure)
+**Gap Closure:** Closes integration gap from v2.2 audit — `Partial` status absent from client-side Contract.status union type
+**Success Criteria** (what must be TRUE):
+  1. `Contract.status` type in `src/types/contract.ts` includes `'Partial'` alongside `'Analyzing' | 'Reviewed' | 'Draft'`
+  2. `ContractCard` badge shows a distinct color for Partial status (amber/orange to signal incomplete analysis)
+  3. Dashboard and timeline filters that check `status === 'Reviewed'` also include Partial contracts where appropriate (e.g., date timeline should show Partial contracts since they have partial data)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 55-01-PLAN.md -- Add Partial to type union + update UI status handling
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 51 -> 52 -> 53 -> 54
+Phases execute in numeric order: 51 -> 52 -> 53 -> 54 -> 55
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -267,3 +282,4 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54
 | 52. Cost Display and Portfolio Spend | 2/2 | Complete    | 2026-03-22 | - |
 | 53. Contract Lifecycle Status | 2/2 | Complete    | 2026-03-22 | - |
 | 54. Date Intelligence and Portfolio Timeline | 2/2 | Complete    | 2026-03-22 | - |
+| 55. Partial Status Type Gap Closure | v2.2 | 0/1 | Pending | - |
