@@ -72,7 +72,15 @@ export function ContractCard({ contract, onClick, onDelete, selectable, selected
           </span>
           <LifecycleBadge status={contract.lifecycleStatus} className="mb-1" />
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${contract.status === 'Reviewed' ? 'bg-emerald-100 text-emerald-700' : contract.status === 'Analyzing' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+              contract.status === 'Reviewed'
+                ? 'bg-emerald-100 text-emerald-700'
+                : contract.status === 'Partial'
+                  ? 'bg-amber-100 text-amber-700'
+                  : contract.status === 'Analyzing'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-slate-100 text-slate-600'
+            }`}
           >
             {contract.status}
           </span>

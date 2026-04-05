@@ -181,7 +181,7 @@ export interface Contract {
   client: string;
   type: 'Prime Contract' | 'Subcontract' | 'Purchase Order' | 'Change Order';
   uploadDate: string;
-  status: 'Analyzing' | 'Reviewed' | 'Draft';
+  status: 'Analyzing' | 'Reviewed' | 'Partial' | 'Draft';
   lifecycleStatus: LifecycleStatus;
   findings: Finding[];
   dates: ContractDate[];
