@@ -544,4 +544,41 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
       }
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Stage 3 orchestration (ARCH-01)
+  // -------------------------------------------------------------------------
+
+  describe('Stage 3', () => {
+    it("logs 'Stage 3: no passes registered, skipping' when no Stage 3 passes are registered", async () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      try {
+        const req = createMockReq();
+        const res = createMockRes();
+        await handler(req, res);
+
+        const loggedMessages = logSpy.mock.calls.map((c) => c[0]);
+        expect(loggedMessages).toContain('[analyze] Stage 3: no passes registered, skipping');
+      } finally {
+        logSpy.mockRestore();
+      }
+    });
+
+    it('completes pipeline and returns 200 with empty Stage 3 wave', async () => {
+      const req = createMockReq();
+      const res = createMockRes();
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+
+      const body = res.body as Record<string, unknown>;
+      // Merged findings contain only Stage 2 findings (no Stage 3 passes registered)
+      expect(Array.isArray(body.findings)).toBe(true);
+      expect((body.findings as unknown[]).length).toBeGreaterThan(0);
+    });
+
+    // Placeholders for Phase 58+ when real stage-3 passes are registered
+    it.todo("logs 'Stage 3: Running N reconciliation passes...' when stage-3 passes registered (exercised in Phase 58+)");
+    it.todo('Stage 3 pass rejection marks contract Partial (exercised when first stage-3 pass lands in Phase 58+)');
+  });
 });
