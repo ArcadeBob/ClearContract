@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Performance & Intelligence
 status: completed
-stopped_at: Completed 54-02-PLAN.md
-last_updated: "2026-03-22T23:03:55.480Z"
-last_activity: 2026-03-22 -- Completed 54-02 (Wire timeline into Dashboard + sidebar badge)
+stopped_at: Completed 55-01-PLAN.md
+last_updated: "2026-04-05T05:16:35.124Z"
+last_activity: 2026-04-04 -- Completed 55-01 (Partial status type + UI filter integration)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Phase 54 - Date Intelligence Portfolio Timeline
+**Current focus:** Phase 55 - Partial Status Type Gap Closure (v2.2 post-audit)
 
 ## Current Position
 
-Phase: 54 (4 of 4 in v2.2)
-Plan: 2 of 2 in current phase
+Phase: 55 (gap closure, post-v2.2 audit)
+Plan: 1 of 1 in current phase
 Status: Complete
-Last activity: 2026-03-22 -- Completed 54-02 (Wire timeline into Dashboard + sidebar badge)
+Last activity: 2026-04-04 -- Completed 55-01 (Partial status type + UI filter integration)
 
 Progress: [██████████] 100%
 
@@ -43,6 +43,8 @@ Progress: [██████████] 100%
 **v1.6 (Phases 33-38):** 13 plans, 47min total
 **v2.0 (Phases 39-45):** 11 plans, 2 days, ~5min avg
 **v2.1 (Phases 46-50):** 8 plans, 2 days
+**v2.2 (Phases 51-54):** 6 plans, 4 days
+**v2.2 gap closure (Phase 55):** 1 plan, ~5 min
 
 ## Accumulated Context
 
@@ -65,6 +67,7 @@ Recent decisions affecting current work:
 - [Phase 53]: LifecycleBadge placed between upload date and analysis status badge on ContractCard for business-then-technical visual hierarchy
 - [Phase 54]: Local date parsing via split/Number to avoid UTC offset issues with YYYY-MM-DD strings
 - [Phase 54]: Separate urgentBadge field on navItems (red) vs existing badge (slate) for visual distinction
+- [Phase 55]: Partial contracts treated as first-class data in all portfolio-level views (stats, timeline, patterns, urgent badge)
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T22:59:59.834Z
-Stopped at: Completed 54-02-PLAN.md
+Last session: 2026-04-05T05:16:35.122Z
+Stopped at: Completed 55-01-PLAN.md
 Resume file: None

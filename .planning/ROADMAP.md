@@ -145,7 +145,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 - [x] **Phase 52: Cost Display and Portfolio Spend** - Per-pass cost breakdown on contract review, portfolio cost stats on dashboard (completed 2026-03-22)
 - [x] **Phase 53: Contract Lifecycle Status** - Lifecycle column, status badges, transition dropdown, status filtering (completed 2026-03-22)
 - [x] **Phase 54: Date Intelligence and Portfolio Timeline** - Portfolio-wide deadline timeline, sidebar urgency badge (completed 2026-03-22)
-- [ ] **Phase 55: Partial Status Type Gap Closure** - Add Partial to Contract.status type union, handle in UI components [GAP CLOSURE]
+- [x] **Phase 55: Partial Status Type Gap Closure** - Add Partial to Contract.status type union, handle in UI components [GAP CLOSURE] (completed 2026-04-05)
 
 ## Phase Details
 
@@ -282,4 +282,4 @@ Phases execute in numeric order: 51 -> 52 -> 53 -> 54 -> 55
 | 52. Cost Display and Portfolio Spend | 2/2 | Complete    | 2026-03-22 | - |
 | 53. Contract Lifecycle Status | 2/2 | Complete    | 2026-03-22 | - |
 | 54. Date Intelligence and Portfolio Timeline | 2/2 | Complete    | 2026-03-22 | - |
-| 55. Partial Status Type Gap Closure | v2.2 | 0/1 | Pending | - |
+| 55. Partial Status Type Gap Closure | 1/1 | Complete   | 2026-04-05 | - |
