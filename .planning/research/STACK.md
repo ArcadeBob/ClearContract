@@ -1,268 +1,198 @@
-# Technology Stack
+# Stack Research — v3.0 Scope Intelligence
 
-**Project:** ClearContract v2.2 -- Analysis Parallelization, Token/Cost Tracking, Contract Lifecycle & Date Intelligence
-**Researched:** 2026-03-21
+**Domain:** Multi-document AI contract analysis (glazing subcontracts + bid/estimate)
+**Researched:** 2026-04-05
+**Confidence:** HIGH (builds on existing validated stack; no net-new architectural layers)
 
 ## Executive Summary
 
-v2.2 requires **zero new npm dependencies**. All three features build on capabilities already present in the existing stack:
+**This milestone requires ZERO net-new npm dependencies.** Every capability needed for multi-document input, second-PDF storage, scope reconciliation schemas, and cross-document analysis is already in the validated v2.2 stack. The work is:
 
-1. **Analysis parallelization** -- Already implemented via `Promise.allSettled` (line 383 of `api/analyze.ts`). The work is about capturing per-pass timing and handling concurrency limits, not adding libraries.
-2. **Token/cost tracking** -- The Anthropic SDK streaming events already emit `usage` data in `message_start` and `message_delta` events. The current code ignores these events. Capturing them requires only code changes to `runAnalysisPass` and `runSynthesisPass`, plus a new Supabase table.
-3. **Contract lifecycle & date intelligence** -- Requires a schema migration (new status values, new columns) and client-side UI. No new libraries needed; native `Date` operations already handle all date math in the codebase.
+1. **Configuration change** — enable a second dropzone instance (role-labeled via UI, not via `multiple: true` prop).
+2. **Schema change** — add one nullable column to Supabase `contracts` table for the bid Files API `file_id`.
+3. **Pipeline change** — upload second PDF to Anthropic Files API in the same way the contract PDF already is, attach both `document` blocks to reconciliation passes only.
+4. **Zod additions** — 3 new pass result schemas (submittal-tracker, spec-reconciliation, bid-reconciliation) following the existing `PassResultSchema` pattern in `src/schemas/analysis.ts`.
 
-## Recommended Stack
+No OCR, no drawing parsing, no external spec library, no new storage backend. Anthropic Files API is already the right home for both PDFs.
 
-### No New Dependencies
+## Recommended Stack Changes
 
-| Category | Decision | Rationale |
-|----------|----------|-----------|
-| Parallelization | Native `Promise.allSettled` | Already in use. No orchestration library needed for 16 concurrent API calls. |
-| Token tracking | `@anthropic-ai/sdk` ^0.78.0 (existing) | Streaming events already contain `usage` fields; we just need to capture them. |
-| Cost calculation | Pure TypeScript constants | Pricing is a lookup table ($3/$15 per MTok for sonnet-4.5). No SDK or service needed. |
-| Date intelligence UI | Native `Date` + existing Tailwind | Current codebase already does date diff, sorting, urgency coloring. Extend, don't replace. |
-| Date formatting | `Intl.DateTimeFormat` (browser built-in) | Already used via `toLocaleDateString`. No date-fns/dayjs needed. |
-| Database schema | Supabase Postgres (existing) | New migration file for `analysis_usage` table and `contracts.lifecycle_status` column. |
-| Lifecycle state machine | Pure TypeScript enum + transition map | 4 states, 5 transitions. State machine libraries are overkill. |
+### Core Technologies (unchanged)
 
-### Existing Stack (Unchanged)
+| Technology | Current Version | Status | Why It's Still Right |
+|------------|-----------------|--------|----------------------|
+| react-dropzone | ^14.2.3 | KEEP (optionally upgrade to 15.0) | Already supports `multiple`, `maxFiles`, role labeling via two separate `useDropzone` instances — no replacement needed |
+| @anthropic-ai/sdk | ^0.78.0 | KEEP | Files API supports multiple `document` blocks in single message; retention is until explicit delete, 100GB storage, 500MB per file |
+| @supabase/supabase-js | ^2.99.2 | KEEP | Single nullable `bid_file_id TEXT` column addition covers the persistence need |
+| zod | ^3.25.76 + zod-to-json-schema | KEEP | Existing discriminated-union pattern in `src/schemas/analysis.ts` scales to reconciliation matrix outputs with no new libs |
+| unpdf | ^1.4.0 | KEEP | Existing Files-API-first / unpdf-fallback pattern in `api/pdf.ts` applies identically to the bid PDF |
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| @anthropic-ai/sdk | ^0.78.0 | Claude API -- streaming usage data available in existing events |
-| @supabase/supabase-js | ^2.99.2 | Postgres + Auth -- new tables via migration |
-| React 18 | ^18.3.1 | UI framework |
-| TypeScript | ^5.5.4 | Type safety |
-| Vite | ^5.2.0 | Build tool |
-| Tailwind CSS | 3.4.17 | Styling |
-| Zod | ^3.25.76 | Schema validation |
-| Vitest | ^3.2.4 | Testing |
-| Framer Motion | ^11.5.4 | Animations |
-| undici | ^7.22.0 | HTTP client with configurable timeouts |
+### No Supporting Libraries Needed
 
-## Feature-Specific Technical Details
+The scope-intel feature set is entirely a **schema + prompt + pipeline orchestration** change. Specifically rejected:
 
-### 1. Analysis Parallelization (Already Done -- Enhance Only)
+| Candidate | Rejected Because |
+|-----------|------------------|
+| OCR library (tesseract.js, pdf.js-extract) | unpdf already extracts text; Files API handles native PDF. Drawing OCR explicitly out-of-scope per PROJECT.md line 138. |
+| Spec section database (Div 08 / MasterFormat) | PROJECT.md line 127 — knowledge stays as TypeScript modules; inference-based reconciliation per milestone spec |
+| Diff library (jsdiff, diff-match-patch) | Scope reconciliation is AI-driven matrix output, not text diff |
+| Upload progress library (tus-js-client, uppy) | 10MB base64 POST already works; two files = two sequential POSTs or one combined payload, both acceptable under Vercel's 15mb bodyParser limit |
+| File-type validator (file-type, mime-types) | react-dropzone `accept: { 'application/pdf': ['.pdf'] }` already enforces MIME + extension |
 
-**Current state:** `api/analyze.ts` line 383 already runs all 16 passes via `Promise.allSettled`. The undici Agent is configured with `connections: 20` to handle peak concurrency.
+### Schema Additions (Zod, no new packages)
 
-**What to add:**
-- Per-pass timing: wrap each `runAnalysisPass` call with `Date.now()` bookends
-- Per-pass status tracking: the `passResults` array already captures success/failed -- extend with `durationMs` and `usage` fields
-- Concurrency awareness: the existing 20-connection pool is sufficient. Anthropic's rate limits (not connection pool) are the real constraint. No `p-limit` or similar needed.
-
-**What NOT to add:**
-- `p-limit` / `p-queue` -- unnecessary; Anthropic's API handles backpressure via 429s, and the SDK's `maxRetries: 0` means we fail fast. The 300s Vercel timeout is the real constraint, not local concurrency.
-- Worker threads -- API calls are I/O bound, not CPU bound. Node's event loop handles 16 concurrent HTTP streams efficiently.
-
-### 2. Token/Cost Tracking
-
-**How the Anthropic SDK streaming exposes usage data:**
-
-The `client.beta.messages.create({ stream: true })` call returns an async iterable of SSE events. The current code only captures `content_block_delta` events. Two additional event types contain usage data:
-
-```
-message_start event:
-  message.usage.input_tokens: number    // Total input tokens for this request
-  message.usage.output_tokens: number   // Initially 1 (placeholder)
-  message.usage.cache_creation_input_tokens?: number
-  message.usage.cache_read_input_tokens?: number
-
-message_delta event:
-  usage.output_tokens: number           // Cumulative output tokens (final count)
-```
-
-**Confidence: HIGH** -- Verified from official Anthropic streaming docs at https://platform.claude.com/docs/en/build-with-claude/streaming. The `message_start` event contains `input_tokens` and the `message_delta` event contains the final cumulative `output_tokens`.
-
-**Implementation approach:**
-
-Modify `runAnalysisPass` to capture usage from streaming events:
+Three new pass result schemas go into `src/schemas/analysis.ts` alongside the existing 16:
 
 ```typescript
-// In the for-await loop, add:
-let inputTokens = 0;
-let outputTokens = 0;
-let cacheCreationTokens = 0;
-let cacheReadTokens = 0;
-
-for await (const event of response) {
-  if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-    responseText += event.delta.text;
-  } else if (event.type === 'message_start') {
-    inputTokens = event.message.usage.input_tokens;
-    cacheCreationTokens = event.message.usage.cache_creation_input_tokens ?? 0;
-    cacheReadTokens = event.message.usage.cache_read_input_tokens ?? 0;
-  } else if (event.type === 'message_delta') {
-    outputTokens = event.usage.output_tokens;
-  }
-}
+// Pattern: follow existing PassResultSchema with pass-specific metadata
+SubmittalTrackerResultSchema   // submittals[] with type, duration, schedule_conflict
+SpecReconciliationResultSchema // spec_cites[] + inferred_requirements[] + gaps[]
+BidReconciliationResultSchema  // exclusion_parity[] + quantity_deltas[] + unbid_scope[]
 ```
 
-**Note on beta streaming types:** The current code uses `client.beta.messages.create` (not `client.messages.stream`) because it needs the Files API beta. The beta streaming response emits the same SSE event types (`message_start`, `content_block_delta`, `message_delta`, `message_stop`). The TypeScript types for beta events may require type narrowing or casting -- verify during implementation.
+All derive via `z.infer<>` per the locked "Zod as single source of truth" decision (PROJECT.md line 207).
 
-**Cost calculation -- hardcoded constants, not an API call:**
+### Database Schema Change
 
-| Model | Input (per MTok) | Output (per MTok) | Cache Write (per MTok) | Cache Read (per MTok) |
-|-------|-------------------|--------------------|------------------------|-----------------------|
-| claude-sonnet-4-5-20250929 | $3.00 | $15.00 | $3.75 (1.25x input) | $0.30 (0.1x input) |
-
-**Confidence: HIGH** -- Verified from Anthropic pricing page. These are stable rates (unchanged since model launch Sep 2025).
-
-Store as TypeScript constants:
-
-```typescript
-const PRICING = {
-  'claude-sonnet-4-5-20250929': {
-    inputPerMTok: 3.00,
-    outputPerMTok: 15.00,
-    cacheWritePerMTok: 3.75,
-    cacheReadPerMTok: 0.30,
-  }
-} as const;
-```
-
-**Database schema for usage tracking:**
-
-New `analysis_usage` table:
+Single migration — add one column:
 
 ```sql
-create table analysis_usage (
-  id uuid primary key default gen_random_uuid(),
-  contract_id uuid not null references contracts(id) on delete cascade,
-  user_id uuid not null references auth.users(id),
-  pass_name text not null,
-  model text not null,
-  input_tokens integer not null default 0,
-  output_tokens integer not null default 0,
-  cache_creation_tokens integer not null default 0,
-  cache_read_tokens integer not null default 0,
-  cost_usd numeric(10,6) not null default 0,
-  duration_ms integer not null default 0,
-  created_at timestamptz not null default now()
-);
-
-create index idx_analysis_usage_contract_id on analysis_usage(contract_id);
-create index idx_analysis_usage_user_id on analysis_usage(user_id);
+ALTER TABLE contracts ADD COLUMN bid_file_id TEXT NULL;
+-- No RLS change needed; bid_file_id is covered by existing user_id RLS policies on contracts
 ```
 
-RLS policies follow the same pattern as other tables (user owns their rows).
+Rationale: Anthropic `file_id` is a short string reference, not the PDF bytes. Storing the `file_id` (not the blob) matches the existing Files-API-as-storage pattern used for contract PDFs transiently.
 
-**Why a separate table (not JSONB on contracts):**
-- Per-pass granularity: 17 rows per analysis (16 passes + synthesis), each with own tokens/cost/duration
-- Queryable: SUM costs across contracts, find most expensive passes, track spending over time
-- Re-analysis: old usage rows stay (historical cost tracking), new ones added
-- Contracts table already has `pass_results` JSONB but that's for success/fail status, not billing data
+## Storage Decision: Anthropic Files API vs Supabase Storage
 
-### 3. Contract Lifecycle & Date Intelligence
+**Recommendation: Anthropic Files API (same as contract PDF today).**
 
-**Lifecycle status expansion:**
+| Factor | Anthropic Files API | Supabase Storage |
+|--------|---------------------|------------------|
+| Retention | Until explicit DELETE; 100GB quota, 500MB/file | User-controlled, 1GB free tier |
+| Cost | Free for API-attached files | Charged per GB |
+| Integration | Zero code change — `api/pdf.ts` already does this | New Supabase Storage client, RLS bucket setup, signed URLs |
+| Re-analyze use case | Upload once, analyze many passes | Requires fetching blob → re-uploading to Anthropic per re-analyze |
+| Orphan cleanup | `client.beta.files.delete()` already in `finally` block | Additional cron job / webhook needed |
 
-Current status: `'Analyzing' | 'Reviewed' | 'Draft'`
+**Caveat:** Current code deletes the file at end of each analyze run (`api/analyze.ts:785`). For v3.0, **keep the bid file between runs** so re-analyze doesn't require re-upload. Do this by:
+1. Skipping the `finally`-block delete when `bid_file_id` is going to be persisted to DB.
+2. Deleting the bid file only when the contract row is deleted (add to contract-delete cascade logic).
+3. Contract PDF `file_id` can follow the same pattern if re-analyze UX becomes common (deferred — not required for v3.0).
 
-Proposed: Add `lifecycle_status` as a separate column (not replacing `status`):
+**Anti-pattern avoided:** Storing PDF bytes in Supabase Postgres `BYTEA` columns. Bloats row size, makes RLS slow, adds base64 overhead on every read.
+
+## Multi-File Upload UX Pattern (react-dropzone)
+
+**Recommendation: Two separate dropzones with role labels, NOT one multi-file dropzone.**
+
+```
+┌─────────────────────────┐  ┌─────────────────────────┐
+│  Contract PDF (required)│  │ Bid/Estimate (optional) │
+│  [drop zone 1]          │  │ [drop zone 2]           │
+└─────────────────────────┘  └─────────────────────────┘
+```
+
+**Why two zones, not one with `multiple: true`:**
+- Role disambiguation is free (drop target == role). No "which file is which?" prompt after drop.
+- Error states are localized per-file to the zone that produced them.
+- Optional second file has a clearer affordance ("you can skip this").
+- Existing `UploadZone` component (one dropzone, `multiple: false`) needs minimal change: add a `role` / `label` prop, reuse for both.
+
+**Alternative (rejected): single dropzone with `multiple: true, maxFiles: 2`:**
+- Forces a post-drop "assign roles" step.
+- react-dropzone's `multiple: false` + "one file auto-selected from many on drop" bug (GitHub #1253) suggests fragile multi-file semantics.
+- Worse error messaging when user drops 3 files or drops 2 non-PDFs.
+
+**Implementation detail:** Keep `multiple: false, maxSize: 10 * 1024 * 1024` on each `useDropzone` instance. Add a `role: 'contract' | 'bid'` prop to `UploadZone` and a `bidFile: File | null` state in the parent.
+
+## Zod Schema Pattern for Reconciliation Matrix Output
+
+Reconciliation output shapes (scope vs bid vs spec) are **still flat arrays of findings**, not nested matrices. The "matrix" is a UI render of reconciliation findings, each keyed by a shared `reconciliationKey` (e.g., "glass type GL-1", "anodized finish"). Schema pattern:
 
 ```typescript
-type LifecycleStatus = 'Draft' | 'Under Review' | 'Negotiating' | 'Executed' | 'Active' | 'Closed';
+// In src/schemas/analysis.ts — follow existing FindingSchema pattern
+const ReconciliationFindingSchema = z.object({
+  reconciliationKey: z.string(),        // shared grouping key for UI matrix rendering
+  dimension: z.enum(['exclusion_parity', 'quantity_delta', 'unbid_scope', 'spec_gap']),
+  contractPosition: z.string(),          // what contract says
+  bidPosition: z.string().nullable(),    // what bid says (null if bid absent)
+  inferredSpecPosition: z.string().nullable(), // what spec would require (null if not inferable)
+  severity: SeveritySchema,
+  recommendation: z.string(),
+  clauseReference: z.string(),
+});
 ```
 
-**Why a separate column from `status`:**
-- `status` tracks analysis state (Analyzing/Reviewed/Draft) -- server-controlled
-- `lifecycle_status` tracks contract business state -- user-controlled
-- Orthogonal concerns: a contract can be "Reviewed" (analysis done) and "Negotiating" (business state)
-- No breaking change to existing code that reads `status`
+Rationale: flat findings merge cleanly into the existing `mergePassResults` pipeline. UI groups by `reconciliationKey` client-side (existing filter/group infrastructure handles it). No new merge logic, no new DB table — reconciliation findings are `Finding` rows with reconciliation metadata tucked into existing JSON meta columns.
 
-Schema migration:
-
-```sql
-alter table contracts add column lifecycle_status text
-  not null default 'Under Review'
-  check (lifecycle_status in ('Draft', 'Under Review', 'Negotiating', 'Executed', 'Active', 'Closed'));
-```
-
-**State transitions (pure TypeScript, no library):**
-
-```typescript
-const LIFECYCLE_TRANSITIONS: Record<LifecycleStatus, LifecycleStatus[]> = {
-  'Draft':         ['Under Review'],
-  'Under Review':  ['Negotiating', 'Executed', 'Draft'],
-  'Negotiating':   ['Executed', 'Under Review', 'Draft'],
-  'Executed':      ['Active'],
-  'Active':        ['Closed'],
-  'Closed':        [],  // terminal state
-};
-```
-
-4 of 5 transitions are forward-moving. Back-transitions allow returning to earlier states during negotiation. This is simple enough for a `Record<string, string[]>` -- no xstate or robot needed.
-
-**Date intelligence -- no new dependencies:**
-
-The existing `DateTimeline` component and `Dashboard` already compute:
-- Days until deadline (urgency coloring: red <7d, amber <30d, green >30d)
-- Past-date detection
-- Date sorting
-
-What to ADD (pure code, no libraries):
-- Portfolio-wide deadline aggregation across all contracts
-- Grouped timeline view (by week/month)
-- Overdue deadline alerts
-- Upcoming deadline count in sidebar badge
-
-All achievable with native `Date`, `Intl.DateTimeFormat`, and `Array.prototype.reduce`. The date operations are simple arithmetic (day diffs, month grouping). A library like date-fns would add ~20KB gzipped for functions the app uses maybe 3-4 of.
-
-## Alternatives Considered
-
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Concurrency control | Native Promise.allSettled | p-limit | 16 parallel API calls work fine; Anthropic handles backpressure via 429; adding p-limit adds complexity for no measurable benefit |
-| Date library | Native Date + Intl | date-fns | Only need day-diff, sorting, and formatting -- all trivial with native APIs. Not worth 20KB+ for 3-4 functions. |
-| State machine | TypeScript Record map | xstate / robot | 4 states, 5 transitions. A state machine library adds conceptual overhead and bundle size for a problem solvable in 10 lines. |
-| Cost tracking service | Hardcoded pricing constants | Helicone / LangSmith | Sole user app; overkill to add an observability SaaS. Constants + DB table suffice. |
-| Usage dashboard | Custom React component | Recharts / Chart.js | Token/cost display is a summary table + a few stat cards. Charts can be added later if needed. |
+**Decision for downstream:** Store reconciliation metadata in the existing `scope_meta` JSONB column (already on `findings` table) rather than adding a `reconciliation_meta` column. Matches existing `scopeMeta` pattern.
 
 ## What NOT to Add
 
-| Library/Tool | Why Avoid |
-|--------------|-----------|
-| p-limit / p-queue | Already using Promise.allSettled with 16 concurrent calls. Anthropic rate limits are the constraint, not local concurrency. |
-| date-fns / dayjs / luxon | Native Date handles all current and planned date operations. Tree-shaking concerns with date-fns v3 ESM; dayjs has timezone bugs. |
-| xstate | 4 lifecycle states do not justify a state machine framework. |
-| Recharts / Chart.js | No charts needed yet. Token costs displayed as summary tables and stat cards. |
-| Helicone / LangSmith / LangFuse | Observability SaaS for a sole-user app. DB-stored usage data + custom UI is simpler and has no external dependency. |
-| Temporal API polyfill | Temporal is Stage 3 but not shipped in any runtime ClearContract targets. Native Date is sufficient. |
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| OCR (tesseract.js, pdf.js) | Explicitly out of scope (PROJECT.md line 138 "no drawing-to-takeoff OCR"); Files API handles native PDF | Native Files API document support |
+| Spec section library / MasterFormat database | PROJECT.md line 127 "no RAG/vector DB"; line 136 "inference-based reconciliation from cites first" | New TS knowledge module (`aama-submittals.ts`, `div08-masterformat.ts`) ≤ 1200 tokens each |
+| New storage backend (Supabase Storage, S3, R2) | Files API is already the storage layer; adding another backend doubles orphan-cleanup complexity | Anthropic Files API with `bid_file_id` column on contracts |
+| PDF-to-image conversion (pdf-img-convert, pdf2pic) | Claude Files API already handles PDF natively (text + visual); image conversion loses layout | `type: 'document', source: { type: 'file', file_id }` (current pattern) |
+| Diff libraries (jsdiff, fast-diff) | Reconciliation is semantic (AI-inferred), not character-level diff | AI pass output with `reconciliationKey` grouping |
+| Multi-file upload libraries (uppy, react-uploady) | Two sequential 10MB files fit Vercel's 15mb bodyParser limit already configured | Existing `UploadZone` reused with `role` prop |
+| New DB table for bid documents | YAGNI — one nullable column on `contracts` is the minimum viable schema | `contracts.bid_file_id TEXT NULL` |
+| react-dropzone `multiple: true` + role-assignment UI | Worse UX, fragile when users drop wrong count | Two dropzone instances with explicit role labels |
+| Background job queue (bullmq, inngest) for second-PDF processing | Both PDFs get uploaded synchronously within existing 300s Vercel budget | Existing serverless flow; sequential Files API uploads are fast (~2-4s each) |
 
-## Database Migration Summary
+## Integration Points into Existing Pipeline
 
-Single migration file adds:
+**`api/analyze.ts` changes (minimal):**
 
-1. **`analysis_usage` table** -- per-pass token counts, cost, duration
-2. **`lifecycle_status` column on contracts** -- user-controlled business state
-3. **RLS policies** -- same owner-based pattern as existing tables
-4. **Indexes** -- on contract_id and user_id for usage queries
+1. Extend `AnalyzeRequestSchema` with optional `bidPdfBase64: z.string().optional(), bidFileName: z.string().max(255).optional()`.
+2. After primer upload, conditionally call `preparePdfForAnalysis` on `bidBuffer` → get `bidFileId`.
+3. Persist `bidFileId` onto `contractPayload` via `mapToSnake`.
+4. For reconciliation passes (bid-reconciliation, spec-reconciliation), pass **both** `fileId` and `bidFileId` into `runAnalysisPass` — attach two `document` content blocks.
+5. Skip the bid file's `finally` delete (retain for re-analyze); delete the contract `fileId` as today.
 
-## Integration Points
+**`api/passes.ts` changes:**
+- Add 3 new `AnalysisPass` entries (submittal-tracker, spec-reconciliation, bid-reconciliation) with their Zod schemas.
+- Add a `requiresBidDocument: true` flag on bid-reconciliation so the orchestrator skips it when no bid is uploaded.
 
-### Server (api/analyze.ts)
+**`src/pages/ContractUpload.tsx` changes:**
+- Add `bidFile: File | null` state.
+- Render second `<UploadZone role="bid" optional={true} />`.
+- Send both base64 payloads to `analyzeContract.ts`.
 
-- `runAnalysisPass`: Add `message_start` and `message_delta` event capture for usage data. Return usage alongside passName/result.
-- `handler`: After `Promise.allSettled`, collect per-pass usage. Bulk insert into `analysis_usage` table. Include total tokens/cost in response.
-- No changes to `runSynthesisPass` structure -- same event capture pattern.
+**`src/api/analyzeContract.ts` changes:**
+- Accept optional `bidFile: File`, base64-encode in parallel with contract PDF, include in POST body.
 
-### Client (src/)
+## Installation (no new packages)
 
-- New `useAnalysisUsage` hook: fetch usage data for a contract from Supabase
-- Extend `Contract` type with `lifecycleStatus` field
-- New `LifecycleStatusBadge` component with transition dropdown
-- Extend `Dashboard` with portfolio-wide deadline aggregation
-- New settings/usage summary view (total tokens, cost per contract, cost per pass)
+```bash
+# No new dependencies required for v3.0 Scope Intelligence.
+# Optional: upgrade react-dropzone 14.2.3 → 15.0.0 (defer — see Version Compatibility below)
+npm install react-dropzone@^15.0.0
+```
 
-### Database (supabase/)
+## Version Compatibility Notes
 
-- New migration: `20260321000000_analysis_usage_and_lifecycle.sql`
-- No changes to existing tables beyond adding `lifecycle_status` column to `contracts`
+| Package | Current | Latest | Upgrade Recommendation |
+|---------|---------|--------|------------------------|
+| react-dropzone | 14.2.3 | 15.0.0 | **OPTIONAL** — defer. v15 is a minor API cleanup. Current 14.2.3 works fine with React 18 and supports `multiple`/`maxFiles`. Upgrade only if v3.0 hits a specific v14 bug. |
+| @anthropic-ai/sdk | 0.78.0 | check per-release | **DEFER** — v0.78 supports Files API beta header `files-api-2025-04-14` already in use. Pin until a reconciliation-specific API feature ships. |
+| @vercel/node | 5.6.9 | 5.x current | KEEP — overrides in package.json already pin undici and path-to-regexp for security |
+
+**Vercel serverless 300s timeout compatibility:** Two-PDF uploads add ~2-4s to the existing ~20-40s pipeline. Still well under the 250s global safety timeout configured in `api/analyze.ts:452`.
+
+**Anthropic beta header compatibility:** The `files-api-2025-04-14` beta header already in use (`BETAS` in `api/analyze.ts:54`) continues to cover multi-document attachment in a single message.
 
 ## Sources
 
-- Anthropic Streaming Docs: https://platform.claude.com/docs/en/build-with-claude/streaming (HIGH confidence -- official docs, verified event structure)
-- Anthropic Pricing: https://platform.claude.com/docs/en/about-claude/pricing (HIGH confidence -- official pricing page)
-- Anthropic SDK TypeScript: https://github.com/anthropics/anthropic-sdk-typescript (HIGH confidence -- source code)
-- Supabase JS v2 Docs: Already validated in v2.0 milestone (HIGH confidence)
+- [react-dropzone npm page](https://www.npmjs.com/package/react-dropzone) — v15.0.0 confirmed as latest; v14.2.3 (current) supports `multiple`/`maxFiles`/`accept` (HIGH)
+- [react-dropzone maxFiles example](https://github.com/react-dropzone/react-dropzone/blob/master/examples/maxFiles/README.md) — `maxFiles` enabled only when `multiple: true` (HIGH)
+- [Anthropic Files API docs](https://docs.claude.com/en/docs/build-with-claude/files) — 100GB storage, 500MB per file, retention until explicit DELETE, not ZDR eligible (HIGH)
+- [Anthropic Delete File API](https://docs.anthropic.com/en/api/files-delete) — DELETE /v1/files/{file_id}; files remain usable in in-flight Messages API calls post-delete (HIGH)
+- Existing codebase validation: `api/analyze.ts`, `api/pdf.ts`, `src/schemas/analysis.ts`, `src/components/UploadZone.tsx`, `package.json` (HIGH — direct inspection)
+- `.planning/PROJECT.md` — locked out-of-scope decisions: no OCR, no RAG, no full spec storage, no drawing takeoff (HIGH)
+
+---
+*Stack research for: v3.0 Scope Intelligence (multi-document input + cross-document reconciliation)*
+*Researched: 2026-04-05*
