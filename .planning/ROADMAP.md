@@ -172,7 +172,10 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
   2. Every Zod finding schema used by inference-based passes requires an `inferenceBasis` discriminator (`contract-quoted` | `knowledge-module:{id}` | `model-prior`), and merge logic drops or Info-downgrades `model-prior` findings before they reach the client.
   3. The scope-of-work pass knowledge-module cap is explicitly resolved (either `MAX_MODULES_PER_PASS` raised OR pass split into scope-extraction + scope-reconciliation), with the chosen path documented and scope pass loading both new v3.0 modules without capacity errors.
   4. Stage 3 can run with zero registered passes (empty wave) and the pipeline still completes analysis and writes results — infrastructure is truly decoupled from pass content.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 56-01-PLAN.md — ARCH-03: raise MAX_MODULES_PER_PASS (4→6), rename scope-of-work → scope-extraction, add stage marker to AnalysisPass
+- [ ] 56-02-PLAN.md — ARCH-02: InferenceBasisSchema Zod type + enforceInferenceBasis merge step (drop model-prior, clamp knowledge-module to Medium)
+- [ ] 56-03-PLAN.md — ARCH-01: Stage 3 parallel wave orchestration in api/analyze.ts with empty-wave guard and wall-clock sub-budgets
 
 ### Phase 57: Contract-Only Scope Extraction
 **Goal**: Users get estimator-grade scope intelligence from a single contract PDF — a submittal register with durations and review cycles, schedule-conflict warnings, and quantity-ambiguity flags — with no bid PDF required.
@@ -300,7 +303,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 53. Contract Lifecycle Status | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
-| 56. Architecture Foundation | v3.0 | 0/? | Not started | - |
+| 56. Architecture Foundation | v3.0 | 0/3 | Not started | - |
 | 57. Contract-Only Scope Extraction | v3.0 | 0/? | Not started | - |
 | 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
