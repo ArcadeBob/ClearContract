@@ -8,7 +8,7 @@ import { LaborComplianceBadge } from './LaborComplianceBadge';
 type PassType = ScopeMeta['passType'];
 
 const BADGE_MAP: Record<PassType, React.FC<{ meta: any }>> = {
-  'scope-of-work': ScopeOfWorkBadge,
+  'scope-extraction': ScopeOfWorkBadge,
   'dates-deadlines': DatesDeadlinesBadge,
   'verbiage': VerbiageBadge,
   'labor-compliance': LaborComplianceBadge,

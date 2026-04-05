@@ -126,7 +126,7 @@ export interface ComplianceChecklistItem {
 
 export type ScopeMeta =
   | {
-      passType: 'scope-of-work';
+      passType: 'scope-extraction';
       scopeItemType: string;
       specificationReference: string;
       affectedTrade: string;

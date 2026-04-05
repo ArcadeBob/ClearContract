@@ -7,7 +7,7 @@ import { formatTokens, formatCost, formatDuration } from '../utils/formatCost';
 const PASS_ORDER = [
   'risk-overview',
   'dates-deadlines',
-  'scope-of-work',
+  'scope-extraction',
   'legal-indemnification',
   'legal-payment-contingency',
   'legal-liquidated-damages',
@@ -27,7 +27,7 @@ const PASS_ORDER = [
 const PASS_LABELS: Record<string, string> = {
   'risk-overview': 'Risk Overview',
   'dates-deadlines': 'Dates & Deadlines',
-  'scope-of-work': 'Scope of Work',
+  'scope-extraction': 'Scope of Work',
   'legal-indemnification': 'Indemnification',
   'legal-payment-contingency': 'Payment Contingency',
   'legal-liquidated-damages': 'Liquidated Damages',

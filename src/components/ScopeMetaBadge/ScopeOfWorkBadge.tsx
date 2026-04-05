@@ -1,7 +1,7 @@
 import { ScopeMeta } from '../../types/contract';
 import { pillBase, formatLabel } from './shared';
 
-type ScopeOfWorkMeta = Extract<ScopeMeta, { passType: 'scope-of-work' }>;
+type ScopeOfWorkMeta = Extract<ScopeMeta, { passType: 'scope-extraction' }>;
 
 interface ScopeOfWorkBadgeProps {
   meta: ScopeOfWorkMeta;

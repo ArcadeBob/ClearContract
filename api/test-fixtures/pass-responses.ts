@@ -72,7 +72,7 @@ export const passFixtures: Record<string, Record<string, unknown>> = {
     ],
   },
 
-  'scope-of-work': {
+  'scope-extraction': {
     findings: [
       {
         ...findingBase('ScopeOfWork', 'Scope of Work'),

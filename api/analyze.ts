@@ -61,7 +61,7 @@ const PASSES_RECEIVING_PROFILE = new Set([
   'risk-overview',
   'legal-insurance',
   'legal-retainage',
-  'scope-of-work',
+  'scope-extraction',
   'legal-payment-contingency',
   'legal-liquidated-damages',
 ]);

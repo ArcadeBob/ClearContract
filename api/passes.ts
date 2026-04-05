@@ -31,6 +31,7 @@ export interface AnalysisPass {
   isLegal?: boolean;
   isScope?: boolean;
   schema?: z.ZodTypeAny;
+  stage?: 2 | 3;
 }
 
 export const ANALYSIS_PASSES: AnalysisPass[] = [
@@ -136,7 +137,7 @@ For each finding, assign an actionPriority value:
       'Extract all dates, deadlines, notice periods, cure periods, payment terms, milestones, submittal deadlines, warranty periods, and time-sensitive obligations from this glazing subcontract.',
   },
   {
-    name: 'scope-of-work',
+    name: 'scope-extraction',
     isOverview: false,
     isScope: true,
     schema: ScopeOfWorkPassResultSchema,

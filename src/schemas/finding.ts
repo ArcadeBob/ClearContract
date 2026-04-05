@@ -115,7 +115,7 @@ const ComplianceChecklistItemSchema = z.object({
 
 export const ScopeMetaSchema = z.discriminatedUnion('passType', [
   z.object({
-    passType: z.literal('scope-of-work'),
+    passType: z.literal('scope-extraction'),
     scopeItemType: z.string(),
     specificationReference: z.string(),
     affectedTrade: z.string(),

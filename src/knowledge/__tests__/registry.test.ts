@@ -27,8 +27,8 @@ describe('registry', () => {
     expect(result[0].id).toBe('ca-lien-law');
   });
 
-  it('getModulesForPass returns mapped modules for scope-of-work', () => {
-    const result = getModulesForPass('scope-of-work');
+  it('getModulesForPass returns mapped modules for scope-extraction', () => {
+    const result = getModulesForPass('scope-extraction');
     expect(result).toHaveLength(4);
     const ids = result.map((m) => m.id);
     expect(ids).toContain('ca-title24');

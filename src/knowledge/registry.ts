@@ -4,7 +4,7 @@ import { validateTokenBudget } from './tokenBudget';
 export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'risk-overview': ['contract-forms'],
   'dates-deadlines': [],
-  'scope-of-work': [
+  'scope-extraction': [
     'ca-title24',
     'div08-scope',
     'standards-validation',
