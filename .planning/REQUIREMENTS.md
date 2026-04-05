@@ -45,7 +45,7 @@
 ### Architecture Enablers (ARCH)
 
 - [ ] **ARCH-01**: Analysis pipeline adds Stage 3 parallel wave for reconciliation passes (runs after Stage 2 scope extraction completes)
-- [ ] **ARCH-02**: Inference-based findings include mandatory `inferenceBasis` schema field citing knowledge module source
+- [x] **ARCH-02**: Inference-based findings include mandatory `inferenceBasis` schema field citing knowledge module source
 - [ ] **ARCH-03**: Scope-of-work pass knowledge module capacity resolved (pass split OR cap raised) to unblock scope-intel module additions
 
 ## Future Requirements (v3.x+)
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-01 | Phase 62 | Pending |
 | UX-02 | Phase 62 | Pending |
 | ARCH-01 | Phase 56 | Pending |
-| ARCH-02 | Phase 56 | Pending |
+| ARCH-02 | Phase 56 | Complete |
 | ARCH-03 | Phase 56 | Pending |
 
 **Coverage:**
