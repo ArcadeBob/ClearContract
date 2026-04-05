@@ -278,23 +278,23 @@ describe('mergePassResults - specialized pass handlers', () => {
     expect(f.sourcePass).toBe('legal-change-order');
   });
 
-  it('converts scope-of-work findings with scopeMeta', () => {
+  it('converts scope-extraction findings with scopeMeta', () => {
     const finding = createScopeOfWorkFinding({
       scopeItemType: 'exclusion',
       specificationReference: 'Section 08 80 00',
       affectedTrade: 'Glazing',
     });
     const result = mergePassResults(
-      [fulfilled('scope-of-work', [finding])],
-      [pass('scope-of-work')]
+      [fulfilled('scope-extraction', [finding])],
+      [pass('scope-extraction')]
     );
     expect(result.findings).toHaveLength(1);
     const f = result.findings[0];
-    expect(f.scopeMeta?.passType).toBe('scope-of-work');
+    expect(f.scopeMeta?.passType).toBe('scope-extraction');
     expect(f.scopeMeta && 'scopeItemType' in f.scopeMeta && f.scopeMeta.scopeItemType).toBe('exclusion');
     expect(f.scopeMeta && 'specificationReference' in f.scopeMeta && f.scopeMeta.specificationReference).toBe('Section 08 80 00');
     expect(f.scopeMeta && 'affectedTrade' in f.scopeMeta && f.scopeMeta.affectedTrade).toBe('Glazing');
-    expect(f.sourcePass).toBe('scope-of-work');
+    expect(f.sourcePass).toBe('scope-extraction');
   });
 
   it('converts dates-deadlines findings with scopeMeta', () => {
@@ -625,7 +625,7 @@ describe('mergePassResults - MergedFindingSchema validation (UNIT-06)', () => {
     { name: 'legal-lien-rights', factory: () => createLienRightsFinding() },
     { name: 'legal-dispute-resolution', factory: () => createDisputeResolutionFinding() },
     { name: 'legal-change-order', factory: () => createChangeOrderFinding() },
-    { name: 'scope-of-work', factory: () => createScopeOfWorkFinding() },
+    { name: 'scope-extraction', factory: () => createScopeOfWorkFinding() },
     { name: 'dates-deadlines', factory: () => createDatesDeadlinesFinding() },
     { name: 'verbiage-analysis', factory: () => createVerbiageFinding() },
     { name: 'labor-compliance', factory: () => createLaborComplianceFinding() },
@@ -653,4 +653,165 @@ describe('mergePassResults - MergedFindingSchema validation (UNIT-06)', () => {
       }
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// ARCH-02: inferenceBasis enforcement (drop model-prior, clamp knowledge-module)
+// ---------------------------------------------------------------------------
+
+describe('mergePassResults - inferenceBasis enforcement', () => {
+  function genericFinding(overrides: Record<string, unknown> = {}) {
+    return {
+      severity: 'Medium' as const,
+      category: 'Scope of Work' as const,
+      title: 'Generic Finding',
+      description: 'Generic description',
+      recommendation: 'Review',
+      clauseReference: 'Section 1.1',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
+      ...overrides,
+    };
+  }
+
+  it('drops findings with inferenceBasis: model-prior', () => {
+    const modelPrior = genericFinding({
+      title: 'Model Prior Finding',
+      clauseReference: 'Section 1.1',
+      inferenceBasis: 'model-prior',
+      severity: 'Critical',
+    });
+    const kept = genericFinding({
+      title: 'Kept Finding',
+      clauseReference: 'Section 2.2',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [modelPrior, kept] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    const titles = result.findings.map((f) => f.title);
+    expect(titles).not.toContain('Model Prior Finding');
+    expect(titles).toContain('Kept Finding');
+  });
+
+  it('clamps knowledge-module findings with Critical severity to Medium and sets downgradedFrom', () => {
+    const finding = genericFinding({
+      title: 'KM Critical Finding',
+      severity: 'Critical',
+      inferenceBasis: 'knowledge-module:ca-title24',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Medium');
+    expect(f.downgradedFrom).toBe('Critical');
+  });
+
+  it('clamps knowledge-module findings with High severity to Medium', () => {
+    const finding = genericFinding({
+      title: 'KM High Finding',
+      severity: 'High',
+      inferenceBasis: 'knowledge-module:div08-scope',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Medium');
+    expect(f.downgradedFrom).toBe('High');
+  });
+
+  it('leaves knowledge-module findings with Low severity unchanged', () => {
+    const finding = genericFinding({
+      title: 'KM Low Finding',
+      severity: 'Low',
+      inferenceBasis: 'knowledge-module:anything',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Low');
+    expect(f.downgradedFrom).toBeUndefined();
+  });
+
+  it('leaves knowledge-module findings with Medium severity unchanged and does not set downgradedFrom', () => {
+    const finding = genericFinding({
+      title: 'KM Medium Finding',
+      severity: 'Medium',
+      inferenceBasis: 'knowledge-module:anything',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Medium');
+    expect(f.downgradedFrom).toBeUndefined();
+  });
+
+  it('leaves contract-quoted findings unchanged', () => {
+    const finding = genericFinding({
+      title: 'Contract Quoted Finding',
+      severity: 'Critical',
+      inferenceBasis: 'contract-quoted',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Critical');
+    expect(f.downgradedFrom).toBeUndefined();
+  });
+
+  it('leaves findings without inferenceBasis unchanged', () => {
+    const finding = genericFinding({
+      title: 'No Basis Finding',
+      severity: 'Critical',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [finding] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.severity).toBe('Critical');
+    expect(f.downgradedFrom).toBeUndefined();
+  });
+
+  it('drops model-prior findings before risk-score computation', () => {
+    const modelPrior = genericFinding({
+      title: 'Dropped Critical',
+      category: 'Legal Issues' as const,
+      severity: 'Critical',
+      clauseReference: 'Section A',
+      inferenceBasis: 'model-prior',
+    });
+    const keptLow = genericFinding({
+      title: 'Kept Low',
+      category: 'Legal Issues' as const,
+      severity: 'Low',
+      clauseReference: 'Section B',
+      inferenceBasis: 'contract-quoted',
+    });
+    const result = mergePassResults(
+      [fulfilled('unknown-pass', [modelPrior, keptLow] as PassResult['findings'])],
+      [pass('unknown-pass')]
+    );
+    // Only the Low finding should contribute; Critical-as-dropped must not inflate score.
+    expect(result.riskScore).toBeLessThan(20);
+    const titles = result.findings.map((f) => f.title);
+    expect(titles).not.toContain('Dropped Critical');
+    expect(titles).toContain('Kept Low');
+  });
 });
