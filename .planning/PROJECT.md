@@ -103,7 +103,16 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ### Active
 
-- [ ] Next milestone goals TBD via /gsd:new-milestone
+- [ ] v3.0 Scope Intelligence — deepen scope extraction into estimator-grade intelligence
+- [ ] Multi-document input: contract PDF + user's bid/estimate PDF
+- [ ] Submittal tracking with schedule-conflict detection
+- [ ] Inference-based spec reconciliation (Div 08 / ASTM / AAMA cites)
+- [ ] Exclusion stress-test against inferred spec requirements
+- [ ] Quantity signal extraction with ambiguity flagging
+- [ ] Bid/contract reconciliation (exclusion parity, quantity deltas, unbid scope)
+- [ ] 1-2 new clause passes (warranty, assignment, IP, safety/OSHA, or audit rights)
+- [ ] 1-2 new scope-intel knowledge modules
+- [ ] Cross-contract scope trend view
 
 ### Out of Scope
 
@@ -124,6 +133,10 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - Negotiation status tracking (Open/Proposed/Agreed) -- checklist view is read-only extract; status tracking adds workflow complexity
 - Cross-contract trend graphs over time -- pattern detection covers insights; time-series charts are premature
 - Template negotiation scripts -- negotiationPosition from AI is per-finding; generic templates add legal liability
+- Full spec section PDF upload (v3.0) -- deferred; inference-based reconciliation from cites first
+- Multi-state/federal regulatory expansion (v3.0) -- stays CA-focused for now
+- Automated takeoff from drawings (v3.0) -- quantity signals only, no drawing-to-takeoff OCR
+- Negotiation outcome tracking (v3.0) -- cross-contract synthesis is pattern-level, not outcome-level
 
 ## Context
 
@@ -225,9 +238,21 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 | vi.hoisted() for mock variables | jsPDF mock variables referenced in vi.mock() factory | ✓ Good -- correct Vitest hoisting |
 | Props-based page testing | Dashboard/AllContracts/ContractUpload tested via props, no hook mocking | ✓ Good -- simpler, more maintainable |
 
-## Current Milestone
+## Current Milestone: v3.0 Scope Intelligence
 
-None active — v2.2 shipped 2026-04-05. Start next milestone with `/gsd:new-milestone`.
+**Goal:** Transform scope extraction from surface findings into estimator-grade intelligence that catches what expert reviewers miss.
+
+**Architectural shift:** Multi-document input — contract PDF + user's bid/estimate PDF — enables cross-document reconciliation.
+
+**Target features:**
+- Submittal tracking with schedule-conflict detection
+- Inference-based spec reconciliation (Div 08 / ASTM / AAMA)
+- Exclusion stress-test against inferred spec requirements
+- Quantity signal extraction with ambiguity flagging
+- Bid/contract reconciliation (exclusion parity, quantity deltas, unbid scope)
+- 1-2 new clause passes (warranty, assignment, IP, safety/OSHA, or audit rights — TBD)
+- 1-2 new scope-intel knowledge modules (AAMA submittal standards, Div 08 MasterFormat)
+- Cross-contract scope trend view
 
 ## Completed Milestones
 
@@ -243,4 +268,4 @@ None active — v2.2 shipped 2026-04-05. Start next milestone with `/gsd:new-mil
 - **v2.2** Performance & Intelligence (2026-04-05) -- parallel analysis pipeline, token/cost tracking, contract lifecycle, portfolio deadline timeline
 
 ---
-*Last updated: 2026-04-05 after v2.2 milestone complete*
+*Last updated: 2026-04-05 after v3.0 milestone started*

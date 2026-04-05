@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Performance & Intelligence
-status: completed
-stopped_at: Completed 55-01-PLAN.md
-last_updated: "2026-04-05T13:11:27.117Z"
-last_activity: 2026-04-04 -- Completed 55-01 (Partial status type + UI filter integration)
+milestone: v3.0
+milestone_name: Scope Intelligence
+status: defining-requirements
+stopped_at: Milestone started, defining requirements
+last_updated: "2026-04-05T00:00:00.000Z"
+last_activity: 2026-04-05 -- Milestone v3.0 started
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** Planning next milestone (v2.2 shipped 2026-04-05)
+**Current focus:** v3.0 Scope Intelligence — defining requirements
 
 ## Current Position
 
-Phase: v2.2 complete — awaiting next milestone
+Phase: Not started (defining requirements)
 Plan: —
-Status: Shipped
-Last activity: 2026-04-05 -- Archived v2.2 Performance & Intelligence
+Status: Defining requirements
+Last activity: 2026-04-05 -- Milestone v3.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
