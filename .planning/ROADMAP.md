@@ -153,7 +153,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 ### v3.0 Scope Intelligence (Phases 56-62) -- IN PROGRESS
 
-- [ ] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution
+- [x] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution (completed 2026-04-05)
 - [ ] **Phase 57: Contract-Only Scope Extraction** -- submittal register, schedule-conflict detection, quantity-ambiguity flagging
 - [ ] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution
 - [ ] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules
@@ -303,7 +303,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 53. Contract Lifecycle Status | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
-| 56. Architecture Foundation | 2/3 | In Progress|  | - |
+| 56. Architecture Foundation | 3/3 | Complete   | 2026-04-05 | - |
 | 57. Contract-Only Scope Extraction | v3.0 | 0/? | Not started | - |
 | 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
