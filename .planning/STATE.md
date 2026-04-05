@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
-status: defining-requirements
-stopped_at: Milestone started, defining requirements
+status: roadmap-complete
+stopped_at: Roadmap created for v3.0 (Phases 56-62), ready for phase planning
 last_updated: "2026-04-05T00:00:00.000Z"
-last_activity: 2026-04-05 -- Milestone v3.0 started
+last_activity: 2026-04-05 -- v3.0 roadmap created (7 phases, 20/20 reqs mapped)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,16 +21,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v3.0 Scope Intelligence — defining requirements
+**Current focus:** v3.0 Scope Intelligence — roadmap complete, ready for `/gsd:plan-phase 56`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 56 (Architecture Foundation) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-05 -- Milestone v3.0 started
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-04-05 -- v3.0 roadmap created (7 phases, 20/20 reqs mapped)
 
 Progress: [░░░░░░░░░░] 0%
+
+## v3.0 Phase Summary
+
+- Phase 56: Architecture Foundation (ARCH-01, ARCH-02, ARCH-03)
+- Phase 57: Contract-Only Scope Extraction (SCOPE-01, SCOPE-02, SCOPE-05)
+- Phase 58: Knowledge Modules + Multi-Doc Input (KNOW-01, KNOW-02, BID-01, BID-03, BID-05)
+- Phase 59: Spec Reconciliation + Exclusion Stress-Test (SCOPE-03, SCOPE-04)
+- Phase 60: Bid Reconciliation Capstone (BID-02, BID-04)
+- Phase 61: Warranty + Safety/OSHA Clause Passes (CLS-01, CLS-02)
+- Phase 62: Scope Intelligence UX + Portfolio Trends (UX-01, UX-02, PORT-01)
 
 ## Performance Metrics
 
@@ -60,14 +70,18 @@ Recent decisions affecting current work:
 - [v2.2]: PassWithUsage.result typed as unknown to avoid circular imports with schema types
 - [v2.2]: Shared API types in api/types.ts, pure cost function in api/cost.ts
 - [Phase 51]: Independent AbortControllers per pass -- simpler than parent-child hierarchy
-- [Phase 51]: Defensive as-casts with ?? 0 for beta streaming usage fields
 - [Phase 52]: costUsd coerced with Number() after mapRows -- Postgres numeric returns string
-- [Phase 52]: Aggregate analysis_usage in-component via useEffect -- single consumer, simple query
 - [Phase 53]: Lifecycle transition map as const Record -- compile-time safety for valid transitions
-- [Phase 53]: LifecycleBadge placed between upload date and analysis status badge on ContractCard for business-then-technical visual hierarchy
 - [Phase 54]: Local date parsing via split/Number to avoid UTC offset issues with YYYY-MM-DD strings
-- [Phase 54]: Separate urgentBadge field on navItems (red) vs existing badge (slate) for visual distinction
-- [Phase 55]: Partial contracts treated as first-class data in all portfolio-level views (stats, timeline, patterns, urgent badge)
+- [Phase 55]: Partial contracts treated as first-class data in all portfolio-level views
+
+### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
+
+- **Gap 1 (CRITICAL, Phase 58):** Bid PDF storage — Files API only (ephemeral) vs. Supabase Storage (persistent). Determines re-analyze UX and storage RLS surface area.
+- **Gap 2 (HIGH-VALUE, milestone scope):** Exclusion outcome tracking — currently out-of-scope; FEATURES.md flags as the single biggest cross-contract differentiator unlock. User decision pending.
+- **Gap 3 (Phase 56/58):** Scope pass split vs. MAX_MODULES_PER_PASS raise — ARCH-03 resolution path. Empirical measurement after scaffold recommended.
+- **Gap 4 (Phase 59/60):** Anthropic Citations API evaluation for document attribution before reconciliation prompt design.
+- **Gap 5 (Phase 58):** Vercel body-parser limit — two base64 PDFs exceed 15MB. Likely resolution: Files API for bid, keep base64 for contract; sizeLimit raise as safety net only.
 
 ### Pending Todos
 
@@ -75,12 +89,13 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 51 (research flag): Prompt cache timing needs empirical validation -- "cache available after streaming begins" exact behavior unknown
-- Phase 51 (research flag): Beta streaming TypeScript types for usage fields may be incomplete -- may need defensive access
-- Phase 51 (concern): 16 concurrent streaming requests may hit Tier 1 RPM limits -- check Anthropic Console before shipping
+- Pre-v3.0 infra task: Anthropic Tier 2 upgrade (Pitfall 4) before shipping v3.0 to production — Tier 1 50 RPM cliff will cause 429 storms with Stage 3 passes added.
+- Pitfall 1 (Phase 59): LLM hallucination of spec requirements — `inferenceBasis` schema enforcement is a "never acceptable" shortcut.
+- Pitfall 2 (Phase 60): Document attribution confusion — recovery cost HIGH post-ship.
+- Pitfall 3 (Phase 56): Pipeline timeout breach if Stage 3 not architected as separate wave.
 
 ## Session Continuity
 
-Last session: 2026-04-05T05:16:35.122Z
-Stopped at: Completed 55-01-PLAN.md
-Resume file: None
+Last session: 2026-04-05
+Stopped at: v3.0 roadmap created (7 phases 56-62, 20/20 requirements mapped, 0 orphans)
+Resume file: None. Next action: `/gsd:plan-phase 56`

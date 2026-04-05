@@ -90,32 +90,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCOPE-01 | TBD | Pending |
-| SCOPE-02 | TBD | Pending |
-| SCOPE-03 | TBD | Pending |
-| SCOPE-04 | TBD | Pending |
-| SCOPE-05 | TBD | Pending |
-| BID-01 | TBD | Pending |
-| BID-02 | TBD | Pending |
-| BID-03 | TBD | Pending |
-| BID-04 | TBD | Pending |
-| BID-05 | TBD | Pending |
-| CLS-01 | TBD | Pending |
-| CLS-02 | TBD | Pending |
-| KNOW-01 | TBD | Pending |
-| KNOW-02 | TBD | Pending |
-| PORT-01 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| ARCH-01 | TBD | Pending |
-| ARCH-02 | TBD | Pending |
-| ARCH-03 | TBD | Pending |
+| SCOPE-01 | Phase 57 | Pending |
+| SCOPE-02 | Phase 57 | Pending |
+| SCOPE-03 | Phase 59 | Pending |
+| SCOPE-04 | Phase 59 | Pending |
+| SCOPE-05 | Phase 57 | Pending |
+| BID-01 | Phase 58 | Pending |
+| BID-02 | Phase 60 | Pending |
+| BID-03 | Phase 58 | Pending |
+| BID-04 | Phase 60 | Pending |
+| BID-05 | Phase 58 | Pending |
+| CLS-01 | Phase 61 | Pending |
+| CLS-02 | Phase 61 | Pending |
+| KNOW-01 | Phase 58 | Pending |
+| KNOW-02 | Phase 58 | Pending |
+| PORT-01 | Phase 62 | Pending |
+| UX-01 | Phase 62 | Pending |
+| UX-02 | Phase 62 | Pending |
+| ARCH-01 | Phase 56 | Pending |
+| ARCH-02 | Phase 56 | Pending |
+| ARCH-03 | Phase 56 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 20 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 20 ⚠️
+- Mapped to phases: 20 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-05*
-*Last updated: 2026-04-05 after initial definition*
+*Last updated: 2026-04-05 after roadmap creation (all 20 requirements mapped to Phases 56-62)*

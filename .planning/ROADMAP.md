@@ -12,6 +12,7 @@
 - ✅ **v2.0 Enterprise Foundation** -- Phases 39-45 (shipped 2026-03-19)
 - ✅ **v2.1 Quality Restoration** -- Phases 46-50 (shipped 2026-03-21)
 - ✅ **v2.2 Performance & Intelligence** -- Phases 51-55 (shipped 2026-04-05)
+- 🚧 **v3.0 Scope Intelligence** -- Phases 56-62 (in progress)
 
 ## Phases
 
@@ -150,6 +151,96 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 </details>
 
+### v3.0 Scope Intelligence (Phases 56-62) -- IN PROGRESS
+
+- [ ] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution
+- [ ] **Phase 57: Contract-Only Scope Extraction** -- submittal register, schedule-conflict detection, quantity-ambiguity flagging
+- [ ] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution
+- [ ] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules
+- [ ] **Phase 60: Bid Reconciliation Capstone** -- bid-vs-contract exclusion parity, quantity deltas, unbid scope
+- [ ] **Phase 61: Warranty + Safety/OSHA Clause Passes** -- two new clause passes, independent of scope-intel
+- [ ] **Phase 62: Scope Intelligence UX + Portfolio Trends** -- subcategory surfacing, Scope Intel view-mode, cross-contract scope trends
+
+## Phase Details
+
+### Phase 56: Architecture Foundation
+**Goal**: Analysis pipeline supports a Stage 3 reconciliation wave, inference-grounded findings cite their knowledge-module basis, and scope-of-work pass module capacity is resolved — unblocking all downstream v3.0 work.
+**Depends on**: v2.2 complete (two-stage cache pipeline in production)
+**Requirements**: ARCH-01, ARCH-02, ARCH-03
+**Success Criteria** (what must be TRUE):
+  1. The pipeline runs a Stage 3 parallel wave after Stage 2 settles, orchestrated via `Promise.allSettled` with per-pass AbortController and 90s timeout (mirroring Stage 2), and the overall runtime stays under the 250s global safety timeout on a representative contract.
+  2. Every Zod finding schema used by inference-based passes requires an `inferenceBasis` discriminator (`contract-quoted` | `knowledge-module:{id}` | `model-prior`), and merge logic drops or Info-downgrades `model-prior` findings before they reach the client.
+  3. The scope-of-work pass knowledge-module cap is explicitly resolved (either `MAX_MODULES_PER_PASS` raised OR pass split into scope-extraction + scope-reconciliation), with the chosen path documented and scope pass loading both new v3.0 modules without capacity errors.
+  4. Stage 3 can run with zero registered passes (empty wave) and the pipeline still completes analysis and writes results — infrastructure is truly decoupled from pass content.
+**Plans**: TBD
+
+### Phase 57: Contract-Only Scope Extraction
+**Goal**: Users get estimator-grade scope intelligence from a single contract PDF — a submittal register with durations and review cycles, schedule-conflict warnings, and quantity-ambiguity flags — with no bid PDF required.
+**Depends on**: Phase 56
+**Requirements**: SCOPE-01, SCOPE-02, SCOPE-05
+**Success Criteria** (what must be TRUE):
+  1. After analysis, the user sees an extracted submittal register showing shop drawings, samples, mockups, and product data, each with review durations, responsible parties, and review-cycle counts quoted from the contract.
+  2. When a submittal's total duration (submission + review + resubmittal buffer) pushes past a contract milestone, the user sees an explicit schedule-conflict warning that names the submittal, the milestone, and the days of overrun — computed deterministically in TypeScript after the extraction pass, not from an additional LLM call.
+  3. Scope items containing quantity-ambiguity phrases (`approximately`, `as required`, `sufficient`, `to weatherproof`, etc.) surface as bid-risk warnings with the exact ambiguous phrase quoted and a severity appropriate to bid exposure.
+  4. All three capabilities work on contracts uploaded without any bid PDF — this phase ships standalone value.
+**Plans**: TBD
+
+### Phase 58: Knowledge Modules + Multi-Document Input
+**Goal**: The AAMA submittal-standards and Div 08 MasterFormat knowledge modules are wired into the pipeline, and users can optionally attach a bid/estimate PDF at upload that flows through analysis with correct document attribution — enabling downstream reconciliation passes.
+**Depends on**: Phase 56 (ARCH-03), Phase 57 (submittal/scope extraction for module grounding)
+**Requirements**: KNOW-01, KNOW-02, BID-01, BID-03, BID-05
+**Success Criteria** (what must be TRUE):
+  1. The user sees a second, optional "Bid / Estimate" drop zone on the upload page with a distinct role label; uploading only a contract still completes analysis normally and any bid-dependent UI hides gracefully.
+  2. When both PDFs are uploaded, the server performs parallel Files API uploads, passes both document blocks to reconciliation-capable passes with explicit `<document index type="contract|bid">` tagging, and records which documents were analyzed on the contract row.
+  3. On re-analyze, the user explicitly chooses whether to re-upload the contract, the bid, both, or keep existing files — and the new run records its document configuration independently.
+  4. The AAMA submittal-standards module and Div 08 MasterFormat deliverables module are loaded by the submittal-extraction and spec-reconciliation passes within the resolved module-capacity budget, and their content visibly influences pass output (e.g., typical-deliverables references in findings).
+  5. Contracts uploaded before v3.0 (no bid, no new columns) continue to render and re-analyze without errors — backward compatibility is preserved.
+**Plans**: TBD
+
+### Phase 59: Spec Reconciliation + Exclusion Stress-Test
+**Goal**: Users see inference-based findings that catch what expert reviewers miss — spec-reconciliation gaps for Div 08 / ASTM / AAMA cites, and exclusion stress-test challenges against inferred spec requirements — all executed as Stage 3 passes grounded in knowledge modules.
+**Depends on**: Phase 56, Phase 58
+**Requirements**: SCOPE-03, SCOPE-04
+**Success Criteria** (what must be TRUE):
+  1. The user sees spec-reconciliation findings that identify typical Div 08 / ASTM / AAMA deliverables the contract cites or implies but does not explicitly include in declared scope, with each finding citing the knowledge-module source via `inferenceBasis`.
+  2. The user sees exclusion stress-test findings that quote a declared exclusion and challenge it against an inferred spec requirement (tension between what's excluded and what the cited spec section typically demands), with both the exclusion quote and the tension quote displayed.
+  3. Inference-grounded findings never exceed Medium severity by default, and any `inferenceBasis: model-prior` findings are dropped or Info-downgraded at merge time — fabrication risk is structurally contained.
+  4. Both passes run in the Stage 3 parallel wave and the total analysis runtime (Stage 1 + Stage 2 + Stage 3 + synthesis + DB writes) stays within the 250s safety timeout on a representative 50-page contract.
+**Plans**: TBD
+
+### Phase 60: Bid Reconciliation Capstone
+**Goal**: When a user uploads both a contract and a bid, they get bid-vs-contract reconciliation findings covering exclusion parity, quantity deltas, and scope items not present in the bid — each finding correctly attributing quotes to the right document.
+**Depends on**: Phase 58 (multi-doc input), Phase 59 (Stage 3 infrastructure proven), Phase 57 (scope_items data)
+**Requirements**: BID-02, BID-04
+**Success Criteria** (what must be TRUE):
+  1. When both contract and bid PDFs are provided, the user sees exclusion-parity findings that flag exclusions declared in one document but missing in the other, with a clear direction-of-risk explanation.
+  2. The user sees quantity-delta findings when scope items have different or ambiguous quantities across the two documents, and unbid-scope findings when the contract includes scope items absent from the bid.
+  3. Every reconciliation finding has both `contractQuote` and `bidQuote` fields populated (nullable where one document is silent) and the quotes are correctly attributed to their source document — a contract-quoted exclusion never appears in the `bidQuote` field and vice versa.
+  4. When no bid PDF is uploaded, the bid-reconciliation pass is skipped entirely (no empty findings, no fabricated bid quotes) and the rest of the analysis runs normally.
+**Plans**: TBD
+
+### Phase 61: Warranty + Safety/OSHA Clause Passes
+**Goal**: Users see dedicated warranty clause findings (duration, exclusions, transferability, call-back period) and safety/OSHA compliance findings (site safety, fall protection, GC safety-plan coordination) — two new clause passes that follow the established pattern.
+**Depends on**: Phase 56 (Stage 2 new-pass pattern validated via scope extraction)
+**Requirements**: CLS-01, CLS-02
+**Success Criteria** (what must be TRUE):
+  1. The user sees warranty findings covering duration, named exclusions, transferability to owners, defect coverage scope, and call-back period requirements, each with exact clause quotes and plain-English explanations.
+  2. The user sees safety/OSHA findings covering site safety program enrollment, fall-protection requirements, and GC safety-plan coordination duties, each grounded in the existing `ca-calosha` knowledge module.
+  3. Both passes integrate into the existing Stage 2 parallel wave, emit Zod-validated findings through the standard merge pipeline, and surface under the correct categories in the Findings tab.
+  4. The clause passes are independent of scope-intel infrastructure — they run and produce findings correctly on contracts with no bid PDF and with Stage 3 disabled.
+**Plans**: TBD
+
+### Phase 62: Scope Intelligence UX + Portfolio Trends
+**Goal**: All new scope-intel findings surface cleanly as subcategories under "Scope of Work" without category bloat, the user has a dedicated Scope Intelligence view-mode showing submittal timeline / spec-gap matrix / bid-contract diff, and cross-contract scope trends appear on the dashboard.
+**Depends on**: Phases 57, 59, 60 (scope-intel data must be flowing); Phase 61 (clause findings integrated)
+**Requirements**: UX-01, UX-02, PORT-01
+**Success Criteria** (what must be TRUE):
+  1. All v3.0 scope-intel findings (submittal register, quantity ambiguity, spec reconciliation, exclusion stress-test, bid reconciliation) surface as subcategories of the existing "Scope of Work" top-level category — no new top-level Category enum values, no per-subcategory UI noise collapse.
+  2. The user can switch into a dedicated "Scope Intelligence" view-mode on the contract review page showing a submittal timeline, a spec-gap matrix, and a bid/contract diff — each sub-component handles its absent-data case gracefully (no bid, no submittals, no spec cites).
+  3. The dashboard shows a cross-contract scope trends card listing most-declared exclusions, recurring scope items, and exclusions that GCs commonly reject/modify, rendered only when enough analyzed contracts (N ≥ 10) exist to avoid false signals on small samples.
+  4. The Scope Intelligence view-mode and trends card degrade gracefully on contracts analyzed before v3.0 — legacy contracts simply show empty states rather than errors.
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -209,3 +300,10 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 53. Contract Lifecycle Status | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
+| 56. Architecture Foundation | v3.0 | 0/? | Not started | - |
+| 57. Contract-Only Scope Extraction | v3.0 | 0/? | Not started | - |
+| 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
+| 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
+| 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
+| 61. Warranty + Safety/OSHA Clause Passes | v3.0 | 0/? | Not started | - |
+| 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
