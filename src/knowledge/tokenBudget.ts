@@ -1,7 +1,7 @@
 import type { KnowledgeModule } from './types';
 
 export const TOKEN_CAP_PER_MODULE = 10000;
-export const MAX_MODULES_PER_PASS = 4;
+export const MAX_MODULES_PER_PASS = 6;
 
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
