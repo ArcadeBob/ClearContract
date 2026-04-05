@@ -87,12 +87,23 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ ESLint 10+ flat config with typescript-eslint v8 -- v2.1
 - ✓ 76.92% statement / 64.01% function coverage (429 tests total) -- v2.1
 - ✓ Dead code removed (isUploading, stale env vars, phantom references) -- v2.1
+- ✓ Two-stage cache pipeline: primer pass + 15 parallel passes with cache hits -- v2.2
+- ✓ Per-pass AbortController timeouts (90s) with global 250s safety timeout -- v2.2
+- ✓ Progressive DB saves with Partial contract status on global timeout -- v2.2
+- ✓ Streaming token capture (input, output, cache_creation, cache_read) per pass -- v2.2
+- ✓ analysis_usage table with per-pass cost computation and run_id grouping -- v2.2
+- ✓ Contract review cost summary bar: total cost + per-pass breakdown table -- v2.2
+- ✓ Dashboard portfolio cost stats (Total API Spend, Avg Cost / Contract) -- v2.2
+- ✓ Contract lifecycle_status column (Draft/Under Review/Negotiating/Signed/Active/Expired) -- v2.2
+- ✓ LifecycleBadge on cards + LifecycleSelect with validated-transition dropdown on review -- v2.2
+- ✓ Multi-select lifecycle filter on All Contracts with colored-dot options -- v2.2
+- ✓ Portfolio deadline timeline grouped by urgency (overdue/this-week/this-month/later) -- v2.2
+- ✓ Sidebar red deadline badge showing 7-day deadline count -- v2.2
+- ✓ Partial status integrated across Contract.status type + 5 portfolio consumers -- v2.2
 
 ### Active
 
-- [ ] Analysis parallelization
-- [ ] Token/cost tracking
-- [ ] Contract lifecycle & date intelligence
+- [ ] Next milestone goals TBD via /gsd:new-milestone
 
 ### Out of Scope
 
@@ -116,7 +127,7 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 
 ## Context
 
-Shipped v2.1 with ~15,658 LOC TypeScript across client, server, knowledge modules, and test suites.
+Shipped v2.2 with ~18,579 LOC TypeScript across client, server, knowledge modules, and test suites.
 Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF, Supabase (Postgres + Auth), Vitest, React Testing Library, ESLint 10 (flat config).
 Deployed on Vercel with serverless function (api/analyze.ts + api/passes.ts + api/pdf.ts).
 17-pass analysis pipeline (16 specialized + 1 synthesis) via Files API upload-once/analyze-many pattern.
@@ -214,15 +225,9 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 | vi.hoisted() for mock variables | jsPDF mock variables referenced in vi.mock() factory | ✓ Good -- correct Vitest hoisting |
 | Props-based page testing | Dashboard/AllContracts/ContractUpload tested via props, no hook mocking | ✓ Good -- simpler, more maintainable |
 
-## Current Milestone: v2.2 Performance & Intelligence
+## Current Milestone
 
-**Goal:** Parallelize the analysis pipeline for speed, add token/cost tracking for visibility, and build contract lifecycle management with date intelligence for actionable portfolio insights.
-
-**Target features:**
-- Analysis parallelization (independent passes run concurrently)
-- Token/cost tracking per pass and per contract
-- Contract lifecycle status tracking (Draft → Negotiating → Signed → Active)
-- Portfolio-wide deadline timeline and date intelligence
+None active — v2.2 shipped 2026-04-05. Start next milestone with `/gsd:new-milestone`.
 
 ## Completed Milestones
 
@@ -235,6 +240,7 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 - **v1.6** Quality & Validation (2026-03-16) -- 269 automated tests, CI pipeline, UAT checklist, regression suite
 - **v2.0** Enterprise Foundation (2026-03-19) -- Supabase Postgres + Auth, all data in DB, server-owned analysis, optimistic CRUD
 - **v2.1** Quality Restoration (2026-03-21) -- test suite restored, npm vulns fixed, ESLint 10, 76.92% coverage, dead code removed
+- **v2.2** Performance & Intelligence (2026-04-05) -- parallel analysis pipeline, token/cost tracking, contract lifecycle, portfolio deadline timeline
 
 ---
-*Last updated: 2026-03-21 after v2.2 milestone start*
+*Last updated: 2026-04-05 after v2.2 milestone complete*

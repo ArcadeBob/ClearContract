@@ -1,5 +1,28 @@
 # Milestones
 
+## v2.2 Performance & Intelligence (Shipped: 2026-04-05)
+
+**Phases:** 51-55 (9 plans)
+**Timeline:** 15 days (2026-03-21 → 2026-04-05)
+**Code:** 62 commits, 67 files changed, +8,533 / -223 lines (18,579 LOC TypeScript total)
+**Requirements:** 13/13 satisfied
+**Audit:** PASSED (13/13 requirements, 5/5 phases, 18/18 integrations, 8/8 E2E flows)
+
+**Key accomplishments:**
+- Two-stage cache pipeline: primer pass first, then 15 parallel passes with cache hits — per-pass AbortController timeouts (90s) with global 250s safety timeout instead of one 280s global
+- Progressive DB saves survive function timeout: partial analysis results persisted with new `Partial` contract status, enabling users to see whatever completed before the timeout
+- Full token/cost tracking: streaming event loop captures input/output/cache tokens per pass, server writes per-pass cost to new `analysis_usage` table, contract review shows total cost + per-pass breakdown table, dashboard shows portfolio-wide Total Spend + Avg Cost stat cards
+- Contract lifecycle status (Draft → Under Review → Negotiating → Signed → Active → Expired) with color-coded badges on cards/header, validated-transition dropdown on review page, and multi-select lifecycle filter on All Contracts — fully independent of analysis status
+- Portfolio deadline intelligence: dashboard-wide deadline timeline grouped by urgency (overdue/this-week/this-month/later) with click-to-navigate, sidebar red badge showing 7-day deadline count
+- Gap closure (Phase 55): `Partial` status integrated into client Contract.status union, amber ContractCard badge, and all 5 portfolio-level consumers (Dashboard stats, App deadline count, timeline, PatternsCard, urgent badge)
+
+**Tech debt carried forward:**
+- Phase 51 human-verification pending: live Anthropic API calls to confirm analysis_usage rows written, real 250s timeout producing Partial contracts, and cache_read_input_tokens > 0 on Stage 2 passes
+- Phase 52 acceptable degradation: session expiry between upload and review-page load causes silent null CostSummaryBar render (COST-03 visibility only, no data loss)
+- Nyquist validation partial: 4 draft, 1 missing VALIDATION.md — run `/gsd:validate-phase 51-55` to close
+
+---
+
 ## v2.1 Quality Restoration (Shipped: 2026-03-21)
 
 **Phases:** 46-50 (8 plans)

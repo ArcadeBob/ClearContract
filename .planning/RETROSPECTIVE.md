@@ -1,5 +1,49 @@
 # Retrospective
 
+## Milestone: v2.2 -- Performance & Intelligence
+
+**Shipped:** 2026-04-05
+**Phases:** 5 | **Plans:** 9 | **Commits:** 62
+**Timeline:** 15 days (2026-03-21 -> 2026-04-05)
+
+### What Was Built
+- Two-stage cache pipeline: primer pass then 15 parallel passes with cache hits, per-pass 90s AbortControllers + global 250s safety timeout
+- Progressive DB saves with new `Partial` contract status surviving global timeout
+- Full token/cost tracking: analysis_usage table, streaming usage capture, per-pass + total cost display, portfolio Total/Avg stat cards
+- Contract lifecycle_status (Draft → Under Review → Negotiating → Signed → Active → Expired) with badges, validated-transition dropdown, and multi-select filter
+- Portfolio deadline timeline grouped by urgency + sidebar 7-day deadline badge
+- Phase 55 gap closure: `Partial` wired across Contract.status union and 5 portfolio-level consumers
+
+### What Worked
+- Schema-migration-first plans (51-01 before 51-02) let types and DB land together, unblocking parallel UI phases (52, 53, 54)
+- Two-stage cache approach (primer first, then parallel) aligned with Anthropic prompt cache semantics cleanly
+- lifecycle_status vs status independence enforced at schema level (separate column, CHECK constraint) — zero conflation anywhere in codebase
+- Integration checker agent caught the Partial-status gap before milestone archive (Phase 55 gap closure)
+
+### What Was Inefficient
+- Phase 55 (client-type gap closure for Partial) should have been caught during Phase 51 planning — type union drift across DB/server/client is a recurring pattern
+- 3 Phase 51 tech-debt items require live Anthropic API verification that automated tools can't perform (still pending)
+- Nyquist validations left in draft across all 5 phases — discovery-only, not blocking but adds carry-over
+
+### Patterns Established
+- Per-pass AbortController with independent global safety timeout (vs parent-child hierarchy)
+- Portfolio aggregation in-component via useEffect for single-consumer Supabase queries (no dedicated hook needed)
+- Lifecycle transition map as const Record for compile-time valid-transition enforcement
+- Separate urgentBadge (red) vs badge (slate) on nav items for visual priority distinction
+- Amber color convention for warning/incomplete-but-usable states (Partial status)
+
+### Key Lessons
+- When DB adds a new enum value (e.g., 'Partial' to contracts.status CHECK), audit client union types in the same phase — don't wait for gap closure
+- Progressive-save patterns pair naturally with a distinct "partial" status value, keeping timeout handling explicit at the type level
+- Streaming usage field types from Anthropic beta require defensive `as` casts + `?? 0` fallbacks
+
+### Cost Observations
+- Model mix: quality profile (mostly opus) with sonnet for execution
+- Sessions: ~8 sessions across 15 days
+- Notable: long calendar span with sparse sessions; gap-closure phase 55 completed in ~5 min
+
+---
+
 ## Milestone: v1.0 -- Enhanced Analysis Release
 
 **Shipped:** 2026-03-06
