@@ -49,6 +49,57 @@ export interface UnifiedFinding {
   downgradedFrom?: Severity;
   isSynthesis?: boolean;
   actionPriority?: 'pre-bid' | 'pre-sign' | 'monitor';
+  /** ARCH-02 provenance discriminator — see src/schemas/inferenceBasis.ts */
+  inferenceBasis?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Severity rank (module scope — used by dedup AND enforceInferenceBasis)
+// ---------------------------------------------------------------------------
+const severityRank: Record<string, number> = {
+  Critical: 5,
+  High: 4,
+  Medium: 3,
+  Low: 2,
+  Info: 1,
+};
+
+// ---------------------------------------------------------------------------
+// ARCH-02: Inference basis enforcement
+//
+// - Drop findings with inferenceBasis === 'model-prior' entirely (never ship
+//   model-general-knowledge findings to the client).
+// - Clamp findings with inferenceBasis matching /^knowledge-module:/ to
+//   Medium max severity, recording original severity in downgradedFrom.
+// - Leave findings without inferenceBasis (extraction + clause passes) and
+//   contract-quoted inference findings untouched.
+//
+// Runs AFTER dedup, BEFORE computeRiskScore (so dropped findings don't
+// inflate score) and BEFORE applySeverityGuard (so CA void-by-law upgrade
+// can't re-exceed the Medium clamp).
+// ---------------------------------------------------------------------------
+const KNOWLEDGE_MODULE_BASIS_PATTERN = /^knowledge-module:[a-z0-9-]+$/;
+const MAX_INFERENCE_SEVERITY: Severity = 'Medium';
+
+function enforceInferenceBasis(findings: UnifiedFinding[]): UnifiedFinding[] {
+  const kept: UnifiedFinding[] = [];
+  for (const f of findings) {
+    const basis = f.inferenceBasis;
+    if (basis === 'model-prior') {
+      // Drop entirely — never shipped to client.
+      continue;
+    }
+    if (typeof basis === 'string' && KNOWLEDGE_MODULE_BASIS_PATTERN.test(basis)) {
+      // Clamp knowledge-module-grounded findings to Medium max.
+      if ((severityRank[f.severity] ?? 0) > (severityRank[MAX_INFERENCE_SEVERITY] ?? 0)) {
+        f.downgradedFrom = f.severity;
+        f.severity = MAX_INFERENCE_SEVERITY;
+      }
+    }
+    // contract-quoted and findings without inferenceBasis pass through unchanged.
+    kept.push(f);
+  }
+  return kept;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +119,7 @@ interface BaseFindingFields {
   negotiationPosition?: string;
   downgradedFrom?: string;
   actionPriority?: string;
+  inferenceBasis?: string;
 }
 
 function buildBaseFinding(
@@ -88,6 +140,7 @@ function buildBaseFinding(
     negotiationPosition: finding.negotiationPosition,
     downgradedFrom: finding.downgradedFrom as Severity | undefined,
     actionPriority: finding.actionPriority as 'pre-bid' | 'pre-sign' | 'monitor' | undefined,
+    inferenceBasis: finding.inferenceBasis,
   };
 }
 
@@ -264,7 +317,7 @@ function convertScopeOfWorkFinding(finding: ScopeOfWorkFinding, passName: string
   return {
     ...buildBaseFinding(finding, passName),
     scopeMeta: {
-      passType: 'scope-of-work',
+      passType: 'scope-extraction',
       scopeItemType: finding.scopeItemType,
       specificationReference: finding.specificationReference,
       affectedTrade: finding.affectedTrade,
@@ -344,7 +397,7 @@ const passHandlers: Record<string, PassHandler> = {
   'legal-lien-rights': createHandler(LienRightsFindingSchema, convertLienRightsFinding),
   'legal-dispute-resolution': createHandler(DisputeResolutionFindingSchema, convertDisputeResolutionFinding),
   'legal-change-order': createHandler(ChangeOrderFindingSchema, convertChangeOrderFinding),
-  'scope-of-work': createHandler(ScopeOfWorkFindingSchema, convertScopeOfWorkFinding),
+  'scope-extraction': createHandler(ScopeOfWorkFindingSchema, convertScopeOfWorkFinding),
   'dates-deadlines': createHandler(DatesDeadlinesFindingSchema, convertDatesDeadlinesFinding),
   'verbiage-analysis': createHandler(VerbiageFindingSchema, convertVerbiageFinding),
   'labor-compliance': createHandler(LaborComplianceFindingSchema, convertLaborComplianceFinding),
@@ -404,14 +457,6 @@ export function mergePassResults(
   let client = 'Unknown Client';
   let contractType: MergedAnalysisResult['contractType'] = 'Subcontract';
 
-  const severityRank: Record<string, number> = {
-    Critical: 5,
-    High: 4,
-    Medium: 3,
-    Low: 2,
-    Info: 1,
-  };
-
   for (let i = 0; i < results.length; i++) {
     const settled = results[i];
     const passName = passes[i].name;
@@ -467,7 +512,7 @@ export function mergePassResults(
   // --- Enhanced deduplication ---
   const isSpecializedPass = (sp: string) =>
     sp.startsWith('legal-') ||
-    ['scope-of-work', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance'].includes(sp);
+    ['scope-extraction', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance'].includes(sp);
 
   // Phase 1: clauseReference + category composite key dedup
   const byClauseAndCategory = new Map<string, UnifiedFinding>();
@@ -532,10 +577,13 @@ export function mergePassResults(
     }
   }
 
-  const deduplicatedFindings = Array.from(byTitle.values());
+  let deduplicatedFindings = Array.from(byTitle.values());
 
   // Append staleness warnings for expired knowledge modules (Info severity, weight 0)
   deduplicatedFindings.push(...checkModuleStaleness());
+
+  // ARCH-02: drop model-prior + clamp knowledge-module findings to Medium
+  deduplicatedFindings = enforceInferenceBasis(deduplicatedFindings);
 
   // Compute risk score BEFORE severity guard (uses original severities)
   const scoreResult = computeRiskScore(deduplicatedFindings);
