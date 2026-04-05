@@ -454,7 +454,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- STAGE 1: Primer pass (risk-overview) ---
     // Sent first and alone to create Anthropic prompt cache.
     const primerPass = ANALYSIS_PASSES.find(p => p.name === 'risk-overview')!;
-    const remainingPasses = ANALYSIS_PASSES.filter(p => p.name !== 'risk-overview');
+    const stage2Passes = ANALYSIS_PASSES.filter(
+      (p) => p.name !== 'risk-overview' && (p.stage ?? 2) === 2
+    );
+    const stage3Passes = ANALYSIS_PASSES.filter((p) => p.stage === 3);
 
     console.log('[analyze] Stage 1: Running primer pass (risk-overview)...');
     const primerController = new AbortController();
@@ -494,11 +497,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // --- STAGE 2: Remaining 15 passes in parallel ---
-    console.log(`[analyze] Stage 2: Running ${remainingPasses.length} passes in parallel...`);
+    console.log(`[analyze] Stage 2: Running ${stage2Passes.length} passes in parallel...`);
     const passStart = Date.now();
 
     const settledResults = await Promise.allSettled(
-      remainingPasses.map((pass) => {
+      stage2Passes.map((pass) => {
         const ctrl = new AbortController();
         allControllers.push(ctrl);
         const timeout = setTimeout(() => {
@@ -527,11 +530,70 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
+    // --- STAGE 3: Reconciliation wave (parallel, runs after Stage 2 settles) ---
+    // Mirrors Stage 2 orchestration: Promise.allSettled + per-pass AbortController
+    // + 90s setTimeout + finally(clearTimeout). Empty wave is special-cased.
+    // Ship-what-we-have: Stage 3 STILL runs even when Stage 2 overruns its
+    // 150s wall-clock budget (per CONTEXT.md Stage 3 failure/Partial policy).
+    let stage3Settled: PromiseSettledResult<PassWithUsage>[] = [];
+    if (stage3Passes.length === 0) {
+      console.log('[analyze] Stage 3: no passes registered, skipping');
+    } else {
+      const stage2Elapsed = Date.now() - passStart;
+      if (stage2Elapsed > 150_000) {
+        console.log(
+          `[analyze] Stage 2 overrun: ${(stage2Elapsed / 1000).toFixed(1)}s — running Stage 3 on partial Stage 2 output`
+        );
+      }
+      console.log(`[analyze] Stage 3: Running ${stage3Passes.length} reconciliation passes...`);
+      const stage3Start = Date.now();
+
+      stage3Settled = await Promise.allSettled(
+        stage3Passes.map((pass) => {
+          const ctrl = new AbortController();
+          allControllers.push(ctrl);
+          const timeout = setTimeout(() => {
+            console.log(`[analyze] Stage 3 pass "${pass.name}" timed out at 90s`);
+            ctrl.abort();
+          }, 90_000);
+
+          return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal)
+            .finally(() => clearTimeout(timeout));
+        })
+      );
+
+      // Record usage for fulfilled Stage 3 passes
+      for (const settled of stage3Settled) {
+        if (settled.status === 'fulfilled') {
+          const r = settled.value;
+          usageRows.push({
+            pass_name: r.passName,
+            input_tokens: r.usage.inputTokens,
+            output_tokens: r.usage.outputTokens,
+            cache_creation_tokens: r.usage.cacheCreationTokens,
+            cache_read_tokens: r.usage.cacheReadTokens,
+            cost_usd: computePassCost(r.usage),
+            duration_ms: r.durationMs,
+          });
+        }
+      }
+
+      const stage3Failed = stage3Settled.filter((r) => r.status === 'rejected').length;
+      console.log(
+        `[analyze] Stage 3 done in ${((Date.now() - stage3Start) / 1000).toFixed(1)}s (${stage3Failed} failed/timed-out)`
+      );
+    }
+
     // Build the full settled results array for mergePassResults:
-    // Primer is index 0, then remaining passes in order
+    // Primer is index 0, then Stage 2 passes, then Stage 3 passes in order
     const allSettled: PromiseSettledResult<{ passName: string; result: PassResult | RiskOverviewResult }>[] = [
       { status: 'fulfilled' as const, value: { passName: primerResult.passName, result: primerResult.result as PassResult | RiskOverviewResult } },
       ...settledResults.map(s =>
+        s.status === 'fulfilled'
+          ? { status: 'fulfilled' as const, value: { passName: s.value.passName, result: s.value.result as PassResult | RiskOverviewResult } }
+          : s
+      ),
+      ...stage3Settled.map(s =>
         s.status === 'fulfilled'
           ? { status: 'fulfilled' as const, value: { passName: s.value.passName, result: s.value.result as PassResult | RiskOverviewResult } }
           : s
@@ -542,21 +604,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // are dropped silently (logged but no finding created for the user).
     // mergePassResults creates "Analysis Pass Failed" findings for rejected
     // promises, so we filter out abort errors to prevent those findings.
+    // Build matching passes array (same order as allSettled: primer, stage2, stage3)
+    const allPasses = [primerPass, ...stage2Passes, ...stage3Passes];
+
     const nonAbortSettled = allSettled.filter((s, i) => {
       if (s.status === 'rejected') {
         const reason = s.reason;
         const isAbort = reason instanceof Error && (reason.name === 'AbortError' || reason.message?.includes('abort'));
         if (isAbort) {
-          const passName = i === 0 ? 'risk-overview' : remainingPasses[i - 1]?.name || 'unknown';
-          console.log(`[analyze] Pass "${passName}" dropped (timed out)`);
+          const passName = allPasses[i]?.name ?? 'unknown';
+          const stageLabel = i > stage2Passes.length ? 'Stage 3 ' : '';
+          console.log(`[analyze] ${stageLabel}pass "${passName}" dropped (timed out)`);
           return false; // Filter out -- drop silently
         }
       }
       return true;
     });
-
-    // Build matching passes array (same order/length as nonAbortSettled)
-    const allPasses = [primerPass, ...remainingPasses];
     const nonAbortPasses = allPasses.filter((_, i) => {
       const s = allSettled[i];
       if (s.status === 'rejected') {
