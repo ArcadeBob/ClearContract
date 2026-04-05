@@ -72,7 +72,7 @@ export function groupDatesByUrgency(
   };
 
   contracts
-    .filter(c => c.status === 'Reviewed')
+    .filter(c => c.status === 'Reviewed' || c.status === 'Partial')
     .forEach(c => {
       c.dates.forEach(d => {
         const urgency = getUrgencyGroup(d.date);

@@ -9,7 +9,7 @@ interface PatternsCardProps {
 
 export function PatternsCard({ contracts }: PatternsCardProps) {
   const patterns = useMemo(() => {
-    const reviewed = contracts.filter((c) => c.status === 'Reviewed');
+    const reviewed = contracts.filter((c) => c.status === 'Reviewed' || c.status === 'Partial');
     if (reviewed.length < 3) return null;
 
     const categoryCounts = new Map<Category, number>();

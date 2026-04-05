@@ -39,7 +39,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
 
   const deadlineCount = useMemo(() => {
     const allDates = contracts
-      .filter(c => c.status === 'Reviewed')
+      .filter(c => c.status === 'Reviewed' || c.status === 'Partial')
       .flatMap(c => c.dates);
     return countDeadlinesWithin7Days(allDates);
   }, [contracts]);

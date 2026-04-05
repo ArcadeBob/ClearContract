@@ -23,8 +23,8 @@ interface DashboardProps {
   onNavigate: (view: ViewState, id?: string) => void;
 }
 export function Dashboard({ contracts, onNavigate }: DashboardProps) {
-  // Only count fully reviewed contracts in stats (exclude Analyzing/Error)
-  const reviewed = contracts.filter((c) => c.status === 'Reviewed');
+  // Count fully reviewed and partial contracts in stats (exclude Analyzing/Error)
+  const reviewed = contracts.filter((c) => c.status === 'Reviewed' || c.status === 'Partial');
   const totalContracts = reviewed.length;
   const openFindings = reviewed.reduce(
     (acc, c) => acc + c.findings.filter(f => !f.resolved).length,
