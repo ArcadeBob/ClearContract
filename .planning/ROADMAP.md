@@ -153,7 +153,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 ### v3.0 Scope Intelligence (Phases 56-62) -- IN PROGRESS
 
-- [x] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution (completed 2026-04-05)
+- [x] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution (completed 2026-04-05)
 - [x] **Phase 57: Contract-Only Scope Extraction** -- submittal register, schedule-conflict detection, quantity-ambiguity flagging (completed 2026-04-06)
 - [ ] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution
 - [ ] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules
@@ -200,7 +200,12 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
   3. On re-analyze, the user explicitly chooses whether to re-upload the contract, the bid, both, or keep existing files — and the new run records its document configuration independently.
   4. The AAMA submittal-standards module and Div 08 MasterFormat deliverables module are loaded by the submittal-extraction and spec-reconciliation passes within the resolved module-capacity budget, and their content visibly influences pass output (e.g., typical-deliverables references in findings).
   5. Contracts uploaded before v3.0 (no bid, no new columns) continue to render and re-analyze without errors — backward compatibility is preserved.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 58-01-PLAN.md — Knowledge modules (AAMA + Div 08), Contract type extension, DB migration
+- [ ] 58-02-PLAN.md — Server-side bid pipeline: parallel file upload, Supabase Storage, dual cleanup
+- [ ] 58-03-PLAN.md — Client-side upload UI: bid drop zone, two-file upload page, analyzeContract extension
+- [ ] 58-04-PLAN.md — Re-analyze document selection modal, documents badge, App.tsx reanalyze flow
 
 ### Phase 59: Spec Reconciliation + Exclusion Stress-Test
 **Goal**: Users see inference-based findings that catch what expert reviewers miss — spec-reconciliation gaps for Div 08 / ASTM / AAMA cites, and exclusion stress-test challenges against inferred spec requirements — all executed as Stage 3 passes grounded in knowledge modules.
@@ -307,7 +312,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
 | 56. Architecture Foundation | 3/3 | Complete    | 2026-04-05 | - |
 | 57. Contract-Only Scope Extraction | 2/2 | Complete    | 2026-04-06 | - |
-| 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
+| 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/4 | Not started | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
 | 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
 | 61. Warranty + Safety/OSHA Clause Passes | v3.0 | 0/? | Not started | - |
