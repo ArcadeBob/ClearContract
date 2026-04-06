@@ -16,6 +16,25 @@ import { ContractDateSchema, ActionPriorityEnum } from './analysis';
 const SeverityEnum = z.enum(SEVERITIES);
 
 // ---------------------------------------------------------------------------
+// Submittal Entry Schema (SCOPE-05)
+// ---------------------------------------------------------------------------
+
+export const SubmittalEntrySchema = z.object({
+  type: z.enum(['shop-drawing', 'sample', 'mockup', 'product-data']),
+  description: z.string(),
+  reviewDuration: z.number(),
+  responsibleParty: z.string(),
+  reviewCycles: z.number(),
+  resubmittalBuffer: z.number(),
+  specSection: z.string(),
+  leadTime: z.number(),
+  clauseReference: z.string(),
+  statedFields: z.array(z.string()),
+});
+
+export type SubmittalEntry = z.infer<typeof SubmittalEntrySchema>;
+
+// ---------------------------------------------------------------------------
 // Scope of Work Finding Schema (SCOPE-01)
 // ---------------------------------------------------------------------------
 
@@ -36,6 +55,7 @@ export const ScopeOfWorkFindingSchema = z.object({
     'scope-rule',
     'ambiguity',
     'gap',
+    'quantity-ambiguity',
   ]),
   specificationReference: z.string(),
   affectedTrade: z.string(),
@@ -47,6 +67,7 @@ export const ScopeOfWorkFindingSchema = z.object({
 export const ScopeOfWorkPassResultSchema = z.object({
   findings: z.array(ScopeOfWorkFindingSchema),
   dates: z.array(ContractDateSchema),
+  submittals: z.array(SubmittalEntrySchema),
 });
 
 // ---------------------------------------------------------------------------

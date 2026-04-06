@@ -63,8 +63,10 @@ export function createContract(overrides?: Partial<Contract>): Contract {
     type: 'Subcontract',
     uploadDate: new Date().toISOString(),
     status: 'Reviewed',
+    lifecycleStatus: 'Draft',
     findings: [],
     dates: [],
+    submittals: [],
     riskScore: 45,
   };
   return { ...defaults, ...overrides };

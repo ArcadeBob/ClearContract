@@ -175,6 +175,19 @@ export interface ContractDate {
   type: 'Start' | 'Milestone' | 'Deadline' | 'Expiry';
 }
 
+export interface SubmittalEntry {
+  type: 'shop-drawing' | 'sample' | 'mockup' | 'product-data';
+  description: string;
+  reviewDuration: number;
+  responsibleParty: string;
+  reviewCycles: number;
+  resubmittalBuffer: number;
+  specSection: string;
+  leadTime: number;
+  clauseReference: string;
+  statedFields: string[];
+}
+
 export interface Contract {
   id: string;
   name: string;
@@ -185,6 +198,7 @@ export interface Contract {
   lifecycleStatus: LifecycleStatus;
   findings: Finding[];
   dates: ContractDate[];
+  submittals: SubmittalEntry[];
   riskScore: number; // 0-100
   scoreBreakdown?: Array<{ name: string; points: number }>;
   bidSignal?: BidSignal;

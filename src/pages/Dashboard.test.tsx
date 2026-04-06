@@ -19,8 +19,10 @@ describe('Dashboard', () => {
         type: 'Subcontract' as const,
         uploadDate: new Date().toISOString(),
         status: 'Reviewed' as const,
+        lifecycleStatus: 'Draft' as const,
         findings: [],
         dates: [],
+        submittals: [],
         riskScore: 50,
       },
     ];
