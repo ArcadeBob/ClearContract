@@ -186,7 +186,9 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
   2. When a submittal's total duration (submission + review + resubmittal buffer) pushes past a contract milestone, the user sees an explicit schedule-conflict warning that names the submittal, the milestone, and the days of overrun — computed deterministically in TypeScript after the extraction pass, not from an additional LLM call.
   3. Scope items containing quantity-ambiguity phrases (`approximately`, `as required`, `sufficient`, `to weatherproof`, etc.) surface as bid-risk warnings with the exact ambiguous phrase quoted and a severity appropriate to bid exposure.
   4. All three capabilities work on contracts uploaded without any bid PDF — this phase ships standalone value.
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 57-01-PLAN.md — Schema + DB + pass prompt + merge pipeline for submittal extraction and quantity-ambiguity
+- [ ] 57-02-PLAN.md — Schedule-conflict computation + Submittals tab UI
 
 ### Phase 58: Knowledge Modules + Multi-Document Input
 **Goal**: The AAMA submittal-standards and Div 08 MasterFormat knowledge modules are wired into the pipeline, and users can optionally attach a bid/estimate PDF at upload that flows through analysis with correct document attribution — enabling downstream reconciliation passes.
@@ -304,7 +306,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
 | 56. Architecture Foundation | 3/3 | Complete    | 2026-04-05 | - |
-| 57. Contract-Only Scope Extraction | v3.0 | 0/? | Not started | - |
+| 57. Contract-Only Scope Extraction | v3.0 | 0/2 | Not started | - |
 | 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
 | 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
