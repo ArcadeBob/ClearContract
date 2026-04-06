@@ -29,6 +29,7 @@ import { fetch as undiciFetch, Agent } from 'undici';
 import { preparePdfForAnalysis } from './pdf';
 import { mergePassResults } from './merge';
 import type { UnifiedFinding } from './merge';
+import { computeScheduleConflicts } from './conflicts';
 import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
 import { ANALYSIS_PASSES, SYNTHESIS_SYSTEM_PROMPT } from './passes';
 import type { AnalysisPass } from './passes';
@@ -636,6 +637,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // --- MERGE ---
     const merged = mergePassResults(nonAbortSettled, nonAbortPasses);
+
+    // --- SCHEDULE-CONFLICT COMPUTATION (deterministic, no LLM call) ---
+    const conflictResult = computeScheduleConflicts(merged.submittals, merged.dates);
+    if (conflictResult.findings.length > 0) {
+      console.log(`[analyze] Schedule conflicts: ${conflictResult.findings.length} conflicts detected`);
+      merged.findings.push(...conflictResult.findings);
+    }
 
     // --- SYNTHESIS (skip on timeout path) ---
     let synthUsage: PassUsage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
