@@ -6,7 +6,7 @@ import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types';
 import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers';
 
 // 2A: Allow larger base64-encoded PDFs through Vercel body parser
-export const config = { api: { bodyParser: { sizeLimit: '15mb' } } };
+export const config = { api: { bodyParser: { sizeLimit: '25mb' } } };
 import Anthropic from '@anthropic-ai/sdk';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import {
@@ -35,6 +35,7 @@ import { ANALYSIS_PASSES, SYNTHESIS_SYSTEM_PROMPT } from './passes';
 import type { AnalysisPass } from './passes';
 import type { PassUsage, PassWithUsage } from './types';
 import { computePassCost } from './cost';
+import { uploadPdf, downloadPdf } from '../src/lib/supabaseStorage';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -45,6 +46,10 @@ const AnalyzeRequestSchema = z.object({
   pdfBase64: z.string().min(1, 'pdfBase64 is required'),
   fileName: z.string().max(255).optional(),
   contractId: z.string().uuid().optional(),
+  bidPdfBase64: z.string().optional(),
+  bidFileName: z.string().max(255).optional(),
+  keepCurrentContract: z.boolean().optional(),  // re-analyze: use Storage PDF
+  removeBid: z.boolean().optional(),             // re-analyze: clear bid
 });
 
 // 2C: Sanitize user-controlled filenames
@@ -56,6 +61,7 @@ const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 8192;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_BID_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB (bid PDFs are typically small)
 
 // Passes that receive company profile for comparison instructions
 const PASSES_RECEIVING_PROFILE = new Set([
@@ -343,6 +349,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   let fileId: string | null = null;
+  let bidFileId: string | null = null;
   let client: Anthropic | null = null;
   let dispatcher: Agent | null = null;
   let globalTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -355,7 +362,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: parseResult.error.flatten().fieldErrors,
       });
     }
-    const { pdfBase64, fileName: rawFileName, contractId: existingContractId } = parseResult.data;
+    const { pdfBase64, fileName: rawFileName, contractId: existingContractId, bidPdfBase64, bidFileName: rawBidFileName, keepCurrentContract, removeBid } = parseResult.data;
 
     // --- Read company profile from DB ---
     const { data: profileRow } = await supabaseAdmin
@@ -369,12 +376,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : DEFAULT_COMPANY_PROFILE;
     const fileName = rawFileName ? sanitizeFileName(rawFileName) : 'contract.pdf';
 
-    // Decode and validate size
-    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-    if (pdfBuffer.length > MAX_FILE_SIZE_BYTES) {
-      return res.status(400).json({
-        error: `File too large. Maximum size is 10MB, received ${(pdfBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
-      });
+    // Resolve contract PDF: either from request body or Supabase Storage (re-analyze keep-current)
+    let pdfBuffer: Buffer;
+    if (keepCurrentContract && existingContractId) {
+      const storedPdf = await downloadPdf(supabaseAdmin, userId, existingContractId, 'contract');
+      if (!storedPdf) {
+        return res.status(400).json({ error: 'No stored contract PDF found. Please upload a new PDF.' });
+      }
+      pdfBuffer = storedPdf;
+    } else {
+      pdfBuffer = Buffer.from(pdfBase64, 'base64');
+      if (pdfBuffer.length > MAX_FILE_SIZE_BYTES) {
+        return res.status(400).json({
+          error: `File too large. Maximum size is 10MB, received ${(pdfBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
+        });
+      }
+    }
+
+    // Decode and validate bid PDF (optional)
+    let bidBuffer: Buffer | null = null;
+    let bidFileName = rawBidFileName ? sanitizeFileName(rawBidFileName) : null;
+    if (bidPdfBase64) {
+      bidBuffer = Buffer.from(bidPdfBase64, 'base64');
+      if (bidBuffer.length > MAX_BID_FILE_SIZE_BYTES) {
+        return res.status(400).json({
+          error: `Bid file too large. Maximum size is 5MB, received ${(bidBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
+        });
+      }
+      bidFileName = bidFileName || 'bid.pdf';
     }
 
     // Use npm undici's fetch for message API calls to control timeouts.
@@ -414,19 +443,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       fetch: customFetch,
     });
 
-    // Upload PDF to Files API (or fallback to text extraction)
-    console.log(
-      `[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB, uploading...`
-    );
+    // Upload PDF(s) to Files API (or fallback to text extraction)
+    console.log(`[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB${bidBuffer ? `, bid: ${(bidBuffer.length / 1024).toFixed(1)}KB` : ''}, uploading...`);
     const uploadStart = Date.now();
-    const prepared = await preparePdfForAnalysis(
-      pdfBuffer,
-      fileName || 'contract.pdf',
-      uploadClient
-    );
-    fileId = prepared.fileId;
+    const [contractPrepared, bidPrepared] = await Promise.all([
+      preparePdfForAnalysis(pdfBuffer, fileName || 'contract.pdf', uploadClient),
+      bidBuffer
+        ? preparePdfForAnalysis(bidBuffer, bidFileName || 'bid.pdf', uploadClient)
+        : Promise.resolve(null),
+    ]);
+    fileId = contractPrepared.fileId;
+    bidFileId = bidPrepared?.fileId ?? null;
     console.log(
-      `[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}, fallback: ${prepared.usedFallback}`
+      `[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}${bidFileId ? `, bidFileId: ${bidFileId}` : ''}, fallback: ${contractPrepared.usedFallback}`
     );
 
     // --- Two-stage cache pipeline ---
@@ -706,6 +735,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       bidSignal,
       passResults: merged.passResults,
       submittals: merged.submittals,
+      ...(removeBid ? { bidFileName: null } : bidFileName ? { bidFileName } : {}),
     });
     // Remove meta columns that Postgres auto-generates
     delete contractPayload.id;
@@ -742,6 +772,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const contractId = contractRow.id as string;
+
+    // Persist PDFs to Supabase Storage (non-blocking, best-effort)
+    const storagePromises: Promise<void>[] = [];
+    if (!keepCurrentContract) {
+      storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'contract', pdfBuffer));
+    }
+    if (bidBuffer) {
+      storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'bid', bidBuffer));
+    }
+    if (storagePromises.length > 0) {
+      await Promise.all(storagePromises);
+    }
 
     // Bulk insert findings
     const findingPayloads = allFindings.map((f) => {
@@ -851,15 +893,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (globalTimeout) {
       clearTimeout(globalTimeout);
     }
-    // Clean up: delete the uploaded file from Files API (best-effort)
-    if (client && fileId) {
-      try {
-        await client.beta.files.delete(fileId, { betas: BETAS });
-      } catch (cleanupError) {
-        console.error(
-          'File cleanup failed (non-critical):',
-          cleanupError instanceof Error ? cleanupError.message : cleanupError
-        );
+    // Clean up: delete uploaded files from Files API (best-effort)
+    if (client) {
+      const cleanupIds = [fileId, bidFileId].filter(Boolean) as string[];
+      for (const id of cleanupIds) {
+        try {
+          await client.beta.files.delete(id, { betas: BETAS });
+        } catch (cleanupError) {
+          console.error(
+            'File cleanup failed (non-critical):',
+            cleanupError instanceof Error ? cleanupError.message : cleanupError
+          );
+        }
       }
     }
     // Close the undici Agent to drain its connection pool (prevents socket leaks on warm starts)
