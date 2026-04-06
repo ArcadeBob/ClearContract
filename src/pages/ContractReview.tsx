@@ -9,6 +9,7 @@ import { BidSignalWidget } from '../components/BidSignalWidget';
 import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { NegotiationChecklist } from '../components/NegotiationChecklist';
+import { SubmittalRegister } from '../components/SubmittalRegister';
 import { ReviewHeader } from '../components/ReviewHeader';
 import { FilterToolbar, ViewMode } from '../components/FilterToolbar';
 import { RiskSummary } from '../components/RiskSummary';
@@ -164,10 +165,16 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                 setFilterSet={setFilterSet}
                 hideResolved={hideResolved}
                 toggleHideResolved={toggleHideResolved}
+                submittalCount={contract.submittals?.length ?? 0}
               />
 
               {/* Findings display */}
-              {viewMode === 'negotiation' ? (
+              {viewMode === 'submittals' ? (
+                <SubmittalRegister
+                  submittals={contract.submittals ?? []}
+                  conflictFindings={contract.findings.filter(f => f.sourcePass === 'schedule-conflict')}
+                />
+              ) : viewMode === 'negotiation' ? (
                 <NegotiationChecklist findings={contract.findings} onToggleResolved={onToggleResolved} />
               ) : viewMode === 'coverage' ? (
                 <CoverageComparisonTab findings={contract.findings} />

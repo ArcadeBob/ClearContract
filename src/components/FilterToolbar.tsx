@@ -7,9 +7,10 @@ import {
   List,
   Shield,
   Handshake,
+  ClipboardList,
 } from 'lucide-react';
 
-export type ViewMode = 'by-category' | 'by-severity' | 'coverage' | 'negotiation';
+export type ViewMode = 'by-category' | 'by-severity' | 'coverage' | 'negotiation' | 'submittals';
 
 type FilterSetType = 'severities' | 'categories' | 'priorities';
 
@@ -23,6 +24,7 @@ interface FilterToolbarProps {
   setFilterSet: (type: FilterSetType, newSet: Set<string>) => void;
   hideResolved: boolean;
   toggleHideResolved: () => void;
+  submittalCount?: number;
 }
 
 export function FilterToolbar({
@@ -33,6 +35,7 @@ export function FilterToolbar({
   setFilterSet,
   hideResolved,
   toggleHideResolved,
+  submittalCount,
 }: FilterToolbarProps) {
   return (
     <>
@@ -83,6 +86,19 @@ export function FilterToolbar({
             <Handshake className="w-4 h-4" />
             Negotiation
           </button>
+          {submittalCount != null && submittalCount > 0 && (
+            <button
+              onClick={() => setViewMode('submittals')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'submittals'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              Submittals ({submittalCount})
+            </button>
+          )}
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
           <input
@@ -95,37 +111,39 @@ export function FilterToolbar({
         </label>
       </div>
 
-      {/* Multi-select filter dropdowns */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <MultiSelectDropdown
-          label="Category"
-          options={CATEGORIES}
-          selected={filters.categories}
-          onChange={(s) => setFilterSet('categories', s as Set<string>)}
-        />
-        <MultiSelectDropdown
-          label="Severity"
-          options={SEVERITIES}
-          selected={filters.severities}
-          onChange={(s) => setFilterSet('severities', s as Set<string>)}
-          renderOption={(s) => <SeverityBadge severity={s as Severity} />}
-        />
-        <MultiSelectDropdown
-          label="Priority"
-          options={ACTION_PRIORITIES}
-          selected={filters.priorities}
-          onChange={(s) => setFilterSet('priorities', s)}
-        />
-        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none ml-1">
-          <input
-            type="checkbox"
-            checked={filters.negotiationOnly}
-            onChange={() => toggleFilter('negotiationOnly')}
-            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+      {/* Multi-select filter dropdowns (hidden on Submittals tab) */}
+      {viewMode !== 'submittals' && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <MultiSelectDropdown
+            label="Category"
+            options={CATEGORIES}
+            selected={filters.categories}
+            onChange={(s) => setFilterSet('categories', s as Set<string>)}
           />
-          Has negotiation position
-        </label>
-      </div>
+          <MultiSelectDropdown
+            label="Severity"
+            options={SEVERITIES}
+            selected={filters.severities}
+            onChange={(s) => setFilterSet('severities', s as Set<string>)}
+            renderOption={(s) => <SeverityBadge severity={s as Severity} />}
+          />
+          <MultiSelectDropdown
+            label="Priority"
+            options={ACTION_PRIORITIES}
+            selected={filters.priorities}
+            onChange={(s) => setFilterSet('priorities', s)}
+          />
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none ml-1">
+            <input
+              type="checkbox"
+              checked={filters.negotiationOnly}
+              onChange={() => toggleFilter('negotiationOnly')}
+              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            />
+            Has negotiation position
+          </label>
+        </div>
+      )}
     </>
   );
 }
