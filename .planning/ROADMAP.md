@@ -306,7 +306,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 54. Date Intelligence and Portfolio Timeline | v2.2 | 2/2 | Complete | 2026-03-22 |
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
 | 56. Architecture Foundation | 3/3 | Complete    | 2026-04-05 | - |
-| 57. Contract-Only Scope Extraction | 2/2 | Complete   | 2026-04-06 | - |
+| 57. Contract-Only Scope Extraction | 2/2 | Complete    | 2026-04-06 | - |
 | 58. Knowledge Modules + Multi-Doc Input | v3.0 | 0/? | Not started | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
 | 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
