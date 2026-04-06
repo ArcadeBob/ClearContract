@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
 status: executing
-stopped_at: Completed 57-01-PLAN.md
-last_updated: "2026-04-06T04:21:22.200Z"
+stopped_at: Completed 57-02-PLAN.md
+last_updated: "2026-04-06T04:33:11.818Z"
 last_activity: 2026-04-06 -- 57-01 complete (SubmittalEntry schema + pipeline wiring)
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 80
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ## Current Position
 
-Phase: 57 (Contract-Only Scope Extraction) — Plan 1 of 3 COMPLETE
-Plan: 01 complete
-Status: In progress
-Last activity: 2026-04-06 -- 57-01 complete (SubmittalEntry schema + pipeline wiring)
+Phase: 57 (Contract-Only Scope Extraction) — Plan 2 of 2 COMPLETE
+Plan: 02 complete
+Status: Phase complete
+Last activity: 2026-04-06 -- 57-02 complete (schedule conflicts + submittals tab UI)
 
 Progress: [████████░░] 80%
 
@@ -83,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 56-03]: allPasses moved before nonAbortSettled filter for simplified pass-name lookup via allPasses[i]
 - [Phase 57]: statedFields array tracks which numeric fields LLM found explicit values for -- enables schedule-conflict to distinguish stated vs default values
 - [Phase 57]: No .nullable()/.optional() on SubmittalEntrySchema -- structured outputs requirement; numeric fields use 0 when unstated
+- [Phase 57]: Schedule-conflict computation placed after merge, before synthesis -- conflict findings visible to compound-risk detection
+- [Phase 57]: Lucide AlertTriangle title via wrapper span -- Lucide React TS types don't expose title prop
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -105,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-06T04:21:22.197Z
-Stopped at: Completed 57-01-PLAN.md
+Last session: 2026-04-06T04:33:11.816Z
+Stopped at: Completed 57-02-PLAN.md
 Resume file: None

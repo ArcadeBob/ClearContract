@@ -10,7 +10,7 @@
 ### Scope Extraction (SCOPE)
 
 - [x] **SCOPE-01**: User sees extracted submittal register (shop drawings, samples, mockups, product data) with durations, parties, and review cycles
-- [ ] **SCOPE-02**: User sees schedule-conflict warnings when submittal durations + lead times push past contract milestones
+- [x] **SCOPE-02**: User sees schedule-conflict warnings when submittal durations + lead times push past contract milestones
 - [ ] **SCOPE-03**: User sees inferred spec-reconciliation gaps for Div 08 / ASTM / AAMA cites — what's typically required but absent from declared scope
 - [ ] **SCOPE-04**: User sees exclusion stress-test findings that challenge declared exclusions against inferred spec requirements
 - [x] **SCOPE-05**: User sees quantity ambiguity flags ("approximately", "as required", "sufficient") on scope items as bid-risk warnings
@@ -91,7 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SCOPE-01 | Phase 57 | Complete |
-| SCOPE-02 | Phase 57 | Pending |
+| SCOPE-02 | Phase 57 | Complete |
 | SCOPE-03 | Phase 59 | Pending |
 | SCOPE-04 | Phase 59 | Pending |
 | SCOPE-05 | Phase 57 | Complete |
