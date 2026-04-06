@@ -18,7 +18,8 @@ function readFileAsBase64(file: File): Promise<string> {
 export async function analyzeContract(
   file: File,
   accessToken: string,
-  contractId?: string
+  contractId?: string,
+  bidFile?: File,
 ): Promise<Contract> {
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(
@@ -35,6 +36,10 @@ export async function analyzeContract(
   const body: Record<string, string> = { pdfBase64, fileName: file.name };
   if (contractId) {
     body.contractId = contractId;
+  }
+  if (bidFile) {
+    body.bidPdfBase64 = await readFileAsBase64(bidFile);
+    body.bidFileName = bidFile.name;
   }
 
   const response = await fetch('/api/analyze', {
