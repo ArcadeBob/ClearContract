@@ -48,9 +48,13 @@ Exceptions: Table cells use `px-3 py-2` (12px horizontal, 8px vertical) to match
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 (`leading-normal`) |
-| Label | 12px (`text-xs`) | 500 (medium) | 1.5 |
+| Label | 12px (`text-xs`) | 600 (semibold) | 1.5 |
 | Heading | 18px (`text-lg`) | 600 (semibold) | 1.2 |
 | Display | 14px (`text-sm`) | 600 (semibold) | 1.5 |
+
+**Weight count: 2** — 400 (regular) and 600 (semibold) only. Label uses 600 (semibold) to maintain visual distinction from Body at a smaller size, without introducing a third weight.
+
+**Display vs Body note:** Display and Body share the same 14px size intentionally. Display is distinguished from Body by weight alone (600 vs 400). This is deliberate: Display covers table column headers and stat labels where bold emphasis at body size is needed without increasing font size, keeping the dense register layout compact.
 
 Source: Matches existing project conventions. Body is `text-sm` throughout (FindingCard, NegotiationChecklist, FilterToolbar). Headings are `text-lg font-semibold` (DateTimeline, section headers). Display role covers table column headers and stat labels at `text-sm font-semibold`.
 
@@ -90,6 +94,10 @@ Accent reserved for: Checkbox focus rings (`focus:ring-violet-500`), active form
 
 ## Component Inventory
 
+### Focal Point
+
+Conflict-annotated rows are the primary focal point of the SubmittalRegister screen. The amber left-border (`border-l-2 border-l-amber-400`), amber background (`bg-amber-50`), and AlertTriangle icon collectively draw the eye to rows with schedule conflicts before any other content.
+
 ### New Components
 
 #### 1. SubmittalRegister
@@ -107,11 +115,11 @@ Accent reserved for: Checkbox focus rings (`focus:ring-violet-500`), active form
 | Cycles | 64px fixed | `reviewCycles` count |
 | Party | 140px fixed | `responsibleParty` name |
 | Spec Section | 100px fixed | CSI reference (e.g., "08 44 13") |
-| Status | 48px fixed | Warning icon if conflicted, empty otherwise |
+| Status | 48px fixed | `AlertTriangle` icon (16x16) if conflicted (with `aria-label="Schedule conflict"` and `title="Schedule conflict"`), empty otherwise |
 
 - **Row behavior:**
   - Default row: `border-b border-slate-100` with `hover:bg-slate-50`
-  - Conflicted row: `bg-amber-50 border-l-2 border-l-amber-400` with `AlertTriangle` icon in Status column
+  - Conflicted row: `bg-amber-50 border-l-2 border-l-amber-400` with `AlertTriangle` icon in Status column. The icon must include `aria-label="Schedule conflict"` for screen readers and `title="Schedule conflict"` for mouse-hover tooltip.
   - Clicking a conflicted row expands an inline detail panel showing: overrun days, milestone name, total duration breakdown, and any assumed values labeled explicitly
 - **Empty state:** Never rendered (tab is hidden when submittals array is empty per CONTEXT.md)
 - **Responsive:** Below 768px, table switches to stacked card layout with label-value pairs
