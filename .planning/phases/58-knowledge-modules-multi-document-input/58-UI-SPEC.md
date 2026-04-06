@@ -50,11 +50,11 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (text-sm) | 400 (normal) | 1.5 |
-| Label | 12px (text-xs) | 500 (medium) | 1.5 |
+| Label | 12px (text-xs) | 400 (normal) | 1.5 |
 | Heading | 18px (text-lg) | 600 (semibold) | 1.2 |
 | Display | 24px (text-2xl) | 600 (semibold) | 1.2 |
 
-Source: Existing `ContractUpload.tsx` and `UploadZone.tsx` patterns (h1 at text-2xl font-semibold, h3 at text-lg font-semibold, body at text-sm, labels at text-xs font-medium).
+Source: Existing `ContractUpload.tsx` and `UploadZone.tsx` patterns (h1 at text-2xl font-semibold, h3 at text-lg font-semibold, body at text-sm, labels at text-xs).
 
 ---
 
@@ -90,7 +90,7 @@ Source: `src/utils/palette.ts`, `src/index.css`, `UploadZone.tsx`
 - Background: `bg-slate-50/50` (subtly tinted vs. contract zone's white)
 - Icon: `FileSpreadsheet` from lucide-react (distinct from `UploadCloud` on contract zone)
 - Padding: `p-8` (smaller than contract zone's `p-12`)
-- Corner badge: "Optional" in `text-xs text-slate-400 font-medium bg-slate-100 rounded-full px-2 py-0.5` positioned top-right of the zone
+- Corner badge: "Optional" in `text-xs text-slate-400 bg-slate-100 rounded-full px-2 py-0.5` positioned top-right of the zone
 
 **States:**
 | State | Visual |
@@ -114,14 +114,14 @@ Source: `src/utils/palette.ts`, `src/index.css`, `UploadZone.tsx`
 
 **Structure (top to bottom):**
 1. **Header:** RefreshCw icon in blue-100 circle (matches existing re-analyze icon pattern), "Re-Analyze Contract" heading at text-lg font-semibold
-2. **Contract section:** Label "Contract PDF" in text-sm font-medium text-slate-700, radio group:
+2. **Contract section:** Label "Contract PDF" in text-sm text-slate-700, radio group:
    - "Keep current contract" (default selected)
    - "Upload new contract PDF" -- reveals inline file picker when selected
-3. **Bid section:** Label "Bid / Estimate PDF" in text-sm font-medium text-slate-700, radio group:
+3. **Bid section:** Label "Bid / Estimate PDF" in text-sm text-slate-700, radio group:
    - "No bid attached" (default when contract has no bid) OR "Keep current bid" (when bid exists)
    - "Upload new bid PDF" -- reveals inline file picker when selected
    - "Remove bid" (only shown when bid exists) in text-red-500
-4. **Actions:** "Cancel" secondary button + "Start Analysis" primary button (blue-600 bg, white text)
+4. **Actions:** "Keep Current Documents" secondary button + "Start Analysis" primary button (blue-600 bg, white text)
 
 **Radio styling:** Custom radio using `w-4 h-4 text-blue-600` with labels in `text-sm text-slate-600`.
 **Inline file picker:** When radio selects "Upload new...", a compact file input appears below with file name display and remove action.
@@ -131,7 +131,7 @@ Source: `src/utils/palette.ts`, `src/index.css`, `UploadZone.tsx`
 
 **Location:** `ReviewHeader` component, next to contract metadata.
 **When visible:** Only when `bidFileName` is present on the contract.
-**Visual:** Inline flex badge: `bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium px-2 py-0.5 rounded-full` with text "Contract + Bid".
+**Visual:** Inline flex badge: `bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2 py-0.5 rounded-full` with text "Contract + Bid".
 **When no bid:** No badge renders (not an empty state -- simply absent).
 
 ### Modified Components
@@ -148,7 +148,7 @@ bidFile: File | null
 ```
 Contract zone calls `setContractFile`. Bid zone calls `setBidFile`. The "Analyze" flow passes both to `onUploadComplete`.
 
-**Analyze button visibility:** When `contractFile` is set, show an explicit "Analyze Contract" button below both zones: `bg-blue-600 text-white font-medium text-sm px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors w-full`. When `bidFile` is also set, button label changes to "Analyze Contract + Bid".
+**Analyze button visibility:** When `contractFile` is set, show an explicit "Analyze Contract" button below both zones: `bg-blue-600 text-white font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full`. When `bidFile` is also set, button label changes to "Analyze Contract + Bid".
 
 #### ReviewHeader
 
@@ -185,7 +185,7 @@ Contract zone calls `setContractFile`. Bid zone calls `setBidFile`. The "Analyze
 | Re-analyze modal upload bid | "Upload new bid PDF" |
 | Re-analyze modal remove bid | "Remove bid" |
 | Re-analyze modal CTA | "Start Analysis" |
-| Re-analyze modal cancel | "Cancel" |
+| Re-analyze modal cancel | "Keep Current Documents" |
 | Documents badge (bid present) | "Contract + Bid" |
 | Empty state (no bid, review page) | No visible element -- bid-dependent sections simply do not render |
 | Error: bid too large | "File exceeds 5MB limit ({actual}MB)" |
