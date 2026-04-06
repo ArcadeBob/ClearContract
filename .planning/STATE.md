@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
 status: executing
-stopped_at: Completed 58-03-PLAN.md
-last_updated: "2026-04-06T23:48:17.578Z"
+stopped_at: Completed 58-02-PLAN.md
+last_updated: "2026-04-06T23:52:49.873Z"
 last_activity: 2026-04-06 -- 58-03 complete (client-side bid upload UI with dual drop zones)
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 78
 ---
 
@@ -89,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 58]: bidFileName typed as optional+nullable -- optional for pre-v3.0 API responses, nullable for DB explicit null
 - [Phase 58]: UploadZone role config as const object -- keeps role-specific values co-located
 - [Phase 58]: File state managed in ContractUpload parent -- UploadZone receives selectedFile as controlled prop
+- [Phase 58]: Storage upload errors non-critical -- analysis proceeds; only keep-current unavailable on re-analyze
+- [Phase 58]: MAX_BID_FILE_SIZE_BYTES 5MB -- bid PDFs are small spec sheets; body parser raised to 25mb for dual-PDF uploads
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -111,6 +113,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-06T23:48:17.575Z
-Stopped at: Completed 58-03-PLAN.md
+Last session: 2026-04-06T23:52:49.871Z
+Stopped at: Completed 58-02-PLAN.md
 Resume file: None
