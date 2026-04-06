@@ -1,13 +1,18 @@
+import { useState } from 'react';
 import { UploadZone } from '../components/UploadZone';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ContractUploadProps {
-  onUploadComplete: (file: File) => void;
+  onUploadComplete: (contractFile: File, bidFile?: File) => void;
   isAnalyzing?: boolean;
+  hasBid?: boolean;
 }
 
-export function ContractUpload({ onUploadComplete, isAnalyzing }: ContractUploadProps) {
+export function ContractUpload({ onUploadComplete, isAnalyzing, hasBid }: ContractUploadProps) {
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [bidFile, setBidFile] = useState<File | null>(null);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] p-8">
       <div className="w-full max-w-2xl">
@@ -35,12 +40,14 @@ export function ContractUpload({ onUploadComplete, isAnalyzing }: ContractUpload
                     aria-hidden="true"
                   />
                 </div>
-                <div role="status" aria-label="Analyzing contract">
+                <div role="status" aria-label={hasBid ? 'Analyzing documents' : 'Analyzing contract'}>
                   <h2 className="text-lg font-semibold text-slate-900 mb-2">
-                    Analyzing Contract...
+                    {hasBid ? 'Analyzing Contract + Bid...' : 'Analyzing Contract...'}
                   </h2>
                   <p className="text-slate-500 text-sm max-w-xs mx-auto mb-2">
-                    AI is reviewing your contract. This usually takes 30-60 seconds.
+                    {hasBid
+                      ? 'AI is reviewing your documents. This may take up to 90 seconds.'
+                      : 'AI is reviewing your contract. This usually takes 30-60 seconds.'}
                   </p>
                   <p className="text-slate-400 text-xs">
                     You can navigate away &mdash; we'll notify you when it's ready.
@@ -57,13 +64,40 @@ export function ContractUpload({ onUploadComplete, isAnalyzing }: ContractUpload
               >
                 <div className="text-center mb-8">
                   <h1 className="text-2xl font-semibold text-slate-900 mb-2">
-                    Upload Contract
+                    Upload Documents
                   </h1>
                   <p className="text-slate-500">
-                    Upload a PDF contract to start the AI analysis process.
+                    Upload your contract PDF to start analysis. Optionally attach a bid for cross-document review.
                   </p>
                 </div>
-                <UploadZone onFileSelect={onUploadComplete} />
+                <div className="space-y-6">
+                  <UploadZone
+                    role="contract"
+                    onFileSelect={setContractFile}
+                    selectedFile={contractFile}
+                    onRemoveFile={() => setContractFile(null)}
+                  />
+                  <UploadZone
+                    role="bid"
+                    onFileSelect={setBidFile}
+                    selectedFile={bidFile}
+                    onRemoveFile={() => setBidFile(null)}
+                  />
+                </div>
+                <AnimatePresence>
+                  {contractFile && (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => onUploadComplete(contractFile, bidFile || undefined)}
+                      className="bg-blue-600 text-white font-semibold text-sm px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full mt-6"
+                    >
+                      {bidFile ? 'Analyze Contract + Bid' : 'Analyze Contract'}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>

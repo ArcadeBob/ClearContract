@@ -36,6 +36,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const { showToast } = useToast();
   const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [analyzingHasBid, setAnalyzingHasBid] = useState(false);
 
   const deadlineCount = useMemo(() => {
     const allDates = contracts
@@ -76,7 +77,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     }
   };
 
-  const handleUploadComplete = async (file: File) => {
+  const handleUploadComplete = async (file: File, bidFile?: File) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       showToast({ type: 'error', message: 'Please sign in to analyze contracts.' });
@@ -85,9 +86,10 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
 
     pendingFileRef.current = file;
     setAnalyzingId('pending');
+    setAnalyzingHasBid(!!bidFile);
 
     try {
-      const contract = await analyzeContract(file, session.access_token);
+      const contract = await analyzeContract(file, session.access_token, undefined, bidFile);
       addContract(contract);
 
       if (activeViewRef.current === 'upload') {
@@ -117,6 +119,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
       });
     } finally {
       setAnalyzingId(null);
+      setAnalyzingHasBid(false);
       pendingFileRef.current = null;
     }
   };
@@ -230,6 +233,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
           <ContractUpload
             onUploadComplete={handleUploadComplete}
             isAnalyzing={analyzingId !== null}
+            hasBid={analyzingHasBid}
           />
         );
       case 'review':
