@@ -17,8 +17,8 @@ describe('registry', () => {
     expect(() => validateAllModulesRegistered()).not.toThrow();
   });
 
-  it('getAllModules returns all 12 modules', () => {
-    expect(getAllModules()).toHaveLength(12);
+  it('getAllModules returns all 14 modules', () => {
+    expect(getAllModules()).toHaveLength(14);
   });
 
   it('getModulesForPass returns mapped modules for legal-indemnification', () => {
@@ -29,19 +29,21 @@ describe('registry', () => {
 
   it('getModulesForPass returns mapped modules for scope-extraction', () => {
     const result = getModulesForPass('scope-extraction');
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(6);
     const ids = result.map((m) => m.id);
     expect(ids).toContain('ca-title24');
     expect(ids).toContain('div08-scope');
     expect(ids).toContain('standards-validation');
     expect(ids).toContain('contract-forms');
+    expect(ids).toContain('div08-deliverables');
+    expect(ids).toContain('aama-submittal-standards');
   });
 
   it('getModulesForPass returns empty for unmapped pass (dates-deadlines)', () => {
     expect(getModulesForPass('dates-deadlines')).toEqual([]);
   });
 
-  it('PASS_KNOWLEDGE_MAP has entries for all 16 passes', () => {
-    expect(Object.keys(PASS_KNOWLEDGE_MAP)).toHaveLength(16);
+  it('PASS_KNOWLEDGE_MAP has entries for all 17 passes', () => {
+    expect(Object.keys(PASS_KNOWLEDGE_MAP)).toHaveLength(17);
   });
 });
