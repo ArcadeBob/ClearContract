@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis';
-import type { Severity, Category, LegalMeta, ScopeMeta } from '../src/types/contract';
+import type { Severity, Category, LegalMeta, ScopeMeta, SubmittalEntry } from '../src/types/contract';
 import { computeRiskScore, applySeverityGuard } from './scoring';
 import { getAllModules } from '../src/knowledge/registry';
 
@@ -441,7 +441,10 @@ function checkModuleStaleness(): UnifiedFinding[] {
 // ---------------------------------------------------------------------------
 
 /** MergedAnalysisResult with findings widened to UnifiedFinding[] */
-export type MergedResult = Omit<MergedAnalysisResult, 'findings'> & { findings: UnifiedFinding[] };
+export type MergedResult = Omit<MergedAnalysisResult, 'findings'> & {
+  findings: UnifiedFinding[];
+  submittals: SubmittalEntry[];
+};
 
 export function mergePassResults(
   results: PromiseSettledResult<{
@@ -452,6 +455,7 @@ export function mergePassResults(
 ): MergedResult {
   const allFindings: UnifiedFinding[] = [];
   const allDates: Array<PassResult['dates'][number]> = [];
+  const allSubmittals: SubmittalEntry[] = [];
   const passResults: MergedAnalysisResult['passResults'] = [];
 
   let client = 'Unknown Client';
@@ -465,6 +469,11 @@ export function mergePassResults(
       const { result } = settled.value;
       allDates.push(...result.dates);
       passResults.push({ passName, status: 'success' });
+
+      // Extract submittals from scope-extraction pass result
+      if (passName === 'scope-extraction' && 'submittals' in result && Array.isArray(result.submittals)) {
+        allSubmittals.push(...(result.submittals as SubmittalEntry[]));
+      }
 
       if (passes[i].isOverview && isRiskOverview(result)) {
         client = result.client || client;
@@ -601,5 +610,6 @@ export function mergePassResults(
     findings: deduplicatedFindings,
     dates: allDates,
     passResults,
+    submittals: allSubmittals,
   };
 }

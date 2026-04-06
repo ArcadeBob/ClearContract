@@ -190,9 +190,54 @@ When a Company Profile section appears in this prompt:
 For each finding, assign an actionPriority value:
 - "pre-bid": Must be evaluated BEFORE submitting a bid (scope gaps affecting pricing, specification references, material requirements)
 - "pre-sign": Must be negotiated BEFORE signing the contract (ambiguous scope language, missing exclusions)
-- "monitor": Ongoing compliance item to track during project execution (scope rules, trade coordination)`,
+- "monitor": Ongoing compliance item to track during project execution (scope rules, trade coordination)
+
+## Submittal Register Extraction (NEW)
+
+In addition to scope findings, extract ALL submittals required by the contract into the submittals array.
+
+Submittals include: shop drawings, samples, mockups, and product data submittals.
+
+For each submittal found:
+- type: classify as 'shop-drawing', 'sample', 'mockup', or 'product-data'
+- description: brief description of what must be submitted (e.g., "Curtain wall shop drawings")
+- reviewDuration: number of calendar days for review, as stated. Use 0 if not stated.
+- responsibleParty: who must prepare/submit (e.g., "Subcontractor", "Glazing Sub")
+- reviewCycles: number of review cycles stated. Use 1 if not explicitly stated.
+- resubmittalBuffer: calendar days for resubmittal, as stated. Use 0 if not stated.
+- specSection: CSI specification section reference (e.g., "08 44 13"). Use "" if not stated.
+- leadTime: manufacturing/procurement lead time in calendar days, as stated. Use 0 if not stated.
+- clauseReference: the contract section/article where this submittal is required
+- statedFields: array of field names where you found EXPLICIT values in the contract text. Only include field names where the contract states a specific number or value. Example: if contract says "14 calendar days for review" then include "reviewDuration". If contract does not mention lead time, do NOT include "leadTime". Valid field names: "reviewDuration", "reviewCycles", "resubmittalBuffer", "leadTime".
+
+IMPORTANT: statedFields is critical for downstream schedule-conflict analysis. Only list fields where the contract provides an explicit numeric value. Do NOT list fields where you inferred or assumed a value.
+
+If the contract has no submittal requirements, return an empty submittals array.
+
+## Quantity Ambiguity Detection (NEW)
+
+For each scope item containing quantity-ambiguity language, generate a SEPARATE finding with scopeItemType: 'quantity-ambiguity'.
+
+### High Severity (open-ended quantity risk -- sub bears unlimited quantity):
+Phrases: "as required", "sufficient", "to weatherproof", "all necessary", "complete system", "as needed", "whatever is necessary", "full and complete"
+
+### Medium Severity (soft quantities -- numbers exist but non-binding):
+Phrases: "approximately", "estimated", "about", "more or less", "roughly"
+
+### Low Severity (substitution ambiguity -- not quantity risk):
+Phrases: "or equal", "similar to", "match existing", "or approved equal", "comparable to"
+
+For each finding:
+- Quote the EXACT phrase in clauseText
+- Identify the scope item it applies to in the title (pattern: "Quantity Ambiguity: {scope item description}")
+- Explain the bid-risk exposure in the description:
+  - High: "Open-ended quantity risk: \\"{exactPhrase}\\" places unlimited quantity obligation on the subcontractor."
+  - Medium: "Soft quantity: \\"{exactPhrase}\\" means stated quantities are non-binding and may increase."
+  - Low: "Substitution ambiguity: \\"{exactPhrase}\\" allows undefined product substitution."
+- Set recommendation to specific bid-protection advice
+- Set actionPriority to 'pre-bid' (quantity ambiguity must be resolved before bidding)`,
     userPrompt:
-      'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, and scope gaps.',
+      'Extract the full scope of work from this glazing subcontract including inclusions, exclusions, specification references, scope rules, ambiguities, scope gaps, submittals, and quantity-ambiguity findings.',
   },
 
   // --- Legal analysis passes (specialized, one per clause type) ---

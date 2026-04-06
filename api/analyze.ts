@@ -697,6 +697,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       scoreBreakdown: merged.scoreBreakdown,
       bidSignal,
       passResults: merged.passResults,
+      submittals: merged.submittals,
     });
     // Remove meta columns that Postgres auto-generates
     delete contractPayload.id;
