@@ -199,6 +199,7 @@ export interface Contract {
   findings: Finding[];
   dates: ContractDate[];
   submittals: SubmittalEntry[];
+  bidFileName?: string | null;
   riskScore: number; // 0-100
   scoreBreakdown?: Array<{ name: string; points: number }>;
   bidSignal?: BidSignal;
