@@ -21,7 +21,7 @@
 - [ ] **BID-02**: User sees bid-vs-contract reconciliation findings: exclusion parity, quantity deltas, scope items not in bid
 - [ ] **BID-03**: User can re-analyze a contract and choose whether to re-upload or update the bid PDF
 - [ ] **BID-04**: Each reconciliation finding has both `contractQuote` and `bidQuote` attributed to the correct document
-- [ ] **BID-05**: Contracts uploaded without a bid analyze normally — no missing functionality, bid-dependent UI hides gracefully
+- [x] **BID-05**: Contracts uploaded without a bid analyze normally — no missing functionality, bid-dependent UI hides gracefully
 
 ### New Clause Passes (CLS)
 
@@ -30,8 +30,8 @@
 
 ### Knowledge Modules (KNOW)
 
-- [ ] **KNOW-01**: AAMA submittal standards module drives spec-reconciliation and submittal-extraction passes
-- [ ] **KNOW-02**: Div 08 MasterFormat deliverables module lists typical required submittals per section (084113, 088000, 088413, etc.)
+- [x] **KNOW-01**: AAMA submittal standards module drives spec-reconciliation and submittal-extraction passes
+- [x] **KNOW-02**: Div 08 MasterFormat deliverables module lists typical required submittals per section (084113, 088000, 088413, etc.)
 
 ### Portfolio Intelligence (PORT)
 
@@ -99,11 +99,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BID-02 | Phase 60 | Pending |
 | BID-03 | Phase 58 | Pending |
 | BID-04 | Phase 60 | Pending |
-| BID-05 | Phase 58 | Pending |
+| BID-05 | Phase 58 | Complete |
 | CLS-01 | Phase 61 | Pending |
 | CLS-02 | Phase 61 | Pending |
-| KNOW-01 | Phase 58 | Pending |
-| KNOW-02 | Phase 58 | Pending |
+| KNOW-01 | Phase 58 | Complete |
+| KNOW-02 | Phase 58 | Complete |
 | PORT-01 | Phase 62 | Pending |
 | UX-01 | Phase 62 | Pending |
 | UX-02 | Phase 62 | Pending |
