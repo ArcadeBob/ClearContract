@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
 status: in-progress
-stopped_at: Phase 61 UI-SPEC approved
-last_updated: "2026-04-07T04:48:18.680Z"
-last_activity: 2026-04-07 -- 60-02 complete (bid-reconciliation UI rendering -- badge pills and dual-quote display)
+stopped_at: Completed 61-01-PLAN.md
+last_updated: "2026-04-07T13:53:53.301Z"
+last_activity: 2026-04-07 -- 61-01 complete (warranty + safety/OSHA pass schemas, definitions, merge converters)
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 15
+  completed_plans: 14
 ---
 
 ---
@@ -36,16 +36,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v3.0 Scope Intelligence — Phase 60 complete, Phase 61 next
+**Current focus:** v3.0 Scope Intelligence — Phase 61 in progress, Plan 01 complete
 
 ## Current Position
 
-Phase: 60 (Bid Reconciliation Capstone) — COMPLETE (2/2 plans)
-Plan: 02 complete
-Status: Phase 60 complete
-Last activity: 2026-04-07 -- 60-02 complete (bid-reconciliation UI rendering -- badge pills and dual-quote display)
+Phase: 61 (Warranty + Safety/OSHA Clause Passes) — IN PROGRESS (1/2 plans)
+Plan: 01 complete
+Status: Phase 61 in progress
+Last activity: 2026-04-07 -- 61-01 complete (warranty + safety/OSHA pass schemas, definitions, merge converters)
 
-Progress: [██████████] 100% (13/13 plans)
+Progress: [█████████░] 93% (14/15 plans)
 
 ## v3.0 Phase Summary
 
@@ -114,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 60-02]: Reused shared pillBase/formatLabel from ScopeMetaBadge/shared.ts -- consistent pill styling across all badge types
 - [Phase 60-02]: Direction-of-risk truncated at 60 chars with ellipsis -- prevents layout overflow from long risk descriptions
 - [Phase 60-02]: Border color convention: border-slate-300 for contract language, border-emerald-300 for bid language
+- [Phase 61-01]: StubBadge entries in ScopeMetaBadge for TS compliance -- real warranty/safety UI deferred to Plan 02 (follows Phase 59 precedent)
+- [Phase 61-01]: ScopeMeta manual type in contract.ts updated alongside Zod schema to keep both type sources in sync
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -136,6 +138,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T04:48:18.677Z
-Stopped at: Phase 61 UI-SPEC approved
-Resume file: .planning/phases/61-warranty-safety-osha-clause-passes/61-UI-SPEC.md
+Last session: 2026-04-07T13:53:00Z
+Stopped at: Completed 61-01-PLAN.md
+Resume file: .planning/phases/61-warranty-safety-osha-clause-passes/61-02-PLAN.md

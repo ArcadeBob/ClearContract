@@ -25,8 +25,8 @@
 
 ### New Clause Passes (CLS)
 
-- [ ] **CLS-01**: User sees warranty clause findings (duration, exclusions, transferability, defect coverage, call-back period)
-- [ ] **CLS-02**: User sees safety/OSHA compliance findings (site safety requirements, fall protection, GC safety-plan coordination)
+- [x] **CLS-01**: User sees warranty clause findings (duration, exclusions, transferability, defect coverage, call-back period)
+- [x] **CLS-02**: User sees safety/OSHA compliance findings (site safety requirements, fall protection, GC safety-plan coordination)
 
 ### Knowledge Modules (KNOW)
 
@@ -100,8 +100,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BID-03 | Phase 58 | Complete |
 | BID-04 | Phase 60 | Complete |
 | BID-05 | Phase 58 | Complete |
-| CLS-01 | Phase 61 | Pending |
-| CLS-02 | Phase 61 | Pending |
+| CLS-01 | Phase 61 | Complete |
+| CLS-02 | Phase 61 | Complete |
 | KNOW-01 | Phase 58 | Complete |
 | KNOW-02 | Phase 58 | Complete |
 | PORT-01 | Phase 62 | Pending |
