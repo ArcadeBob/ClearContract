@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Contract, Finding, SEVERITIES, CATEGORIES } from '../types/contract';
 import type { LifecycleStatus } from '../types/contract';
 import { LifecycleSelect } from './LifecycleSelect';
@@ -7,6 +7,7 @@ import { useToast } from '../hooks/useToast';
 import { exportContractCsv, downloadCsv, sanitizeFilename } from '../utils/exportContractCsv';
 import { exportContractPdf } from '../utils/exportContractPdf';
 import { ConfirmDialog } from './ConfirmDialog';
+import { ReAnalyzeModal, type ReAnalyzeResult } from './ReAnalyzeModal';
 import { FilterState } from '../hooks/useContractFiltering';
 import {
   ChevronLeft,
@@ -25,7 +26,7 @@ interface ReviewHeaderProps {
   contract: Contract;
   onBack: () => void;
   onDelete?: (id: string) => void;
-  onReanalyze?: (file: File) => void;
+  onReanalyze?: (result: ReAnalyzeResult) => void;
   isReanalyzing?: boolean;
   onRename?: (id: string, name: string) => void;
   onLifecycleChange?: (id: string, status: LifecycleStatus) => void;
@@ -47,8 +48,7 @@ export function ReviewHeader({
   hideResolved,
 }: ReviewHeaderProps) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showReanalyzeModal, setShowReanalyzeModal] = useState(false);
   const { showToast } = useToast();
 
   const { isEditing, editValue, setEditValue, startEditing, commitEdit, onKeyDown: renameKeyDown, inputRef: renameInputRef } = useInlineEdit({
@@ -57,18 +57,6 @@ export function ReviewHeader({
     validate: (v) => v.trim(),
     onSave: (name) => onRename?.(contract.id, name),
   });
-
-  const handleConfirmReanalyze = () => {
-    setShowReanalyzeConfirm(false);
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = ''; // Reset so same file can be re-selected
-    onReanalyze?.(file);
-  };
 
   const resolvedCount = contract.findings.filter((f) => f.resolved).length;
 
@@ -109,6 +97,14 @@ export function ReviewHeader({
               current={contract.lifecycleStatus}
               onChange={(status) => onLifecycleChange?.(contract.id, status)}
             />
+            {contract.bidFileName && (
+              <>
+                <span>&bull;</span>
+                <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2 py-0.5 rounded-full">
+                  Contract + Bid
+                </span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
@@ -132,7 +128,7 @@ export function ReviewHeader({
           <span>Delete</span>
         </button>
         <button
-          onClick={() => setShowReanalyzeConfirm(true)}
+          onClick={() => setShowReanalyzeModal(true)}
           disabled={isReanalyzing}
           className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -192,22 +188,15 @@ export function ReviewHeader({
         }}
         onCancel={() => setShowConfirm(false)}
       />
-      <ConfirmDialog
-        isOpen={showReanalyzeConfirm}
-        title="Re-analyze Contract"
-        message="Re-analyzing will refresh all findings. Resolved status and notes will be preserved where findings match. Select a PDF to continue."
-        confirmLabel="Select PDF"
-        confirmClassName="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-        icon="info"
-        onConfirm={handleConfirmReanalyze}
-        onCancel={() => setShowReanalyzeConfirm(false)}
-      />
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".pdf"
-        className="hidden"
-        onChange={handleFileSelected}
+      <ReAnalyzeModal
+        isOpen={showReanalyzeModal}
+        bidFileName={contract.bidFileName ?? null}
+        hasStoredContract={true}
+        onConfirm={(result) => {
+          setShowReanalyzeModal(false);
+          onReanalyze?.(result);
+        }}
+        onCancel={() => setShowReanalyzeModal(false)}
       />
     </header>
   );

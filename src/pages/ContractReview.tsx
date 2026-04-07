@@ -11,6 +11,7 @@ import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { NegotiationChecklist } from '../components/NegotiationChecklist';
 import { SubmittalRegister } from '../components/SubmittalRegister';
 import { ReviewHeader } from '../components/ReviewHeader';
+import type { ReAnalyzeResult } from '../components/ReAnalyzeModal';
 import { FilterToolbar, ViewMode } from '../components/FilterToolbar';
 import { RiskSummary } from '../components/RiskSummary';
 import { useCompanyProfile } from '../hooks/useCompanyProfile';
@@ -40,7 +41,7 @@ interface ContractReviewProps {
   onDelete?: (id: string) => void;
   onToggleResolved?: (findingId: string) => void;
   onUpdateNote?: (findingId: string, note: string | undefined) => void;
-  onReanalyze?: (file: File) => void;
+  onReanalyze?: (result: ReAnalyzeResult) => void;
   isReanalyzing?: boolean;
   onRename?: (id: string, name: string) => void;
   onLifecycleChange?: (id: string, status: LifecycleStatus) => void;
