@@ -160,6 +160,18 @@ export const ScopeMetaSchema = z.discriminatedUnion('passType', [
     reconciliationType: z.enum(['exclusion-parity', 'quantity-delta', 'unbid-scope']),
     directionOfRisk: z.string(),
   }),
+  z.object({
+    passType: z.literal('warranty'),
+    warrantyAspect: z.string(),
+    warrantyDuration: z.string(),
+    affectedParty: z.string(),
+  }),
+  z.object({
+    passType: z.literal('safety-osha'),
+    safetyAspect: z.string(),
+    regulatoryReference: z.string(),
+    responsibleParty: z.string(),
+  }),
 ]);
 
 // ---------------------------------------------------------------------------

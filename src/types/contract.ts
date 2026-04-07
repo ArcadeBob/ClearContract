@@ -170,6 +170,18 @@ export type ScopeMeta =
       bidQuote: string | null;
       reconciliationType: 'exclusion-parity' | 'quantity-delta' | 'unbid-scope';
       directionOfRisk: string;
+    }
+  | {
+      passType: 'warranty';
+      warrantyAspect: string;
+      warrantyDuration: string;
+      affectedParty: string;
+    }
+  | {
+      passType: 'safety-osha';
+      safetyAspect: string;
+      regulatoryReference: string;
+      responsibleParty: string;
     };
 
 export type { MergedFinding as Finding } from '../schemas/finding';

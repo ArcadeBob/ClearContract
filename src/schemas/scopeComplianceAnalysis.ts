@@ -297,3 +297,74 @@ export const BidReconciliationPassResultSchema = z.object({
   findings: z.array(BidReconciliationFindingSchema),
   dates: z.array(ContractDateSchema),
 });
+
+// ---------------------------------------------------------------------------
+// Warranty Clause Finding Schema (CLS-01)
+// ---------------------------------------------------------------------------
+
+export const WarrantyFindingSchema = z.object({
+  severity: SeverityEnum,
+  category: z.literal('Contract Compliance'),
+  title: z.string(),
+  description: z.string(),
+  recommendation: z.string(),
+  clauseReference: z.string(),
+  clauseText: z.string(),
+  explanation: z.string(),
+  crossReferences: z.array(z.string()),
+  warrantyAspect: z.enum([
+    'duration',
+    'exclusion',
+    'transferability',
+    'defect-coverage',
+    'call-back-period',
+    'missing-warranty',
+  ]),
+  warrantyDuration: z.string(),
+  affectedParty: z.enum(['subcontractor', 'general-contractor', 'manufacturer', 'owner', 'unspecified']),
+  negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
+});
+
+export const WarrantyPassResultSchema = z.object({
+  findings: z.array(WarrantyFindingSchema),
+  dates: z.array(ContractDateSchema),
+});
+
+// ---------------------------------------------------------------------------
+// Safety/OSHA Compliance Finding Schema (CLS-02)
+// ---------------------------------------------------------------------------
+
+export const SafetyOshaFindingSchema = z.object({
+  severity: SeverityEnum,
+  category: z.literal('Contract Compliance'),
+  title: z.string(),
+  description: z.string(),
+  recommendation: z.string(),
+  clauseReference: z.string(),
+  clauseText: z.string(),
+  explanation: z.string(),
+  crossReferences: z.array(z.string()),
+  safetyAspect: z.enum([
+    'site-safety-program',
+    'fall-protection',
+    'gc-safety-coordination',
+    'scaffolding-responsibility',
+    'hazmat-handling',
+    'incident-reporting',
+    'safety-indemnification',
+    'missing-safety-provision',
+  ]),
+  regulatoryReference: z.string(),
+  responsibleParty: z.string(),
+  inferenceBasis: InferenceBasisSchema,
+  negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
+});
+
+export const SafetyOshaPassResultSchema = z.object({
+  findings: z.array(SafetyOshaFindingSchema),
+  dates: z.array(ContractDateSchema),
+});
