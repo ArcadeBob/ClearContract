@@ -2,6 +2,11 @@ import type { Contract } from '../types/contract';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
+export interface AnalyzeOptions {
+  keepCurrentContract?: boolean;
+  removeBid?: boolean;
+}
+
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -20,26 +25,38 @@ export async function analyzeContract(
   accessToken: string,
   contractId?: string,
   bidFile?: File,
+  options?: AnalyzeOptions,
 ): Promise<Contract> {
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error(
-      `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`
-    );
+  if (!options?.keepCurrentContract) {
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(
+        `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`
+      );
+    }
+
+    if (file.type !== 'application/pdf') {
+      throw new Error('Only PDF files are supported.');
+    }
   }
 
-  if (file.type !== 'application/pdf') {
-    throw new Error('Only PDF files are supported.');
+  const body: Record<string, string | boolean> = {};
+  if (options?.keepCurrentContract) {
+    body.keepCurrentContract = true;
+    body.pdfBase64 = 'AA=='; // Minimal valid base64; server uses Storage when keepCurrentContract=true
+    body.fileName = file.name;
+  } else {
+    body.pdfBase64 = await readFileAsBase64(file);
+    body.fileName = file.name;
   }
-
-  const pdfBase64 = await readFileAsBase64(file);
-
-  const body: Record<string, string> = { pdfBase64, fileName: file.name };
   if (contractId) {
     body.contractId = contractId;
   }
   if (bidFile) {
     body.bidPdfBase64 = await readFileAsBase64(bidFile);
     body.bidFileName = bidFile.name;
+  }
+  if (options?.removeBid) {
+    body.removeBid = true;
   }
 
   const response = await fetch('/api/analyze', {

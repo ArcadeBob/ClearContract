@@ -12,6 +12,7 @@ import { useToast } from './hooks/useToast';
 import { Finding } from './types/contract';
 import { supabase } from './lib/supabase';
 import { analyzeContract } from './api/analyzeContract';
+import type { ReAnalyzeResult } from './components/ReAnalyzeModal';
 import { classifyError } from './utils/errors';
 import { countDeadlinesWithin7Days } from './utils/dateUrgency';
 import { useAuth } from './contexts/AuthContext';
@@ -124,7 +125,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     }
   };
 
-  const handleReanalyze = async (contractId: string, file: File) => {
+  const handleReanalyze = async (contractId: string, reanalyzeResult: ReAnalyzeResult) => {
     const contract = contracts.find(c => c.id === contractId);
     if (!contract) return;
 
@@ -139,7 +140,16 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     setReanalyzingId(contractId);
 
     try {
-      const result = await analyzeContract(file, session.access_token, contractId);
+      const analysisResult = await analyzeContract(
+        reanalyzeResult.contractFile || new File([], contract.name || 'contract.pdf'),
+        session.access_token,
+        contractId,
+        reanalyzeResult.bidFile,
+        {
+          keepCurrentContract: reanalyzeResult.keepCurrentContract,
+          removeBid: reanalyzeResult.removeBid,
+        }
+      );
 
       // Build lookup from old findings with user data (PORT-04)
       const oldByKey = new Map<string, Finding>();
@@ -155,7 +165,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
       // Carry over resolved/note to matching new findings
       let preservedResolved = 0;
       let preservedNotes = 0;
-      const mergedFindings = result.findings.map((newFinding: Finding) => {
+      const mergedFindings = analysisResult.findings.map((newFinding: Finding) => {
         const ref = newFinding.clauseReference;
         if (ref && ref !== 'N/A' && ref !== 'Not Found') {
           const old = oldByKey.get(`${ref}::${newFinding.category}`);
@@ -170,7 +180,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
 
       // Replace in-memory contract with server response + preserved user data
       updateContract(contractId, {
-        ...result,
+        ...analysisResult,
         findings: mergedFindings,
       });
 
@@ -216,7 +226,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
         type: 'error',
         message: classified.userMessage + ' Your previous findings are unchanged.',
         ...(classified.retryable ? {
-          onRetry: () => handleReanalyze(contractId, file),
+          onRetry: () => handleReanalyze(contractId, reanalyzeResult),
         } : {}),
       });
     } finally {
@@ -248,7 +258,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
             onDelete={handleDeleteContract}
             onToggleResolved={(findingId) => toggleFindingResolved(activeContract.id, findingId)}
             onUpdateNote={(findingId, note) => updateFindingNote(activeContract.id, findingId, note)}
-            onReanalyze={(file) => handleReanalyze(activeContract.id, file)}
+            onReanalyze={(result) => handleReanalyze(activeContract.id, result)}
             isReanalyzing={reanalyzingId === activeContract.id}
             onRename={(id, name) => renameContract(id, name)}
             onLifecycleChange={updateLifecycleStatus}
