@@ -256,8 +256,7 @@ export const passFixtures: Record<string, Record<string, unknown>> = {
   'spec-reconciliation': {
     findings: [
       {
-        ...findingBase('Spec Reconciliation'),
-        category: 'Scope of Work',
+        ...findingBase('Spec Reconciliation', 'Scope of Work'),
         specSection: '08 44 13',
         typicalDeliverable: 'Shop drawings',
         gapType: 'missing-submittal',
@@ -270,8 +269,7 @@ export const passFixtures: Record<string, Record<string, unknown>> = {
   'exclusion-stress-test': {
     findings: [
       {
-        ...findingBase('Exclusion Stress-Test'),
-        category: 'Scope of Work',
+        ...findingBase('Exclusion Stress-Test', 'Scope of Work'),
         exclusionQuote: 'Structural calculations are excluded from subcontractor scope.',
         tensionQuote: 'AAMA 501.4 requires structural adequacy verification for curtain wall.',
         specSection: '08 44 13',
