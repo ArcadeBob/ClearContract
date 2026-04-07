@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
-status: completed
-stopped_at: Completed 59-02-PLAN.md
-last_updated: "2026-04-07T03:08:24.688Z"
-last_activity: 2026-04-07 -- 59-02 complete (ScopeMetaBadge variants, ClauseQuote amber border, FindingCard dual-quote)
+status: in-progress
+stopped_at: Completed 60-01-PLAN.md
+last_updated: "2026-04-07T04:14:25.000Z"
+last_activity: 2026-04-07 -- 60-01 complete (bid-reconciliation backend pass, dual-document orchestration)
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_plans: 13
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ## Current Position
 
-Phase: 59 (Spec Reconciliation + Exclusion Stress-Test) — COMPLETE (2/2 plans)
-Plan: 02 complete
-Status: Phase 59 complete
-Last activity: 2026-04-07 -- 59-02 complete (ScopeMetaBadge variants, ClauseQuote amber border, FindingCard dual-quote)
+Phase: 60 (Bid Reconciliation Capstone) — IN PROGRESS (1/2 plans)
+Plan: 01 complete
+Status: Phase 60 in progress
+Last activity: 2026-04-07 -- 60-01 complete (bid-reconciliation backend pass, dual-document orchestration)
 
-Progress: [██████████] 100% (11/11 plans)
+Progress: [█████████░] 92% (12/13 plans)
 
 ## v3.0 Phase Summary
 
@@ -93,6 +93,9 @@ Recent decisions affecting current work:
 - [Phase 58]: MAX_BID_FILE_SIZE_BYTES 5MB -- bid PDFs are small spec sheets; body parser raised to 25mb for dual-PDF uploads
 - [Phase 59]: Stub badges in ScopeMetaBadge for TS compliance -- real UI deferred to Plan 02
 - [Phase 59-02]: Amber border (border-amber-300) visually distinguishes inference quotes from contract language (border-slate-300)
+- [Phase 60-01]: requiresBid field on AnalysisPass enables conditional pass skipping without hardcoding pass names
+- [Phase 60-01]: Bid document omits cache_control ephemeral -- only contract PDF cached across passes
+- [Phase 60-01]: inferenceBasis locked to 'contract-quoted' literal for bid-reconciliation -- comparing real documents, not inferring
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -115,6 +118,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T02:57:50Z
-Stopped at: Completed 59-02-PLAN.md
-Resume file: None
+Last session: 2026-04-07T04:14:25.000Z
+Stopped at: Completed 60-01-PLAN.md
+Resume file: .planning/phases/60-bid-reconciliation-capstone/60-02-PLAN.md
