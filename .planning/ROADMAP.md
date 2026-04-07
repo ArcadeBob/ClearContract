@@ -159,7 +159,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules (completed 2026-04-07)
 - [x] **Phase 60: Bid Reconciliation Capstone** -- bid-vs-contract exclusion parity, quantity deltas, unbid scope (completed 2026-04-07)
 - [x] **Phase 61: Warranty + Safety/OSHA Clause Passes** -- two new clause passes, independent of scope-intel (completed 2026-04-07)
-- [ ] **Phase 62: Scope Intelligence UX + Portfolio Trends** -- subcategory surfacing, Scope Intel view-mode, cross-contract scope trends
+- [x] **Phase 62: Scope Intelligence UX + Portfolio Trends** -- subcategory surfacing, Scope Intel view-mode, cross-contract scope trends (completed 2026-04-07)
 
 ## Phase Details
 
@@ -328,4 +328,4 @@ Plans:
 | 59. Spec Reconciliation + Exclusion Stress-Test | 2/2 | Complete    | 2026-04-07 | - |
 | 60. Bid Reconciliation Capstone | 2/2 | Complete    | 2026-04-07 | - |
 | 61. Warranty + Safety/OSHA Clause Passes | 2/2 | Complete    | 2026-04-07 | - |
-| 62. Scope Intelligence UX + Portfolio Trends | 1/2 | In Progress|  | - |
+| 62. Scope Intelligence UX + Portfolio Trends | 2/2 | Complete   | 2026-04-07 | - |

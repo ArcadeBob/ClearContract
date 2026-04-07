@@ -35,7 +35,7 @@
 
 ### Portfolio Intelligence (PORT)
 
-- [ ] **PORT-01**: User sees cross-contract scope trends on dashboard (most-declared exclusions, recurring scope items, exclusions that GCs commonly reject)
+- [x] **PORT-01**: User sees cross-contract scope trends on dashboard (most-declared exclusions, recurring scope items, exclusions that GCs commonly reject)
 
 ### Scope Intelligence UX (UX)
 
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLS-02 | Phase 61 | Complete |
 | KNOW-01 | Phase 58 | Complete |
 | KNOW-02 | Phase 58 | Complete |
-| PORT-01 | Phase 62 | Pending |
+| PORT-01 | Phase 62 | Complete |
 | UX-01 | Phase 62 | Complete |
 | UX-02 | Phase 62 | Complete |
 | ARCH-01 | Phase 56 | Complete |
