@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
 status: in-progress
+stopped_at: Completed 61-02-PLAN.md
+last_updated: "2026-04-07T14:00:36.440Z"
+last_activity: 2026-04-07 -- 61-02 complete (warranty + safety/OSHA badge components and cost summary labels)
+progress:
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 15
+  completed_plans: 15
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Scope Intelligence
+status: in-progress
 stopped_at: Completed 61-01-PLAN.md
 last_updated: "2026-04-07T13:53:53.301Z"
 last_activity: 2026-04-07 -- 61-01 complete (warranty + safety/OSHA pass schemas, definitions, merge converters)
 progress:
-  total_phases: 7
+  [██████████] 100%
   completed_phases: 5
   total_plans: 15
   completed_plans: 14
@@ -36,14 +52,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v3.0 Scope Intelligence — Phase 61 in progress, Plan 01 complete
+**Current focus:** v3.0 Scope Intelligence — Phase 61 complete, Phase 62 next
 
 ## Current Position
 
-Phase: 61 (Warranty + Safety/OSHA Clause Passes) — IN PROGRESS (1/2 plans)
-Plan: 01 complete
-Status: Phase 61 in progress
-Last activity: 2026-04-07 -- 61-01 complete (warranty + safety/OSHA pass schemas, definitions, merge converters)
+Phase: 61 (Warranty + Safety/OSHA Clause Passes) — COMPLETE (2/2 plans)
+Plan: 02 complete
+Status: Phase 61 complete
+Last activity: 2026-04-07 -- 61-02 complete (warranty + safety/OSHA badge components and cost summary labels)
 
 Progress: [█████████░] 93% (14/15 plans)
 
@@ -116,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 60-02]: Border color convention: border-slate-300 for contract language, border-emerald-300 for bid language
 - [Phase 61-01]: StubBadge entries in ScopeMetaBadge for TS compliance -- real warranty/safety UI deferred to Plan 02 (follows Phase 59 precedent)
 - [Phase 61-01]: ScopeMeta manual type in contract.ts updated alongside Zod schema to keep both type sources in sync
+- [Phase 61]: regulatoryReference displayed as raw text, not through formatLabel -- regulatory citations are not kebab-case enums
+- [Phase 61]: StubBadge entries replaced with real WarrantyBadge and SafetyOshaBadge -- no stub remnants remain
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -138,6 +156,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T13:53:00Z
-Stopped at: Completed 61-01-PLAN.md
-Resume file: .planning/phases/61-warranty-safety-osha-clause-passes/61-02-PLAN.md
+Last session: 2026-04-07T14:00:36.437Z
+Stopped at: Completed 61-02-PLAN.md
+Resume file: None

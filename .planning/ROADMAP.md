@@ -158,7 +158,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution (completed 2026-04-06)
 - [x] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules (completed 2026-04-07)
 - [x] **Phase 60: Bid Reconciliation Capstone** -- bid-vs-contract exclusion parity, quantity deltas, unbid scope (completed 2026-04-07)
-- [ ] **Phase 61: Warranty + Safety/OSHA Clause Passes** -- two new clause passes, independent of scope-intel
+- [x] **Phase 61: Warranty + Safety/OSHA Clause Passes** -- two new clause passes, independent of scope-intel (completed 2026-04-07)
 - [ ] **Phase 62: Scope Intelligence UX + Portfolio Trends** -- subcategory surfacing, Scope Intel view-mode, cross-contract scope trends
 
 ## Phase Details
@@ -327,5 +327,5 @@ Plans:
 | 58. Knowledge Modules + Multi-Doc Input | 4/4 | Complete    | 2026-04-07 | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | 2/2 | Complete    | 2026-04-07 | - |
 | 60. Bid Reconciliation Capstone | 2/2 | Complete    | 2026-04-07 | - |
-| 61. Warranty + Safety/OSHA Clause Passes | 1/2 | In Progress|  | - |
+| 61. Warranty + Safety/OSHA Clause Passes | 2/2 | Complete   | 2026-04-07 | - |
 | 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
