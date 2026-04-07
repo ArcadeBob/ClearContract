@@ -216,7 +216,10 @@ Plans:
   2. The user sees exclusion stress-test findings that quote a declared exclusion and challenge it against an inferred spec requirement (tension between what's excluded and what the cited spec section typically demands), with both the exclusion quote and the tension quote displayed.
   3. Inference-grounded findings never exceed Medium severity by default, and any `inferenceBasis: model-prior` findings are dropped or Info-downgraded at merge time — fabrication risk is structurally contained.
   4. Both passes run in the Stage 3 parallel wave and the total analysis runtime (Stage 1 + Stage 2 + Stage 3 + synthesis + DB writes) stays within the 250s safety timeout on a representative 50-page contract.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 59-01-PLAN.md — Zod schemas, pass definitions, merge converters, knowledge map, tests
+- [ ] 59-02-PLAN.md — ScopeMetaBadge variants, ClauseQuote extension, FindingCard dual-quote
 
 ### Phase 60: Bid Reconciliation Capstone
 **Goal**: When a user uploads both a contract and a bid, they get bid-vs-contract reconciliation findings covering exclusion parity, quantity deltas, and scope items not present in the bid — each finding correctly attributing quotes to the right document.
@@ -313,7 +316,7 @@ Plans:
 | 56. Architecture Foundation | 3/3 | Complete    | 2026-04-05 | - |
 | 57. Contract-Only Scope Extraction | 2/2 | Complete    | 2026-04-06 | - |
 | 58. Knowledge Modules + Multi-Doc Input | 4/4 | Complete    | 2026-04-07 | - |
-| 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
+| 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/2 | Planned | - |
 | 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
 | 61. Warranty + Safety/OSHA Clause Passes | v3.0 | 0/? | Not started | - |
 | 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
