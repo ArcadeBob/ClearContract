@@ -41,7 +41,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: Finding card uses 20px (`p-5`) padding -- existing pattern, do not change.
+FindingCard uses legacy `p-5` (20px) padding; do not change in this phase -- not part of the declared spacing scale.
 
 Source: Existing `FindingCard.tsx` and `ScopeMetaBadge` components.
 
@@ -52,9 +52,9 @@ Source: Existing `FindingCard.tsx` and `ScopeMetaBadge` components.
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 (`leading-relaxed`) |
-| Label | 12px (`text-xs`) | 500 (medium) | 1.25 |
+| Label | 12px (`text-xs`) | 400 (regular) | 1.25 |
 | Heading | 16px (`text-base`) | 600 (semibold) | 1.4 |
-| Display | 20px (`text-xl`) | 700 (bold) | 1.2 |
+| Display | 20px (`text-xl`) | 600 (semibold) | 1.2 |
 
 Source: Existing component patterns in `FindingCard.tsx`, `ClauseQuote.tsx`, `SeverityBadge.tsx`.
 
