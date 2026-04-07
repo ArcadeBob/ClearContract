@@ -52,7 +52,9 @@ Exceptions: none
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 (`leading-relaxed`) |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.25 |
 | Heading | 20px (`text-xl`) | 600 (semibold) | 1.2 |
-| Display | 28px (`text-2xl`) | 700 (bold) | 1.2 |
+| Display | 28px (`text-2xl`) | 600 (semibold) | 1.2 |
+
+Weight set: {400, 600} — 2 weights total. Display uses semibold (600) rather than bold (700); the larger font size (28px) provides sufficient visual hierarchy without a third weight.
 
 Source: Established project patterns in ClauseQuote, ScopeMetaBadge, FindingCard
 
