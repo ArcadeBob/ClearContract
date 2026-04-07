@@ -144,3 +144,78 @@ describe('ExclusionStressTestFindingSchema', () => {
     expect(result.success).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// BidReconciliationFindingSchema
+// ---------------------------------------------------------------------------
+
+import {
+  BidReconciliationFindingSchema,
+  BidReconciliationPassResultSchema,
+} from './scopeComplianceAnalysis';
+
+describe('BidReconciliationFindingSchema', () => {
+  const validBidReconciliation = {
+    severity: 'High',
+    category: 'Scope of Work',
+    title: 'Unbid Scope: Structural Calculations',
+    description: 'Contract includes structural calculations but bid does not price them.',
+    recommendation: 'Add structural calculation line item to bid.',
+    clauseReference: 'Section 08 44 13',
+    clauseText: 'Subcontractor shall provide structural calculations per spec.',
+    explanation: 'Bid document has no line item for structural calculations.',
+    crossReferences: ['Exhibit A'],
+    contractQuote: 'Subcontractor shall provide all curtain wall per Section 08 44 13.',
+    bidQuote: 'Curtain wall system: 200 SF at $85/SF.',
+    reconciliationType: 'exclusion-parity',
+    directionOfRisk: 'Contract includes structural calculations in scope but bid excludes engineering.',
+    inferenceBasis: 'contract-quoted',
+    negotiationPosition: 'Add line item before signing.',
+    actionPriority: 'pre-bid',
+  };
+
+  it('parses a valid bid-reconciliation finding with both quotes', () => {
+    const result = BidReconciliationFindingSchema.safeParse(validBidReconciliation);
+    expect(result.success).toBe(true);
+  });
+
+  it('parses when contractQuote is null (document silent)', () => {
+    const result = BidReconciliationFindingSchema.safeParse({
+      ...validBidReconciliation,
+      contractQuote: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('parses when bidQuote is null (document silent)', () => {
+    const result = BidReconciliationFindingSchema.safeParse({
+      ...validBidReconciliation,
+      bidQuote: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects invalid reconciliationType', () => {
+    const result = BidReconciliationFindingSchema.safeParse({
+      ...validBidReconciliation,
+      reconciliationType: 'invalid-type',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects inferenceBasis other than "contract-quoted"', () => {
+    const result = BidReconciliationFindingSchema.safeParse({
+      ...validBidReconciliation,
+      inferenceBasis: 'knowledge-module:div08-deliverables',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('validates PassResultSchema wraps findings and dates', () => {
+    const result = BidReconciliationPassResultSchema.safeParse({
+      findings: [validBidReconciliation],
+      dates: [],
+    });
+    expect(result.success).toBe(true);
+  });
+});

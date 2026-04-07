@@ -21,6 +21,7 @@ import {
   createLaborComplianceFinding,
   createSpecReconciliationFinding,
   createExclusionStressTestFinding,
+  createBidReconciliationFinding,
 } from '../src/test/factories';
 
 // Mock the knowledge registry (avoids filesystem dependency)
@@ -741,6 +742,7 @@ describe('mergePassResults - MergedFindingSchema validation (UNIT-06)', () => {
     { name: 'labor-compliance', factory: () => createLaborComplianceFinding() },
     { name: 'spec-reconciliation', factory: () => createSpecReconciliationFinding() },
     { name: 'exclusion-stress-test', factory: () => createExclusionStressTestFinding() },
+    { name: 'bid-reconciliation', factory: () => createBidReconciliationFinding() },
   ];
 
   for (const { name, factory } of passConfigs) {
@@ -987,5 +989,82 @@ describe('mergePassResults - inferenceBasis enforcement', () => {
     const titles = result.findings.map((f) => f.title);
     expect(titles).not.toContain('Dropped Critical');
     expect(titles).toContain('Kept Low');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bid-reconciliation pass handler tests
+// ---------------------------------------------------------------------------
+
+describe('mergePassResults - bid-reconciliation', () => {
+  it('converts bid-reconciliation findings with correct scopeMeta', () => {
+    const finding = createBidReconciliationFinding({
+      contractQuote: 'Subcontractor shall provide all curtain wall per Section 08 44 13.',
+      bidQuote: 'Curtain wall system: 200 SF at $85/SF.',
+      reconciliationType: 'exclusion-parity',
+      directionOfRisk: 'Contract includes structural calculations in scope but bid excludes engineering.',
+    });
+    const result = mergePassResults(
+      [fulfilled('bid-reconciliation', [finding])],
+      [pass('bid-reconciliation')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.scopeMeta?.passType).toBe('bid-reconciliation');
+    expect(f.scopeMeta && 'contractQuote' in f.scopeMeta && f.scopeMeta.contractQuote).toBe('Subcontractor shall provide all curtain wall per Section 08 44 13.');
+    expect(f.scopeMeta && 'bidQuote' in f.scopeMeta && f.scopeMeta.bidQuote).toBe('Curtain wall system: 200 SF at $85/SF.');
+    expect(f.scopeMeta && 'reconciliationType' in f.scopeMeta && f.scopeMeta.reconciliationType).toBe('exclusion-parity');
+    expect(f.scopeMeta && 'directionOfRisk' in f.scopeMeta && f.scopeMeta.directionOfRisk).toBe('Contract includes structural calculations in scope but bid excludes engineering.');
+    expect(f.sourcePass).toBe('bid-reconciliation');
+  });
+
+  it('bid-reconciliation findings survive dedup as specialized pass', () => {
+    const specialized = createBidReconciliationFinding({
+      clauseReference: 'Section 08 44 13',
+      title: 'Bid Recon Finding',
+      severity: 'High',
+    });
+    const generic = {
+      severity: 'High' as const,
+      category: 'Scope of Work' as const,
+      title: 'Bid Recon Finding',
+      clauseReference: 'Section 08 44 13',
+      description: 'Generic description',
+      recommendation: 'Generic recommendation',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
+    };
+    const result = mergePassResults(
+      [
+        fulfilled('bid-reconciliation', [specialized]),
+        fulfilled('risk-overview', [generic]),
+      ],
+      [
+        pass('bid-reconciliation'),
+        pass('risk-overview', true),
+      ]
+    );
+    const matching = result.findings.filter(
+      (f) => f.clauseReference === 'Section 08 44 13' && f.category === 'Scope of Work'
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0].scopeMeta?.passType).toBe('bid-reconciliation');
+    expect(matching[0].sourcePass).toBe('bid-reconciliation');
+  });
+
+  it('enforceInferenceBasis does NOT alter bid-reconciliation findings (contract-quoted basis)', () => {
+    const finding = createBidReconciliationFinding({
+      title: 'Contract Quoted Bid Recon',
+      severity: 'Critical',
+      clauseReference: 'Section 08 44 13',
+    });
+    const result = mergePassResults(
+      [fulfilled('bid-reconciliation', [finding])],
+      [pass('bid-reconciliation')]
+    );
+    const f = result.findings.find((ff) => ff.title === 'Contract Quoted Bid Recon');
+    expect(f).toBeDefined();
+    expect(f!.severity).toBe('Critical');
+    expect(f!.downgradedFrom).toBeUndefined();
   });
 });
