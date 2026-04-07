@@ -19,7 +19,7 @@
 
 - [x] **BID-01**: User can optionally attach a bid/estimate PDF at contract upload
 - [ ] **BID-02**: User sees bid-vs-contract reconciliation findings: exclusion parity, quantity deltas, scope items not in bid
-- [ ] **BID-03**: User can re-analyze a contract and choose whether to re-upload or update the bid PDF
+- [x] **BID-03**: User can re-analyze a contract and choose whether to re-upload or update the bid PDF
 - [ ] **BID-04**: Each reconciliation finding has both `contractQuote` and `bidQuote` attributed to the correct document
 - [x] **BID-05**: Contracts uploaded without a bid analyze normally — no missing functionality, bid-dependent UI hides gracefully
 
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-05 | Phase 57 | Complete |
 | BID-01 | Phase 58 | Complete |
 | BID-02 | Phase 60 | Pending |
-| BID-03 | Phase 58 | Pending |
+| BID-03 | Phase 58 | Complete |
 | BID-04 | Phase 60 | Pending |
 | BID-05 | Phase 58 | Complete |
 | CLS-01 | Phase 61 | Pending |

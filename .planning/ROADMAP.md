@@ -155,7 +155,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 - [x] **Phase 56: Architecture Foundation** -- Stage 3 wave orchestration, inferenceBasis schema, scope pass capacity resolution (completed 2026-04-05)
 - [x] **Phase 57: Contract-Only Scope Extraction** -- submittal register, schedule-conflict detection, quantity-ambiguity flagging (completed 2026-04-06)
-- [ ] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution
+- [x] **Phase 58: Knowledge Modules + Multi-Doc Input** -- AAMA + Div 08 modules, optional bid PDF upload, document attribution (completed 2026-04-06)
 - [ ] **Phase 59: Spec Reconciliation + Exclusion Stress-Test** -- Stage 3 inference passes using knowledge modules
 - [ ] **Phase 60: Bid Reconciliation Capstone** -- bid-vs-contract exclusion parity, quantity deltas, unbid scope
 - [ ] **Phase 61: Warranty + Safety/OSHA Clause Passes** -- two new clause passes, independent of scope-intel
@@ -312,7 +312,7 @@ Plans:
 | 55. Partial Status Type Gap Closure | v2.2 | 1/1 | Complete | 2026-04-05 |
 | 56. Architecture Foundation | 3/3 | Complete    | 2026-04-05 | - |
 | 57. Contract-Only Scope Extraction | 2/2 | Complete    | 2026-04-06 | - |
-| 58. Knowledge Modules + Multi-Doc Input | 3/4 | In Progress|  | - |
+| 58. Knowledge Modules + Multi-Doc Input | 4/4 | Complete | 2026-04-06 | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | v3.0 | 0/? | Not started | - |
 | 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
 | 61. Warranty + Safety/OSHA Clause Passes | v3.0 | 0/? | Not started | - |
