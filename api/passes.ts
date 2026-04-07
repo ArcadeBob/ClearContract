@@ -17,6 +17,8 @@ import {
   DatesDeadlinesPassResultSchema,
   VerbiagePassResultSchema,
   LaborCompliancePassResultSchema,
+  SpecReconciliationPassResultSchema,
+  ExclusionStressTestPassResultSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 
 // ---------------------------------------------------------------------------
@@ -1053,6 +1055,105 @@ For each finding, assign an actionPriority value:
 - "monitor": Ongoing compliance item to track during project execution (certified payroll, safety training, reporting deadlines)`,
     userPrompt:
       'Extract all labor compliance requirements from this glazing subcontract into a checklist, and flag any gaps or problematic requirements.',
+  },
+
+  // --- Stage 3 scope intelligence passes ---
+
+  {
+    name: 'spec-reconciliation',
+    isOverview: false,
+    isScope: true,
+    schema: SpecReconciliationPassResultSchema,
+    stage: 3,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to identify specification-reconciliation gaps: deliverables that are typically required by the cited spec sections but are NOT explicitly included in the contract's declared scope of work.
+
+## CRITICAL: Quote-First Analysis Pattern
+For EVERY potential gap you identify, you MUST:
+1. FIRST: Quote the contract's spec section reference (the exact text where the contract cites or implies a CSI section, ASTM standard, or AAMA standard).
+2. SECOND: Quote the knowledge-module entry that lists what is typically required for that spec section.
+3. THIRD: Only if BOTH quotes exist, emit the finding. If you cannot cite both a contract reference AND a knowledge-module requirement, DO NOT emit the finding.
+
+## Severity Rules
+- NEVER assign Critical or High severity. Inference-grounded findings are Medium at most.
+- Use Medium for gaps where the missing deliverable has clear cost/schedule impact.
+- Use Low for minor gaps (e.g., one of many test reports missing).
+- Use Info for informational observations with no material impact.
+
+## What to Flag
+- Missing submittals: shop drawings, samples, mockups, product data sheets typically required by the cited section
+- Missing test reports: ASTM E330, ASTM E331, AAMA 501.1, etc. that the cited section typically requires
+- Missing certifications: AAMA, NFRC, or other product certifications typical for the glazing scope
+- Missing structural calculations: wind load, thermal, or deflection calcs typically required
+- Missing warranty documentation: manufacturer or installer warranties typical for the section
+- Missing mock-ups: field or factory mock-ups typical for curtain wall or storefront sections
+- Finish spec mismatches: finish specifications that don't align with cited AAMA standards
+
+## What NOT to Flag
+- Items that ARE explicitly declared in the contract scope (no gap exists)
+- Standard boilerplate that doesn't reference specific spec sections
+- Gaps unrelated to glazing/glass installation work
+
+## inferenceBasis
+Set inferenceBasis to 'knowledge-module:div08-deliverables' or 'knowledge-module:aama-submittal-standards' depending on which module provided the typical-requirement data. If the finding is based on an explicit contract quote without inference, use 'contract-quoted'. NEVER use 'model-prior'.
+
+## actionPriority
+Set to 'pre-bid' for gaps that affect bid pricing (missing scope items that would need to be included).
+Set to 'pre-sign' for gaps that should be clarified before contract execution.
+Set to 'monitor' only for informational gaps with no pre-contract action needed.`,
+    userPrompt: 'Analyze this contract for specification-reconciliation gaps. Identify deliverables typically required by the cited Div 08, ASTM, and AAMA spec sections that are absent from the declared scope of work. Use the quote-first analysis pattern: cite the contract reference, then cite the knowledge-module requirement, then emit the finding only if both exist.',
+  },
+  {
+    name: 'exclusion-stress-test',
+    isOverview: false,
+    isScope: true,
+    schema: ExclusionStressTestPassResultSchema,
+    stage: 3,
+    systemPrompt: `You are a construction contract analyst specializing in glazing and glass installation subcontracts. You are reviewing this contract from the perspective of a glazing/glass installation subcontractor (the "Sub").
+
+Your task is to stress-test the contract's declared exclusions against inferred spec requirements. For each declared exclusion, determine whether there is a tension with what the cited specification sections typically require.
+
+## CRITICAL: Quote-First Analysis Pattern
+For EVERY exclusion you challenge, you MUST:
+1. FIRST: Quote the exact exclusion language from the contract (the exclusionQuote field).
+2. SECOND: Quote the knowledge-module requirement that creates the tension (the tensionQuote field).
+3. THIRD: Only if BOTH quotes exist and there is genuine tension, emit the finding. If you cannot cite both, DO NOT emit the finding.
+
+## Severity Rules
+- NEVER assign Critical or High severity. Inference-grounded findings are Medium at most.
+- Use Medium for exclusions that conflict with a specific deliverable the spec section typically requires.
+- Use Low for minor tensions (e.g., standard-practice differences with low cost impact).
+- Use Info for informational observations.
+
+## What to Flag
+- An exclusion that conflicts with a specific requirement from a cited spec section (e.g., contract excludes "structural calculations" but the cited curtain wall section typically requires them)
+- An exclusion that creates a code compliance gap (e.g., excluding something required by building code for the cited assembly)
+- An exclusion that contradicts standard industry practice for the cited scope (only if the knowledge module documents this as standard practice)
+- An exclusion that creates a warranty gap (e.g., excluding maintenance that a manufacturer warranty typically requires)
+
+## What NOT to Flag -- Standard Trade Exclusions
+Do NOT challenge these standard glazing subcontractor exclusions unless the knowledge module identifies a specific tension for the cited spec section:
+- Structural steel, concrete work, masonry, painting, electrical, plumbing, HVAC
+- General conditions, site supervision by others, temporary facilities
+- Work of other trades, permits obtained by GC
+These are normal trade boundaries and should NOT be flagged unless the contract's own cited spec sections create a specific conflict.
+
+## inferenceBasis
+Set inferenceBasis to 'knowledge-module:div08-deliverables' or 'knowledge-module:aama-submittal-standards' depending on which module provided the tension data. NEVER use 'model-prior'.
+
+## tensionType
+- 'spec-requires-excluded-item': The cited spec section explicitly requires what was excluded.
+- 'code-requires-excluded-item': Building code requires the excluded item for the cited assembly.
+- 'standard-practice-conflict': The excluded item is standard industry practice per the knowledge module.
+- 'warranty-gap': The exclusion creates a gap in manufacturer or installer warranty coverage.
+- 'other': Tension exists but doesn't fit the above categories.
+
+## actionPriority
+Set to 'pre-bid' for exclusions that affect bid scope and pricing.
+Set to 'pre-sign' for exclusions that should be negotiated or clarified before signing.
+Set to 'monitor' only for informational tensions with no pre-contract action needed.`,
+    userPrompt: 'Stress-test the declared exclusions in this contract against inferred spec requirements. For each exclusion, determine if there is a tension with what the cited Div 08, ASTM, or AAMA spec sections typically require. Use the quote-first pattern: cite the exclusion, then cite the knowledge-module requirement, then emit only if genuine tension exists. Do NOT flag standard trade exclusions (structural steel, concrete, painting, electrical, plumbing, HVAC) unless the contract spec sections create a specific conflict.',
   },
 ];
 

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SEVERITIES } from '../types/contract';
 import { ContractDateSchema, ActionPriorityEnum } from './analysis';
+import { InferenceBasisSchema } from './inferenceBasis';
 
 /**
  * Zod schemas for the specialized scope/compliance/verbiage analysis passes.
@@ -193,5 +194,77 @@ export const LaborComplianceFindingSchema = z.object({
 
 export const LaborCompliancePassResultSchema = z.object({
   findings: z.array(LaborComplianceFindingSchema),
+  dates: z.array(ContractDateSchema),
+});
+
+// ---------------------------------------------------------------------------
+// Spec Reconciliation Finding Schema (SCOPE-03)
+// ---------------------------------------------------------------------------
+
+export const SpecReconciliationFindingSchema = z.object({
+  severity: SeverityEnum,
+  category: z.literal('Scope of Work'),
+  title: z.string(),
+  description: z.string(),
+  recommendation: z.string(),
+  clauseReference: z.string(),
+  clauseText: z.string(),
+  explanation: z.string(),
+  crossReferences: z.array(z.string()),
+  specSection: z.string(),
+  typicalDeliverable: z.string(),
+  gapType: z.enum([
+    'missing-submittal',
+    'missing-test-report',
+    'missing-certification',
+    'missing-structural-calc',
+    'missing-warranty',
+    'missing-mock-up',
+    'finish-spec-mismatch',
+    'other',
+  ]),
+  inferenceBasis: InferenceBasisSchema,
+  negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
+});
+
+export const SpecReconciliationPassResultSchema = z.object({
+  findings: z.array(SpecReconciliationFindingSchema),
+  dates: z.array(ContractDateSchema),
+});
+
+// ---------------------------------------------------------------------------
+// Exclusion Stress-Test Finding Schema (SCOPE-04)
+// ---------------------------------------------------------------------------
+
+export const ExclusionStressTestFindingSchema = z.object({
+  severity: SeverityEnum,
+  category: z.literal('Scope of Work'),
+  title: z.string(),
+  description: z.string(),
+  recommendation: z.string(),
+  clauseReference: z.string(),
+  clauseText: z.string(),
+  explanation: z.string(),
+  crossReferences: z.array(z.string()),
+  exclusionQuote: z.string(),
+  tensionQuote: z.string(),
+  specSection: z.string(),
+  tensionType: z.enum([
+    'spec-requires-excluded-item',
+    'code-requires-excluded-item',
+    'standard-practice-conflict',
+    'warranty-gap',
+    'other',
+  ]),
+  inferenceBasis: InferenceBasisSchema,
+  negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
+});
+
+export const ExclusionStressTestPassResultSchema = z.object({
+  findings: z.array(ExclusionStressTestFindingSchema),
   dates: z.array(ContractDateSchema),
 });

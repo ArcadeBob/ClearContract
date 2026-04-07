@@ -23,6 +23,8 @@ import {
   DatesDeadlinesFindingSchema,
   VerbiageFindingSchema,
   LaborComplianceFindingSchema,
+  SpecReconciliationFindingSchema,
+  ExclusionStressTestFindingSchema,
 } from '../schemas/scopeComplianceAnalysis';
 
 let _findingCounter = 0;
@@ -338,6 +340,41 @@ export function createLaborComplianceFinding(
       contactInfo: 'DIR',
       status: 'required',
     }],
+    ...overrides,
+  });
+}
+
+// --- Stage 3 scope intelligence factories (2) ---
+
+let _specReconciliationCounter = 0;
+export function createSpecReconciliationFinding(
+  overrides?: Partial<z.infer<typeof SpecReconciliationFindingSchema>>
+): z.infer<typeof SpecReconciliationFindingSchema> {
+  const n = _specReconciliationCounter++;
+  return SpecReconciliationFindingSchema.parse({
+    ...passBase('SpecReconciliation', n, 'Scope of Work'),
+    category: 'Scope of Work',
+    specSection: '08 44 13',
+    typicalDeliverable: 'Shop drawings',
+    gapType: 'missing-submittal',
+    inferenceBasis: 'knowledge-module:div08-deliverables',
+    ...overrides,
+  });
+}
+
+let _exclusionStressTestCounter = 0;
+export function createExclusionStressTestFinding(
+  overrides?: Partial<z.infer<typeof ExclusionStressTestFindingSchema>>
+): z.infer<typeof ExclusionStressTestFindingSchema> {
+  const n = _exclusionStressTestCounter++;
+  return ExclusionStressTestFindingSchema.parse({
+    ...passBase('ExclusionStressTest', n, 'Scope of Work'),
+    category: 'Scope of Work',
+    exclusionQuote: 'Structural calculations are excluded.',
+    tensionQuote: 'AAMA 501.4 requires structural adequacy verification.',
+    specSection: '08 44 13',
+    tensionType: 'spec-requires-excluded-item',
+    inferenceBasis: 'knowledge-module:aama-submittal-standards',
     ...overrides,
   });
 }

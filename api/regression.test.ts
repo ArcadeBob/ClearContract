@@ -305,7 +305,7 @@ describe('regression suite', { timeout: 30_000 }, () => {
     const res = createMockRes();
     await handler(req, res);
 
-    // 16 analysis passes + 1 synthesis = 17 total mock calls
-    expect(mockCreate).toHaveBeenCalledTimes(17);
+    // 18 analysis passes + 1 synthesis = 19 total mock calls
+    expect(mockCreate).toHaveBeenCalledTimes(19);
   });
 });

@@ -140,6 +140,19 @@ export const ScopeMetaSchema = z.discriminatedUnion('passType', [
     deadline: z.string(),
     checklistItems: z.array(ComplianceChecklistItemSchema),
   }),
+  z.object({
+    passType: z.literal('spec-reconciliation'),
+    specSection: z.string(),
+    typicalDeliverable: z.string(),
+    gapType: z.string(),
+  }),
+  z.object({
+    passType: z.literal('exclusion-stress-test'),
+    exclusionQuote: z.string(),
+    tensionQuote: z.string(),
+    specSection: z.string(),
+    tensionType: z.string(),
+  }),
 ]);
 
 // ---------------------------------------------------------------------------

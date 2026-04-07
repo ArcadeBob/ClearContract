@@ -19,6 +19,8 @@ import {
   createDatesDeadlinesFinding,
   createVerbiageFinding,
   createLaborComplianceFinding,
+  createSpecReconciliationFinding,
+  createExclusionStressTestFinding,
 } from '../src/test/factories';
 
 // Mock the knowledge registry (avoids filesystem dependency)
@@ -361,6 +363,46 @@ describe('mergePassResults - specialized pass handlers', () => {
     expect(f.scopeMeta && 'checklistItems' in f.scopeMeta && f.scopeMeta.checklistItems).toHaveLength(1);
     expect(f.sourcePass).toBe('labor-compliance');
   });
+
+  it('converts spec-reconciliation findings with scopeMeta', () => {
+    const finding = createSpecReconciliationFinding({
+      specSection: '08 44 13',
+      typicalDeliverable: 'Shop drawings',
+      gapType: 'missing-submittal',
+    });
+    const result = mergePassResults(
+      [fulfilled('spec-reconciliation', [finding])],
+      [pass('spec-reconciliation')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.scopeMeta?.passType).toBe('spec-reconciliation');
+    expect(f.scopeMeta && 'specSection' in f.scopeMeta && f.scopeMeta.specSection).toBe('08 44 13');
+    expect(f.scopeMeta && 'typicalDeliverable' in f.scopeMeta && f.scopeMeta.typicalDeliverable).toBe('Shop drawings');
+    expect(f.scopeMeta && 'gapType' in f.scopeMeta && f.scopeMeta.gapType).toBe('missing-submittal');
+    expect(f.sourcePass).toBe('spec-reconciliation');
+  });
+
+  it('converts exclusion-stress-test findings with scopeMeta', () => {
+    const finding = createExclusionStressTestFinding({
+      exclusionQuote: 'Structural calculations are excluded.',
+      tensionQuote: 'AAMA 501.4 requires structural adequacy verification.',
+      specSection: '08 44 13',
+      tensionType: 'spec-requires-excluded-item',
+    });
+    const result = mergePassResults(
+      [fulfilled('exclusion-stress-test', [finding])],
+      [pass('exclusion-stress-test')]
+    );
+    expect(result.findings).toHaveLength(1);
+    const f = result.findings[0];
+    expect(f.scopeMeta?.passType).toBe('exclusion-stress-test');
+    expect(f.scopeMeta && 'exclusionQuote' in f.scopeMeta && f.scopeMeta.exclusionQuote).toBe('Structural calculations are excluded.');
+    expect(f.scopeMeta && 'tensionQuote' in f.scopeMeta && f.scopeMeta.tensionQuote).toBe('AAMA 501.4 requires structural adequacy verification.');
+    expect(f.scopeMeta && 'specSection' in f.scopeMeta && f.scopeMeta.specSection).toBe('08 44 13');
+    expect(f.scopeMeta && 'tensionType' in f.scopeMeta && f.scopeMeta.tensionType).toBe('spec-requires-excluded-item');
+    expect(f.sourcePass).toBe('exclusion-stress-test');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -464,6 +506,74 @@ describe('mergePassResults - deduplication', () => {
     const matching = result.findings.filter((f) => f.title === 'Duplicate Title');
     expect(matching).toHaveLength(1);
     expect(matching[0].severity).toBe('High');
+  });
+
+  it('prefers spec-reconciliation over risk-overview for same clauseRef+category (isSpecializedPass)', () => {
+    const specialized = createSpecReconciliationFinding({
+      clauseReference: 'Section 08 44 13',
+      title: 'Missing Submittal: Shop Drawings',
+      severity: 'Medium',
+    });
+    const generic = {
+      severity: 'Medium' as const,
+      category: 'Scope of Work' as const,
+      title: 'Missing Submittal: Shop Drawings',
+      clauseReference: 'Section 08 44 13',
+      description: 'Generic description',
+      recommendation: 'Generic recommendation',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
+    };
+    const result = mergePassResults(
+      [
+        fulfilled('spec-reconciliation', [specialized]),
+        fulfilled('risk-overview', [generic]),
+      ],
+      [
+        pass('spec-reconciliation'),
+        pass('risk-overview', true),
+      ]
+    );
+    const matching = result.findings.filter(
+      (f) => f.clauseReference === 'Section 08 44 13' && f.category === 'Scope of Work'
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0].scopeMeta?.passType).toBe('spec-reconciliation');
+    expect(matching[0].sourcePass).toBe('spec-reconciliation');
+  });
+
+  it('prefers exclusion-stress-test over risk-overview for same clauseRef+category (isSpecializedPass)', () => {
+    const specialized = createExclusionStressTestFinding({
+      clauseReference: 'Section 08 44 13',
+      title: 'Exclusion Tension',
+      severity: 'Medium',
+    });
+    const generic = {
+      severity: 'Medium' as const,
+      category: 'Scope of Work' as const,
+      title: 'Exclusion Tension',
+      clauseReference: 'Section 08 44 13',
+      description: 'Generic description',
+      recommendation: 'Generic recommendation',
+      negotiationPosition: '',
+      actionPriority: 'monitor' as const,
+    };
+    const result = mergePassResults(
+      [
+        fulfilled('exclusion-stress-test', [specialized]),
+        fulfilled('risk-overview', [generic]),
+      ],
+      [
+        pass('exclusion-stress-test'),
+        pass('risk-overview', true),
+      ]
+    );
+    const matching = result.findings.filter(
+      (f) => f.clauseReference === 'Section 08 44 13' && f.category === 'Scope of Work'
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0].scopeMeta?.passType).toBe('exclusion-stress-test');
+    expect(matching[0].sourcePass).toBe('exclusion-stress-test');
   });
 
   it('deduplicates cross-pass: clauseRef finding in Phase 1, N/A in Phase 2 title dedup', () => {
@@ -629,6 +739,8 @@ describe('mergePassResults - MergedFindingSchema validation (UNIT-06)', () => {
     { name: 'dates-deadlines', factory: () => createDatesDeadlinesFinding() },
     { name: 'verbiage-analysis', factory: () => createVerbiageFinding() },
     { name: 'labor-compliance', factory: () => createLaborComplianceFinding() },
+    { name: 'spec-reconciliation', factory: () => createSpecReconciliationFinding() },
+    { name: 'exclusion-stress-test', factory: () => createExclusionStressTestFinding() },
   ];
 
   for (const { name, factory } of passConfigs) {
@@ -787,6 +899,68 @@ describe('mergePassResults - inferenceBasis enforcement', () => {
     const f = result.findings[0];
     expect(f.severity).toBe('Critical');
     expect(f.downgradedFrom).toBeUndefined();
+  });
+
+  it('drops model-prior findings from spec-reconciliation pass', () => {
+    const finding = createSpecReconciliationFinding({
+      title: 'Model Prior Spec Recon',
+      clauseReference: 'Section 08 44 13',
+      inferenceBasis: 'model-prior',
+    });
+    const result = mergePassResults(
+      [fulfilled('spec-reconciliation', [finding])],
+      [pass('spec-reconciliation')]
+    );
+    const titles = result.findings.map((f) => f.title);
+    expect(titles).not.toContain('Model Prior Spec Recon');
+  });
+
+  it('drops model-prior findings from exclusion-stress-test pass', () => {
+    const finding = createExclusionStressTestFinding({
+      title: 'Model Prior Exclusion',
+      clauseReference: 'Section 08 44 13',
+      inferenceBasis: 'model-prior',
+    });
+    const result = mergePassResults(
+      [fulfilled('exclusion-stress-test', [finding])],
+      [pass('exclusion-stress-test')]
+    );
+    const titles = result.findings.map((f) => f.title);
+    expect(titles).not.toContain('Model Prior Exclusion');
+  });
+
+  it('clamps knowledge-module findings from spec-reconciliation to Medium', () => {
+    const finding = createSpecReconciliationFinding({
+      title: 'KM High Spec Recon',
+      severity: 'High',
+      clauseReference: 'Section 08 44 13',
+      inferenceBasis: 'knowledge-module:div08-deliverables',
+    });
+    const result = mergePassResults(
+      [fulfilled('spec-reconciliation', [finding])],
+      [pass('spec-reconciliation')]
+    );
+    const f = result.findings.find((ff) => ff.title === 'KM High Spec Recon');
+    expect(f).toBeDefined();
+    expect(f!.severity).toBe('Medium');
+    expect(f!.downgradedFrom).toBe('High');
+  });
+
+  it('clamps knowledge-module findings from exclusion-stress-test to Medium', () => {
+    const finding = createExclusionStressTestFinding({
+      title: 'KM High Exclusion',
+      severity: 'High',
+      clauseReference: 'Section 08 44 13',
+      inferenceBasis: 'knowledge-module:aama-submittal-standards',
+    });
+    const result = mergePassResults(
+      [fulfilled('exclusion-stress-test', [finding])],
+      [pass('exclusion-stress-test')]
+    );
+    const f = result.findings.find((ff) => ff.title === 'KM High Exclusion');
+    expect(f).toBeDefined();
+    expect(f!.severity).toBe('Medium');
+    expect(f!.downgradedFrom).toBe('High');
   });
 
   it('drops model-prior findings before risk-score computation', () => {

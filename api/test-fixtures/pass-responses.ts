@@ -1,5 +1,5 @@
 /**
- * Test fixtures for all 16 analysis passes + synthesis pass.
+ * Test fixtures for all 18 analysis passes + synthesis pass.
  *
  * These fixtures provide raw JSON objects matching what the Anthropic API
  * would return for each pass -- flat pass-specific fields, NOT the
@@ -248,6 +248,35 @@ export const passFixtures: Record<string, Record<string, unknown>> = {
             status: 'required',
           },
         ],
+      },
+    ],
+    dates: [],
+  },
+
+  'spec-reconciliation': {
+    findings: [
+      {
+        ...findingBase('Spec Reconciliation'),
+        category: 'Scope of Work',
+        specSection: '08 44 13',
+        typicalDeliverable: 'Shop drawings',
+        gapType: 'missing-submittal',
+        inferenceBasis: 'knowledge-module:div08-deliverables',
+      },
+    ],
+    dates: [],
+  },
+
+  'exclusion-stress-test': {
+    findings: [
+      {
+        ...findingBase('Exclusion Stress-Test'),
+        category: 'Scope of Work',
+        exclusionQuote: 'Structural calculations are excluded from subcontractor scope.',
+        tensionQuote: 'AAMA 501.4 requires structural adequacy verification for curtain wall.',
+        specSection: '08 44 13',
+        tensionType: 'spec-requires-excluded-item',
+        inferenceBasis: 'knowledge-module:aama-submittal-standards',
       },
     ],
     dates: [],

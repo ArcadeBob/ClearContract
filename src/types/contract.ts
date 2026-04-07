@@ -150,6 +150,19 @@ export type ScopeMeta =
       contactInfo: string;
       deadline: string;
       checklistItems: ComplianceChecklistItem[];
+    }
+  | {
+      passType: 'spec-reconciliation';
+      specSection: string;
+      typicalDeliverable: string;
+      gapType: string;
+    }
+  | {
+      passType: 'exclusion-stress-test';
+      exclusionQuote: string;
+      tensionQuote: string;
+      specSection: string;
+      tensionType: string;
     };
 
 export type { MergedFinding as Finding } from '../schemas/finding';

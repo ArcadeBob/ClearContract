@@ -13,6 +13,7 @@ export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
     'aama-submittal-standards',
   ],
   'spec-reconciliation': ['div08-deliverables', 'aama-submittal-standards'],
+  'exclusion-stress-test': ['div08-deliverables', 'aama-submittal-standards'],
   'legal-indemnification': ['ca-lien-law'],
   'legal-payment-contingency': ['ca-lien-law', 'ca-public-works-payment'],
   'legal-liquidated-damages': ['ca-liquidated-damages'],

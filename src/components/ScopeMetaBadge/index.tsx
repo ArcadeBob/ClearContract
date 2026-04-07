@@ -7,11 +7,16 @@ import { LaborComplianceBadge } from './LaborComplianceBadge';
 
 type PassType = ScopeMeta['passType'];
 
+// Stub badges for Stage 3 passes (UI implementation deferred to Phase 59 Plan 02)
+const StubBadge: React.FC<{ meta: any }> = () => null;
+
 const BADGE_MAP: Record<PassType, React.FC<{ meta: any }>> = {
   'scope-extraction': ScopeOfWorkBadge,
   'dates-deadlines': DatesDeadlinesBadge,
   'verbiage': VerbiageBadge,
   'labor-compliance': LaborComplianceBadge,
+  'spec-reconciliation': StubBadge,
+  'exclusion-stress-test': StubBadge,
 };
 
 interface ScopeMetaBadgeProps {

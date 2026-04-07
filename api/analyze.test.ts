@@ -331,14 +331,14 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
   // -------------------------------------------------------------------------
 
   describe('full pipeline', () => {
-    it('exercises all 16 analysis passes plus synthesis', async () => {
+    it('exercises all 18 analysis passes plus synthesis', async () => {
       const req = createMockReq();
       const res = createMockRes();
       await handler(req, res);
 
       expect(res.statusCode).toBe(200);
-      // 16 analysis passes + 1 synthesis = 17 total API calls
-      expect(mockCreate).toHaveBeenCalledTimes(17);
+      // 18 analysis passes + 1 synthesis = 19 total API calls
+      expect(mockCreate).toHaveBeenCalledTimes(19);
 
       const body = res.body as Record<string, unknown>;
       const findings = body.findings as unknown[];
@@ -352,7 +352,7 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
       expect(passResults).not.toBeNull();
     });
 
-    it('produces findings from all 16 analysis passes', async () => {
+    it('produces findings from all 18 analysis passes', async () => {
       const req = createMockReq();
       const res = createMockRes();
       await handler(req, res);
@@ -550,21 +550,23 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
   // -------------------------------------------------------------------------
 
   describe('Stage 3', () => {
-    it("logs 'Stage 3: no passes registered, skipping' when no Stage 3 passes are registered", async () => {
+    it("logs 'Stage 3: Running N reconciliation passes...' when stage-3 passes are registered", async () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       try {
         const req = createMockReq();
         const res = createMockRes();
         await handler(req, res);
 
-        const loggedMessages = logSpy.mock.calls.map((c) => c[0]);
-        expect(loggedMessages).toContain('[analyze] Stage 3: no passes registered, skipping');
+        const loggedMessages = logSpy.mock.calls.map((c) => String(c[0]));
+        const stage3Log = loggedMessages.find((m) => m.includes('Stage 3: Running'));
+        expect(stage3Log).toBeDefined();
+        expect(stage3Log).toContain('reconciliation passes');
       } finally {
         logSpy.mockRestore();
       }
     });
 
-    it('completes pipeline and returns 200 with empty Stage 3 wave', async () => {
+    it('completes pipeline and returns 200 with Stage 3 findings', async () => {
       const req = createMockReq();
       const res = createMockRes();
       await handler(req, res);
@@ -572,13 +574,8 @@ describe('/api/analyze', { timeout: 30_000 }, () => {
       expect(res.statusCode).toBe(200);
 
       const body = res.body as Record<string, unknown>;
-      // Merged findings contain only Stage 2 findings (no Stage 3 passes registered)
       expect(Array.isArray(body.findings)).toBe(true);
       expect((body.findings as unknown[]).length).toBeGreaterThan(0);
     });
-
-    // Placeholders for Phase 58+ when real stage-3 passes are registered
-    it.todo("logs 'Stage 3: Running N reconciliation passes...' when stage-3 passes registered (exercised in Phase 58+)");
-    it.todo('Stage 3 pass rejection marks contract Partial (exercised when first stage-3 pass lands in Phase 58+)');
   });
 });

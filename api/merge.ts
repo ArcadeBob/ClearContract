@@ -23,6 +23,8 @@ import {
   DatesDeadlinesFindingSchema,
   VerbiageFindingSchema,
   LaborComplianceFindingSchema,
+  SpecReconciliationFindingSchema,
+  ExclusionStressTestFindingSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 
 export interface AnalysisPassInfo {
@@ -369,6 +371,35 @@ function convertLaborComplianceFinding(finding: LaborComplianceFinding, passName
   };
 }
 
+type SpecReconciliationFinding = z.infer<typeof SpecReconciliationFindingSchema>;
+
+function convertSpecReconciliationFinding(finding: SpecReconciliationFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'spec-reconciliation',
+      specSection: finding.specSection,
+      typicalDeliverable: finding.typicalDeliverable,
+      gapType: finding.gapType,
+    },
+  };
+}
+
+type ExclusionStressTestFinding = z.infer<typeof ExclusionStressTestFindingSchema>;
+
+function convertExclusionStressTestFinding(finding: ExclusionStressTestFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'exclusion-stress-test',
+      exclusionQuote: finding.exclusionQuote,
+      tensionQuote: finding.tensionQuote,
+      specSection: finding.specSection,
+      tensionType: finding.tensionType,
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Pass handler dispatch map (generic helper avoids casts)
 // ---------------------------------------------------------------------------
@@ -401,6 +432,8 @@ const passHandlers: Record<string, PassHandler> = {
   'dates-deadlines': createHandler(DatesDeadlinesFindingSchema, convertDatesDeadlinesFinding),
   'verbiage-analysis': createHandler(VerbiageFindingSchema, convertVerbiageFinding),
   'labor-compliance': createHandler(LaborComplianceFindingSchema, convertLaborComplianceFinding),
+  'spec-reconciliation': createHandler(SpecReconciliationFindingSchema, convertSpecReconciliationFinding),
+  'exclusion-stress-test': createHandler(ExclusionStressTestFindingSchema, convertExclusionStressTestFinding),
 };
 
 // ---------------------------------------------------------------------------
@@ -521,7 +554,8 @@ export function mergePassResults(
   // --- Enhanced deduplication ---
   const isSpecializedPass = (sp: string) =>
     sp.startsWith('legal-') ||
-    ['scope-extraction', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance'].includes(sp);
+    ['scope-extraction', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance',
+     'spec-reconciliation', 'exclusion-stress-test'].includes(sp);
 
   // Phase 1: clauseReference + category composite key dedup
   const byClauseAndCategory = new Map<string, UnifiedFinding>();
