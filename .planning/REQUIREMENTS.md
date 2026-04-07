@@ -39,8 +39,8 @@
 
 ### Scope Intelligence UX (UX)
 
-- [ ] **UX-01**: Scope-intel findings surface as subcategories under existing "Scope of Work" category (not new top-level categories) to prevent UI noise
-- [ ] **UX-02**: User has a dedicated Scope Intelligence view-mode for submittal timeline, spec-gap matrix, and bid/contract diff
+- [x] **UX-01**: Scope-intel findings surface as subcategories under existing "Scope of Work" category (not new top-level categories) to prevent UI noise
+- [x] **UX-02**: User has a dedicated Scope Intelligence view-mode for submittal timeline, spec-gap matrix, and bid/contract diff
 
 ### Architecture Enablers (ARCH)
 
@@ -105,8 +105,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KNOW-01 | Phase 58 | Complete |
 | KNOW-02 | Phase 58 | Complete |
 | PORT-01 | Phase 62 | Pending |
-| UX-01 | Phase 62 | Pending |
-| UX-02 | Phase 62 | Pending |
+| UX-01 | Phase 62 | Complete |
+| UX-02 | Phase 62 | Complete |
 | ARCH-01 | Phase 56 | Complete |
 | ARCH-02 | Phase 56 | Complete |
 | ARCH-03 | Phase 56 | Complete |
