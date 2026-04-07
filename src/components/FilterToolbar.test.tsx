@@ -135,4 +135,28 @@ describe('FilterToolbar', () => {
     expect(screen.getByTestId('dropdown-Severity')).toBeInTheDocument();
     expect(screen.getByTestId('dropdown-Priority')).toBeInTheDocument();
   });
+
+  it('renders Scope Intel button when hasScopeIntelData is true', () => {
+    render(<FilterToolbar {...defaultProps()} hasScopeIntelData={true} />);
+    expect(screen.getByText('Scope Intel')).toBeInTheDocument();
+  });
+
+  it('does NOT render Scope Intel button when hasScopeIntelData is false', () => {
+    render(<FilterToolbar {...defaultProps()} hasScopeIntelData={false} />);
+    expect(screen.queryByText('Scope Intel')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render Scope Intel button when hasScopeIntelData is undefined', () => {
+    render(<FilterToolbar {...defaultProps()} />);
+    expect(screen.queryByText('Scope Intel')).not.toBeInTheDocument();
+  });
+
+  it('hides filter dropdowns when viewMode is scope-intel', () => {
+    render(
+      <FilterToolbar {...defaultProps({ viewMode: 'scope-intel' as ViewMode })} hasScopeIntelData={true} />
+    );
+    expect(screen.queryByTestId('dropdown-Category')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('dropdown-Severity')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('dropdown-Priority')).not.toBeInTheDocument();
+  });
 });

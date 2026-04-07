@@ -8,9 +8,10 @@ import {
   Shield,
   Handshake,
   ClipboardList,
+  Microscope,
 } from 'lucide-react';
 
-export type ViewMode = 'by-category' | 'by-severity' | 'coverage' | 'negotiation' | 'submittals';
+export type ViewMode = 'by-category' | 'by-severity' | 'coverage' | 'negotiation' | 'submittals' | 'scope-intel';
 
 type FilterSetType = 'severities' | 'categories' | 'priorities';
 
@@ -25,6 +26,7 @@ interface FilterToolbarProps {
   hideResolved: boolean;
   toggleHideResolved: () => void;
   submittalCount?: number;
+  hasScopeIntelData?: boolean;
 }
 
 export function FilterToolbar({
@@ -36,6 +38,7 @@ export function FilterToolbar({
   hideResolved,
   toggleHideResolved,
   submittalCount,
+  hasScopeIntelData,
 }: FilterToolbarProps) {
   return (
     <>
@@ -99,6 +102,19 @@ export function FilterToolbar({
               Submittals ({submittalCount})
             </button>
           )}
+          {hasScopeIntelData && (
+            <button
+              onClick={() => setViewMode('scope-intel')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'scope-intel'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Microscope className="w-4 h-4" />
+              Scope Intel
+            </button>
+          )}
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
           <input
@@ -112,7 +128,7 @@ export function FilterToolbar({
       </div>
 
       {/* Multi-select filter dropdowns (hidden on Submittals tab) */}
-      {viewMode !== 'submittals' && (
+      {viewMode !== 'submittals' && viewMode !== 'scope-intel' && (
         <div className="flex items-center gap-2 flex-wrap">
           <MultiSelectDropdown
             label="Category"
