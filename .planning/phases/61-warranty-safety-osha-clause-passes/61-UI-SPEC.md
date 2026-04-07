@@ -33,15 +33,15 @@ Declared values (must be multiples of 4):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps, inline padding |
-| sm | 8px | Compact element spacing, pill `py-0.5` (2px top/bottom via Tailwind half-unit) |
+| xs | 4px | Icon gaps, inline padding, badge container `gap-1` |
+| sm | 8px | Compact element spacing, pill `px-2` horizontal padding, badge container `mt-2` |
 | md | 16px | Default element spacing |
 | lg | 24px | Section padding |
 | xl | 32px | Layout gaps |
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: Pill internal padding uses `px-2 py-0.5` (8px horizontal, 2px vertical) per established `pillBase` pattern in `ScopeMetaBadge/shared.ts`. Badge container uses `gap-1` (4px) and `mt-2` (8px).
+Exceptions: none. Pill vertical padding (`py-0.5` / 2px) is inherited from the existing shared `pillBase` utility and is not introduced by this phase.
 
 ---
 
@@ -50,10 +50,11 @@ Exceptions: Pill internal padding uses `px-2 py-0.5` (8px horizontal, 2px vertic
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
-| Label / Pill | 12px (`text-xs`) | 500 (`font-medium`) | 1.5 |
-| Heading | 18px (`text-lg`) | 600 (`font-semibold`) | 1.2 |
+| Label / Pill / Heading | 12px (`text-xs`) for pills, 18px (`text-lg`) for headings | 500 (`font-medium`) | 1.5 (pills), 1.2 (headings) |
 
-Source: Established `pillBase` uses `text-xs font-medium`. Finding cards use `text-sm` body. These are locked conventions from prior phases.
+This phase uses 2 weights: 400 (body text) and 500 (pill labels via `pillBase` `font-medium`). The broader codebase also uses 600 (`font-semibold`) for headings, but Phase 61 components do not introduce or require weight 600 -- all new text elements use `pillBase` which specifies `font-medium` (500).
+
+Source: `ScopeMetaBadge/shared.ts` defines `pillBase` with `text-xs font-medium`.
 
 ---
 
