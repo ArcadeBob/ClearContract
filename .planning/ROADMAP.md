@@ -246,8 +246,8 @@ Plans:
   4. The clause passes are independent of scope-intel infrastructure — they run and produce findings correctly on contracts with no bid PDF and with Stage 3 disabled.
 **Plans**: 2 plans
 Plans:
-- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
-- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
+- [ ] 61-01-PLAN.md — Zod schemas, pass definitions, merge converters, knowledge map, dedup registration
+- [ ] 61-02-PLAN.md — WarrantyBadge, SafetyOshaBadge, BADGE_MAP, PASS_LABELS
 
 ### Phase 62: Scope Intelligence UX + Portfolio Trends
 **Goal**: All new scope-intel findings surface cleanly as subcategories under "Scope of Work" without category bloat, the user has a dedicated Scope Intelligence view-mode showing submittal timeline / spec-gap matrix / bid-contract diff, and cross-contract scope trends appear on the dashboard.
