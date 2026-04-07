@@ -10,6 +10,7 @@ import { RiskScoreDisplay } from '../components/RiskScoreDisplay';
 import { CoverageComparisonTab } from '../components/CoverageComparisonTab';
 import { NegotiationChecklist } from '../components/NegotiationChecklist';
 import { SubmittalRegister } from '../components/SubmittalRegister';
+import { ScopeIntelView } from '../components/ScopeIntelView';
 import { ReviewHeader } from '../components/ReviewHeader';
 import type { ReAnalyzeResult } from '../components/ReAnalyzeModal';
 import { FilterToolbar, ViewMode } from '../components/FilterToolbar';
@@ -58,6 +59,15 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
 
   const { profile } = useCompanyProfile();
   const { rows: usageRows, isLoading: usageLoading } = useAnalysisUsage(contract.id);
+
+  // Scope Intel data detection
+  const SCOPE_INTEL_PASSES = new Set([
+    'scope-extraction', 'spec-reconciliation', 'exclusion-stress-test',
+    'bid-reconciliation', 'schedule-conflict',
+  ]);
+
+  const hasScopeIntelData = (contract.submittals?.length ?? 0) > 0
+    || contract.findings.some(f => f.sourcePass && SCOPE_INTEL_PASSES.has(f.sourcePass));
 
   // Check if core profile fields that affect analysis are empty
   const coreProfileFields: (keyof typeof profile)[] = [
@@ -167,10 +177,13 @@ export function ContractReview({ contract, onBack, onDelete, onToggleResolved, o
                 hideResolved={hideResolved}
                 toggleHideResolved={toggleHideResolved}
                 submittalCount={contract.submittals?.length ?? 0}
+                hasScopeIntelData={hasScopeIntelData}
               />
 
               {/* Findings display */}
-              {viewMode === 'submittals' ? (
+              {viewMode === 'scope-intel' ? (
+                <ScopeIntelView contract={contract} />
+              ) : viewMode === 'submittals' ? (
                 <SubmittalRegister
                   submittals={contract.submittals ?? []}
                   conflictFindings={contract.findings.filter(f => f.sourcePass === 'schedule-conflict')}
