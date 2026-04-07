@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Scope Intelligence
 status: in-progress
-stopped_at: Completed 60-01-PLAN.md
-last_updated: "2026-04-07T04:14:25.000Z"
-last_activity: 2026-04-07 -- 60-01 complete (bid-reconciliation backend pass, dual-document orchestration)
+stopped_at: Completed 60-02-PLAN.md
+last_updated: "2026-04-07T04:22:00Z"
+last_activity: 2026-04-07 -- 60-02 complete (bid-reconciliation UI rendering -- badge pills and dual-quote display)
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v3.0 Scope Intelligence — Phase 59 complete, Phase 60 next
+**Current focus:** v3.0 Scope Intelligence — Phase 60 complete, Phase 61 next
 
 ## Current Position
 
-Phase: 60 (Bid Reconciliation Capstone) — IN PROGRESS (1/2 plans)
-Plan: 01 complete
-Status: Phase 60 in progress
-Last activity: 2026-04-07 -- 60-01 complete (bid-reconciliation backend pass, dual-document orchestration)
+Phase: 60 (Bid Reconciliation Capstone) — COMPLETE (2/2 plans)
+Plan: 02 complete
+Status: Phase 60 complete
+Last activity: 2026-04-07 -- 60-02 complete (bid-reconciliation UI rendering -- badge pills and dual-quote display)
 
-Progress: [█████████░] 92% (12/13 plans)
+Progress: [██████████] 100% (13/13 plans)
 
 ## v3.0 Phase Summary
 
@@ -96,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 60-01]: requiresBid field on AnalysisPass enables conditional pass skipping without hardcoding pass names
 - [Phase 60-01]: Bid document omits cache_control ephemeral -- only contract PDF cached across passes
 - [Phase 60-01]: inferenceBasis locked to 'contract-quoted' literal for bid-reconciliation -- comparing real documents, not inferring
+- [Phase 60-02]: Reused shared pillBase/formatLabel from ScopeMetaBadge/shared.ts -- consistent pill styling across all badge types
+- [Phase 60-02]: Direction-of-risk truncated at 60 chars with ellipsis -- prevents layout overflow from long risk descriptions
+- [Phase 60-02]: Border color convention: border-slate-300 for contract language, border-emerald-300 for bid language
 
 ### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
 
@@ -118,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T04:14:25.000Z
-Stopped at: Completed 60-01-PLAN.md
-Resume file: .planning/phases/60-bid-reconciliation-capstone/60-02-PLAN.md
+Last session: 2026-04-07T04:22:00Z
+Stopped at: Completed 60-02-PLAN.md
+Resume file: .planning/phases/61-warranty-safety-osha/61-01-PLAN.md
