@@ -90,6 +90,17 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
           />
         )}
 
+      {finding.scopeMeta &&
+        finding.scopeMeta.passType === 'exclusion-stress-test' &&
+        finding.scopeMeta.tensionQuote && (
+          <ClauseQuote
+            text={finding.scopeMeta.tensionQuote}
+            reference={finding.scopeMeta.specSection}
+            borderColor="border-amber-300"
+            label="Inferred Requirement"
+          />
+        )}
+
       {finding.explanation && (
         <div className="bg-amber-50 border border-amber-100 rounded-md p-3 mb-3">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
