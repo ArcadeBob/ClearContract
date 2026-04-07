@@ -23,6 +23,7 @@ const PASS_ORDER = [
   'labor-compliance',
   'spec-reconciliation',
   'exclusion-stress-test',
+  'bid-reconciliation',
   'synthesis',
 ];
 
@@ -45,6 +46,7 @@ const PASS_LABELS: Record<string, string> = {
   'labor-compliance': 'Labor Compliance',
   'spec-reconciliation': 'Spec Reconciliation',
   'exclusion-stress-test': 'Exclusion Stress-Test',
+  'bid-reconciliation': 'Bid Reconciliation',
   'synthesis': 'Synthesis',
 };
 

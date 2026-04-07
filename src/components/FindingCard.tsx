@@ -101,6 +101,28 @@ export function FindingCard({ finding, index, onToggleResolved, onUpdateNote }: 
           />
         )}
 
+      {finding.scopeMeta &&
+        finding.scopeMeta.passType === 'bid-reconciliation' && (
+          <>
+            {finding.scopeMeta.contractQuote && (
+              <ClauseQuote
+                text={finding.scopeMeta.contractQuote}
+                reference={finding.clauseReference || ''}
+                borderColor="border-slate-300"
+                label="Contract Language"
+              />
+            )}
+            {finding.scopeMeta.bidQuote && (
+              <ClauseQuote
+                text={finding.scopeMeta.bidQuote}
+                reference="Bid Document"
+                borderColor="border-emerald-300"
+                label="Bid Language"
+              />
+            )}
+          </>
+        )}
+
       {finding.explanation && (
         <div className="bg-amber-50 border border-amber-100 rounded-md p-3 mb-3">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
