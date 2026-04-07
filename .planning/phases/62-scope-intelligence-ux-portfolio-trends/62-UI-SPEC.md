@@ -21,7 +21,7 @@ created: 2026-04-07
 | Preset | not applicable |
 | Component library | none (Tailwind utility classes only) |
 | Icon library | Lucide React |
-| Font | Inter (300, 400, 500, 600, 700) via Google Fonts |
+| Font | Inter (400, 600) via Google Fonts |
 
 Source: CLAUDE.md, `src/index.css`
 
@@ -49,14 +49,16 @@ Source: Existing component patterns (StatCard uses `p-6`, CategorySection uses `
 
 ## Typography
 
+Two font weights only: 400 (normal) and 600 (semibold).
+
 | Role | Size | Weight | Line Height | Tailwind Class |
 |------|------|--------|-------------|----------------|
 | Body | 14px | 400 (normal) | 1.5 | `text-sm text-slate-700` |
-| Label | 14px | 500 (medium) | 1.5 | `text-sm font-medium text-slate-500` |
+| Label | 14px | 400 (normal) | 1.5 | `text-sm text-slate-500` |
 | Heading | 14px | 600 (semibold) | 1.5 | `text-sm font-semibold text-slate-900` |
-| Display | 24px | 700 (bold) | 1.2 | `text-2xl font-bold text-slate-900` |
+| Display | 24px | 600 (semibold) | 1.2 | `text-2xl font-semibold text-slate-900` |
 
-Source: StatCard (`text-sm font-medium text-slate-500` for labels, `text-2xl font-bold` for values), CategorySection (`text-sm font-semibold` for headings), PatternsCard (`text-sm text-slate-700` for body). Project uses `text-sm` (14px) as the dominant size across all components with `text-2xl` (24px) reserved for stat values only.
+Source: StatCard (`text-sm text-slate-500` for labels, `text-2xl font-semibold` for values), CategorySection (`text-sm font-semibold` for headings), PatternsCard (`text-sm text-slate-700` for body). Project uses `text-sm` (14px) as the dominant size across all components with `text-2xl` (24px) reserved for stat values only. Weights collapsed to 2-tier system: normal (400) for readable text, semibold (600) for emphasis.
 
 ---
 
@@ -148,7 +150,7 @@ Source: UX-02 success criteria (graceful absent-data handling), PORT-01 success 
 - Subcategory headers are collapsible (click to expand/collapse), default expanded
 - Subcategory headers show a finding count badge: "(N findings)"
 - Subcategory grouping activates only when findings span 2+ distinct `sourcePass` values -- single-pass findings render flat (no sub-header noise)
-- Subcategory header style: `text-xs font-medium text-slate-500 uppercase tracking-wide` with a left border accent (`border-l-2 border-violet-300 pl-3`)
+- Subcategory header style: `text-xs font-semibold text-slate-500 uppercase tracking-wide` with a left border accent (`border-l-2 border-violet-300 pl-3`)
 - Finding cards within subcategories use `ml-2` indent (matches existing CategorySection `ml-2 mb-6` pattern)
 
 ### Scope Intelligence View-Mode (UX-02)
@@ -191,8 +193,8 @@ Source: UX-02 success criteria (graceful absent-data handling), PORT-01 success 
 - Card style matches PatternsCard: `bg-white rounded-xl border border-slate-200 shadow-sm p-6`
 - Icon: `TrendingUp` (Lucide) in `bg-violet-50 text-violet-600 p-2 rounded-lg`
 - Three trend sections stacked vertically with `space-y-4`
-- Each trend section: label in `text-xs font-medium text-slate-500 uppercase tracking-wide`, then ranked list (top 5 items)
-- Each ranked item: `text-sm text-slate-700` name + `text-xs font-medium text-slate-500` count suffix ("N/M contracts")
+- Each trend section: label in `text-xs font-semibold text-slate-500 uppercase tracking-wide`, then ranked list (top 5 items)
+- Each ranked item: `text-sm text-slate-700` name + `text-xs text-slate-500` count suffix ("N/M contracts")
 - Card returns `null` when fewer than 10 reviewed contracts -- no empty state, just absent
 - Framer Motion entry animation: `initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}` (matches PatternsCard)
 
