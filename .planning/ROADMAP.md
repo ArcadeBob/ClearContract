@@ -230,7 +230,10 @@ Plans:
   2. The user sees quantity-delta findings when scope items have different or ambiguous quantities across the two documents, and unbid-scope findings when the contract includes scope items absent from the bid.
   3. Every reconciliation finding has both `contractQuote` and `bidQuote` fields populated (nullable where one document is silent) and the quotes are correctly attributed to their source document — a contract-quoted exclusion never appears in the `bidQuote` field and vice versa.
   4. When no bid PDF is uploaded, the bid-reconciliation pass is skipped entirely (no empty findings, no fabricated bid quotes) and the rest of the analysis runs normally.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
+- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
 
 ### Phase 61: Warranty + Safety/OSHA Clause Passes
 **Goal**: Users see dedicated warranty clause findings (duration, exclusions, transferability, call-back period) and safety/OSHA compliance findings (site safety, fall protection, GC safety-plan coordination) — two new clause passes that follow the established pattern.
@@ -241,7 +244,10 @@ Plans:
   2. The user sees safety/OSHA findings covering site safety program enrollment, fall-protection requirements, and GC safety-plan coordination duties, each grounded in the existing `ca-calosha` knowledge module.
   3. Both passes integrate into the existing Stage 2 parallel wave, emit Zod-validated findings through the standard merge pipeline, and surface under the correct categories in the Findings tab.
   4. The clause passes are independent of scope-intel infrastructure — they run and produce findings correctly on contracts with no bid PDF and with Stage 3 disabled.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
+- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
 
 ### Phase 62: Scope Intelligence UX + Portfolio Trends
 **Goal**: All new scope-intel findings surface cleanly as subcategories under "Scope of Work" without category bloat, the user has a dedicated Scope Intelligence view-mode showing submittal timeline / spec-gap matrix / bid-contract diff, and cross-contract scope trends appear on the dashboard.
@@ -252,7 +258,10 @@ Plans:
   2. The user can switch into a dedicated "Scope Intelligence" view-mode on the contract review page showing a submittal timeline, a spec-gap matrix, and a bid/contract diff — each sub-component handles its absent-data case gracefully (no bid, no submittals, no spec cites).
   3. The dashboard shows a cross-contract scope trends card listing most-declared exclusions, recurring scope items, and exclusions that GCs commonly reject/modify, rendered only when enough analyzed contracts (N ≥ 10) exist to avoid false signals on small samples.
   4. The Scope Intelligence view-mode and trends card degrade gracefully on contracts analyzed before v3.0 — legacy contracts simply show empty states rather than errors.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
+- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
 
 ## Progress
 
@@ -317,6 +326,6 @@ Plans:
 | 57. Contract-Only Scope Extraction | 2/2 | Complete    | 2026-04-06 | - |
 | 58. Knowledge Modules + Multi-Doc Input | 4/4 | Complete    | 2026-04-07 | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | 2/2 | Complete    | 2026-04-07 | - |
-| 60. Bid Reconciliation Capstone | v3.0 | 0/? | Not started | - |
+| 60. Bid Reconciliation Capstone | v3.0 | 0/2 | Not started | - |
 | 61. Warranty + Safety/OSHA Clause Passes | v3.0 | 0/? | Not started | - |
 | 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
