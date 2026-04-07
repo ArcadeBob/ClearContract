@@ -327,5 +327,5 @@ Plans:
 | 58. Knowledge Modules + Multi-Doc Input | 4/4 | Complete    | 2026-04-07 | - |
 | 59. Spec Reconciliation + Exclusion Stress-Test | 2/2 | Complete    | 2026-04-07 | - |
 | 60. Bid Reconciliation Capstone | 2/2 | Complete    | 2026-04-07 | - |
-| 61. Warranty + Safety/OSHA Clause Passes | 2/2 | Complete   | 2026-04-07 | - |
+| 61. Warranty + Safety/OSHA Clause Passes | 2/2 | Complete    | 2026-04-07 | - |
 | 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
