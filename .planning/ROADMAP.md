@@ -232,8 +232,8 @@ Plans:
   4. When no bid PDF is uploaded, the bid-reconciliation pass is skipped entirely (no empty findings, no fabricated bid quotes) and the rest of the analysis runs normally.
 **Plans**: 2 plans
 Plans:
-- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
-- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
+- [ ] 62-01-PLAN.md — Subcategory grouping (UX-01) + Scope Intel view-mode with sub-components (UX-02)
+- [ ] 62-02-PLAN.md — ScopeTrendsCard cross-contract scope trends on dashboard (PORT-01)
 
 ### Phase 61: Warranty + Safety/OSHA Clause Passes
 **Goal**: Users see dedicated warranty clause findings (duration, exclusions, transferability, call-back period) and safety/OSHA compliance findings (site safety, fall protection, GC safety-plan coordination) — two new clause passes that follow the established pattern.
@@ -260,8 +260,8 @@ Plans:
   4. The Scope Intelligence view-mode and trends card degrade gracefully on contracts analyzed before v3.0 — legacy contracts simply show empty states rather than errors.
 **Plans**: 2 plans
 Plans:
-- [ ] 60-01-PLAN.md — Schema, pass definition, merge converter, orchestration (runAnalysisPass bidFileId, Stage 3 requiresBid filter)
-- [ ] 60-02-PLAN.md — BidReconciliationBadge, FindingCard dual-quote, PASS_LABELS
+- [ ] 62-01-PLAN.md — Subcategory grouping (UX-01) + Scope Intel view-mode with sub-components (UX-02)
+- [ ] 62-02-PLAN.md — ScopeTrendsCard cross-contract scope trends on dashboard (PORT-01)
 
 ## Progress
 
@@ -328,4 +328,4 @@ Plans:
 | 59. Spec Reconciliation + Exclusion Stress-Test | 2/2 | Complete    | 2026-04-07 | - |
 | 60. Bid Reconciliation Capstone | 2/2 | Complete    | 2026-04-07 | - |
 | 61. Warranty + Safety/OSHA Clause Passes | 2/2 | Complete    | 2026-04-07 | - |
-| 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/? | Not started | - |
+| 62. Scope Intelligence UX + Portfolio Trends | v3.0 | 0/2 | Not started | - |
