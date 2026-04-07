@@ -26,6 +26,8 @@ import {
   SpecReconciliationFindingSchema,
   ExclusionStressTestFindingSchema,
   BidReconciliationFindingSchema,
+  WarrantyFindingSchema,
+  SafetyOshaFindingSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 
 export interface AnalysisPassInfo {
@@ -416,6 +418,34 @@ function convertBidReconciliationFinding(finding: BidReconciliationFinding, pass
   };
 }
 
+type WarrantyFinding = z.infer<typeof WarrantyFindingSchema>;
+
+function convertWarrantyFinding(finding: WarrantyFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'warranty',
+      warrantyAspect: finding.warrantyAspect,
+      warrantyDuration: finding.warrantyDuration,
+      affectedParty: finding.affectedParty,
+    },
+  };
+}
+
+type SafetyOshaFinding = z.infer<typeof SafetyOshaFindingSchema>;
+
+function convertSafetyOshaFinding(finding: SafetyOshaFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'safety-osha',
+      safetyAspect: finding.safetyAspect,
+      regulatoryReference: finding.regulatoryReference,
+      responsibleParty: finding.responsibleParty,
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Pass handler dispatch map (generic helper avoids casts)
 // ---------------------------------------------------------------------------
@@ -451,6 +481,8 @@ const passHandlers: Record<string, PassHandler> = {
   'spec-reconciliation': createHandler(SpecReconciliationFindingSchema, convertSpecReconciliationFinding),
   'exclusion-stress-test': createHandler(ExclusionStressTestFindingSchema, convertExclusionStressTestFinding),
   'bid-reconciliation': createHandler(BidReconciliationFindingSchema, convertBidReconciliationFinding),
+  'warranty': createHandler(WarrantyFindingSchema, convertWarrantyFinding),
+  'safety-osha': createHandler(SafetyOshaFindingSchema, convertSafetyOshaFinding),
 };
 
 // ---------------------------------------------------------------------------
@@ -572,7 +604,8 @@ export function mergePassResults(
   const isSpecializedPass = (sp: string) =>
     sp.startsWith('legal-') ||
     ['scope-extraction', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance',
-     'spec-reconciliation', 'exclusion-stress-test', 'bid-reconciliation'].includes(sp);
+     'spec-reconciliation', 'exclusion-stress-test', 'bid-reconciliation',
+     'warranty', 'safety-osha'].includes(sp);
 
   // Phase 1: clauseReference + category composite key dedup
   const byClauseAndCategory = new Map<string, UnifiedFinding>();

@@ -28,6 +28,8 @@ export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'verbiage-analysis': ['glazing-sub-protections'],
   'labor-compliance': ['ca-prevailing-wage', 'ca-calosha'],
   'bid-reconciliation': [],
+  'warranty': [],
+  'safety-osha': ['ca-calosha'],
 };
 
 const moduleStore = new Map<string, KnowledgeModule>();
