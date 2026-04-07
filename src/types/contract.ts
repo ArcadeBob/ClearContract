@@ -163,6 +163,13 @@ export type ScopeMeta =
       tensionQuote: string;
       specSection: string;
       tensionType: string;
+    }
+  | {
+      passType: 'bid-reconciliation';
+      contractQuote: string | null;
+      bidQuote: string | null;
+      reconciliationType: 'exclusion-parity' | 'quantity-delta' | 'unbid-scope';
+      directionOfRisk: string;
     };
 
 export type { MergedFinding as Finding } from '../schemas/finding';

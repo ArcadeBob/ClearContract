@@ -1,5 +1,5 @@
 /**
- * Test fixtures for all 18 analysis passes + synthesis pass.
+ * Test fixtures for all 19 analysis passes + synthesis pass.
  *
  * These fixtures provide raw JSON objects matching what the Anthropic API
  * would return for each pass -- flat pass-specific fields, NOT the
@@ -275,6 +275,20 @@ export const passFixtures: Record<string, Record<string, unknown>> = {
         specSection: '08 44 13',
         tensionType: 'spec-requires-excluded-item',
         inferenceBasis: 'knowledge-module:aama-submittal-standards',
+      },
+    ],
+    dates: [],
+  },
+
+  'bid-reconciliation': {
+    findings: [
+      {
+        ...findingBase('Bid Reconciliation', 'Scope of Work'),
+        contractQuote: 'Subcontractor shall provide all curtain wall per Section 08 44 13.',
+        bidQuote: 'Curtain wall system: 200 SF at $85/SF.',
+        reconciliationType: 'exclusion-parity',
+        directionOfRisk: 'Contract includes structural calculations in scope but bid excludes engineering.',
+        inferenceBasis: 'contract-quoted',
       },
     ],
     dates: [],

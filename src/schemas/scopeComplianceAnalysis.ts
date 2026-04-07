@@ -268,3 +268,32 @@ export const ExclusionStressTestPassResultSchema = z.object({
   findings: z.array(ExclusionStressTestFindingSchema),
   dates: z.array(ContractDateSchema),
 });
+
+// ---------------------------------------------------------------------------
+// Bid Reconciliation Finding Schema (BID-02, BID-04)
+// ---------------------------------------------------------------------------
+
+export const BidReconciliationFindingSchema = z.object({
+  severity: SeverityEnum,
+  category: z.literal('Scope of Work'),
+  title: z.string(),
+  description: z.string(),
+  recommendation: z.string(),
+  clauseReference: z.string(),
+  clauseText: z.string(),
+  explanation: z.string(),
+  crossReferences: z.array(z.string()),
+  contractQuote: z.string().nullable(),
+  bidQuote: z.string().nullable(),
+  reconciliationType: z.enum(['exclusion-parity', 'quantity-delta', 'unbid-scope']),
+  directionOfRisk: z.string(),
+  inferenceBasis: z.literal('contract-quoted'),
+  negotiationPosition: z.string(),
+  downgradedFrom: SeverityEnum.optional(),
+  actionPriority: ActionPriorityEnum,
+});
+
+export const BidReconciliationPassResultSchema = z.object({
+  findings: z.array(BidReconciliationFindingSchema),
+  dates: z.array(ContractDateSchema),
+});

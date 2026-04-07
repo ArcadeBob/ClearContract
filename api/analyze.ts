@@ -104,7 +104,8 @@ async function runAnalysisPass(
   fileId: string,
   pass: AnalysisPass,
   companyProfile?: CompanyProfile,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  bidFileId?: string | null
 ): Promise<PassWithUsage> {
   const startTime = Date.now();
   const passUsage: PassUsage = {
@@ -145,6 +146,11 @@ async function runAnalysisPass(
             source: { type: 'file', file_id: fileId },
             cache_control: { type: 'ephemeral' },
           } as unknown as Anthropic.Beta.Messages.BetaContentBlockParam,
+          // Bid document — only for bid-requiring passes
+          ...(bidFileId ? [{
+            type: 'document',
+            source: { type: 'file', file_id: bidFileId },
+          } as unknown as Anthropic.Beta.Messages.BetaContentBlockParam] : []),
           {
             type: 'text',
             text: pass.userPrompt,
@@ -566,7 +572,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Ship-what-we-have: Stage 3 STILL runs even when Stage 2 overruns its
     // 150s wall-clock budget (per CONTEXT.md Stage 3 failure/Partial policy).
     let stage3Settled: PromiseSettledResult<PassWithUsage>[] = [];
-    if (stage3Passes.length === 0) {
+    const activeStage3Passes = stage3Passes.filter(
+      (p) => !p.requiresBid || bidFileId
+    );
+
+    if (activeStage3Passes.length < stage3Passes.length) {
+      const skipped = stage3Passes
+        .filter((p) => p.requiresBid && !bidFileId)
+        .map((p) => p.name);
+      console.log(`[analyze] Stage 3: skipping bid-requiring passes (no bid PDF): ${skipped.join(', ')}`);
+    }
+
+    if (activeStage3Passes.length === 0) {
       console.log('[analyze] Stage 3: no passes registered, skipping');
     } else {
       const stage2Elapsed = Date.now() - passStart;
@@ -575,11 +592,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `[analyze] Stage 2 overrun: ${(stage2Elapsed / 1000).toFixed(1)}s — running Stage 3 on partial Stage 2 output`
         );
       }
-      console.log(`[analyze] Stage 3: Running ${stage3Passes.length} reconciliation passes...`);
+      console.log(`[analyze] Stage 3: Running ${activeStage3Passes.length} reconciliation passes...`);
       const stage3Start = Date.now();
 
       stage3Settled = await Promise.allSettled(
-        stage3Passes.map((pass) => {
+        activeStage3Passes.map((pass) => {
           const ctrl = new AbortController();
           allControllers.push(ctrl);
           const timeout = setTimeout(() => {
@@ -587,7 +604,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ctrl.abort();
           }, 90_000);
 
-          return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal)
+          return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal, bidFileId)
             .finally(() => clearTimeout(timeout));
         })
       );
@@ -635,7 +652,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // mergePassResults creates "Analysis Pass Failed" findings for rejected
     // promises, so we filter out abort errors to prevent those findings.
     // Build matching passes array (same order as allSettled: primer, stage2, stage3)
-    const allPasses = [primerPass, ...stage2Passes, ...stage3Passes];
+    const allPasses = [primerPass, ...stage2Passes, ...activeStage3Passes];
 
     const nonAbortSettled = allSettled.filter((s, i) => {
       if (s.status === 'rejected') {

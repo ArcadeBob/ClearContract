@@ -164,9 +164,13 @@ beforeEach(() => {
   }
 
   // Route each call to the correct pass fixture sequentially
+  // Filter out bid-requiring passes (no bid PDF in default test setup)
+  const activePassNames = ANALYSIS_PASSES
+    .filter((p) => !p.requiresBid)
+    .map((p) => p.name);
   let callIndex = 0;
   mockCreate.mockImplementation(async () => {
-    const passName = PASS_NAMES[callIndex] || 'synthesis';
+    const passName = activePassNames[callIndex] || 'synthesis';
     callIndex++;
     const fixture =
       passName === 'synthesis'
@@ -305,7 +309,8 @@ describe('regression suite', { timeout: 30_000 }, () => {
     const res = createMockRes();
     await handler(req, res);
 
-    // 18 analysis passes + 1 synthesis = 19 total mock calls
+    // 18 non-bid passes run + 1 synthesis = 19 total mock calls
+    // (bid-reconciliation pass is skipped when no bid PDF is uploaded)
     expect(mockCreate).toHaveBeenCalledTimes(19);
   });
 });

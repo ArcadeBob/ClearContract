@@ -43,7 +43,7 @@ describe('registry', () => {
     expect(getModulesForPass('dates-deadlines')).toEqual([]);
   });
 
-  it('PASS_KNOWLEDGE_MAP has entries for all 18 passes', () => {
-    expect(Object.keys(PASS_KNOWLEDGE_MAP)).toHaveLength(18);
+  it('PASS_KNOWLEDGE_MAP has entries for all 19 passes', () => {
+    expect(Object.keys(PASS_KNOWLEDGE_MAP)).toHaveLength(19);
   });
 });

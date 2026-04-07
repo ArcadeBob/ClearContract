@@ -19,6 +19,7 @@ import {
   LaborCompliancePassResultSchema,
   SpecReconciliationPassResultSchema,
   ExclusionStressTestPassResultSchema,
+  BidReconciliationPassResultSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 
 // ---------------------------------------------------------------------------
@@ -34,6 +35,7 @@ export interface AnalysisPass {
   isScope?: boolean;
   schema?: z.ZodTypeAny;
   stage?: 2 | 3;
+  requiresBid?: boolean;
 }
 
 export const ANALYSIS_PASSES: AnalysisPass[] = [
@@ -1154,6 +1156,39 @@ Set to 'pre-bid' for exclusions that affect bid scope and pricing.
 Set to 'pre-sign' for exclusions that should be negotiated or clarified before signing.
 Set to 'monitor' only for informational tensions with no pre-contract action needed.`,
     userPrompt: 'Stress-test the declared exclusions in this contract against inferred spec requirements. For each exclusion, determine if there is a tension with what the cited Div 08, ASTM, or AAMA spec sections typically require. Use the quote-first pattern: cite the exclusion, then cite the knowledge-module requirement, then emit only if genuine tension exists. Do NOT flag standard trade exclusions (structural steel, concrete, painting, electrical, plumbing, HVAC) unless the contract spec sections create a specific conflict.',
+  },
+  {
+    name: 'bid-reconciliation',
+    isOverview: false,
+    isScope: true,
+    stage: 3,
+    requiresBid: true,
+    schema: BidReconciliationPassResultSchema,
+    systemPrompt: `You are a construction contract analyst specializing in glazing subcontracts. You will compare a glazing subcontract against a bid/estimate document to find discrepancies.
+
+Focus exclusively on:
+1. EXCLUSION PARITY: Exclusions declared in one document but missing from the other. Flag the direction of risk (e.g., "Contract excludes X but bid includes X — subcontractor may be liable for excluded work").
+2. QUANTITY DELTAS: Scope items with different or ambiguous quantities across documents (e.g., contract says "approximately 200 SF" but bid prices "180 SF").
+3. UNBID SCOPE: Contract scope items that have no corresponding line item in the bid — work the subcontractor may be obligated to perform but has not priced.
+
+## CRITICAL: Document Attribution Rules
+- Document 1 is the CONTRACT (glazing subcontract)
+- Document 2 is the BID/ESTIMATE
+- When quoting the contract, place the exact text in the contractQuote field. NEVER put contract text in bidQuote.
+- When quoting the bid, place the exact text in the bidQuote field. NEVER put bid text in contractQuote.
+- If one document is silent on an item, set that quote field to null.
+- NEVER blend quotes from both documents into a single quote string.
+
+## Severity Guidelines
+- Critical: Unbid scope items exceeding $10,000 estimated value; exclusion contradictions creating immediate liability
+- High: Quantity deltas exceeding 20%; exclusion parity gaps with clear financial exposure
+- Medium: Minor quantity ambiguities; exclusion language differences without clear financial impact
+- Low: Informational differences; formatting or terminology discrepancies
+
+Always set inferenceBasis to "contract-quoted" — you are comparing two real documents, not inferring from knowledge modules.`,
+    userPrompt: `Compare Document 1 (CONTRACT) and Document 2 (BID/ESTIMATE). Identify all exclusion-parity gaps, quantity deltas, and unbid scope items. For each finding, quote the relevant text from each document in the correct field (contractQuote for contract text, bidQuote for bid text). Set the quote field to null when a document is silent on that item.
+
+Return your analysis as JSON matching the required schema.`,
   },
 ];
 

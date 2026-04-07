@@ -25,6 +25,7 @@ import {
   LaborComplianceFindingSchema,
   SpecReconciliationFindingSchema,
   ExclusionStressTestFindingSchema,
+  BidReconciliationFindingSchema,
 } from '../schemas/scopeComplianceAnalysis';
 
 let _findingCounter = 0;
@@ -375,6 +376,23 @@ export function createExclusionStressTestFinding(
     specSection: '08 44 13',
     tensionType: 'spec-requires-excluded-item',
     inferenceBasis: 'knowledge-module:aama-submittal-standards',
+    ...overrides,
+  });
+}
+
+let _bidReconciliationCounter = 0;
+export function createBidReconciliationFinding(
+  overrides?: Partial<z.infer<typeof BidReconciliationFindingSchema>>
+): z.infer<typeof BidReconciliationFindingSchema> {
+  const n = _bidReconciliationCounter++;
+  return BidReconciliationFindingSchema.parse({
+    ...passBase('BidReconciliation', n, 'Scope of Work'),
+    category: 'Scope of Work',
+    contractQuote: 'Curtain wall installation per Section 08 44 13.',
+    bidQuote: 'Curtain wall: 200 SF at $85/SF.',
+    reconciliationType: 'exclusion-parity',
+    directionOfRisk: 'Contract excludes structural calculations but bid includes engineering line item.',
+    inferenceBasis: 'contract-quoted',
     ...overrides,
   });
 }

@@ -25,6 +25,7 @@ import {
   LaborComplianceFindingSchema,
   SpecReconciliationFindingSchema,
   ExclusionStressTestFindingSchema,
+  BidReconciliationFindingSchema,
 } from '../src/schemas/scopeComplianceAnalysis';
 
 export interface AnalysisPassInfo {
@@ -400,6 +401,21 @@ function convertExclusionStressTestFinding(finding: ExclusionStressTestFinding, 
   };
 }
 
+type BidReconciliationFinding = z.infer<typeof BidReconciliationFindingSchema>;
+
+function convertBidReconciliationFinding(finding: BidReconciliationFinding, passName: string): UnifiedFinding {
+  return {
+    ...buildBaseFinding(finding, passName),
+    scopeMeta: {
+      passType: 'bid-reconciliation',
+      contractQuote: finding.contractQuote,
+      bidQuote: finding.bidQuote,
+      reconciliationType: finding.reconciliationType,
+      directionOfRisk: finding.directionOfRisk,
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Pass handler dispatch map (generic helper avoids casts)
 // ---------------------------------------------------------------------------
@@ -434,6 +450,7 @@ const passHandlers: Record<string, PassHandler> = {
   'labor-compliance': createHandler(LaborComplianceFindingSchema, convertLaborComplianceFinding),
   'spec-reconciliation': createHandler(SpecReconciliationFindingSchema, convertSpecReconciliationFinding),
   'exclusion-stress-test': createHandler(ExclusionStressTestFindingSchema, convertExclusionStressTestFinding),
+  'bid-reconciliation': createHandler(BidReconciliationFindingSchema, convertBidReconciliationFinding),
 };
 
 // ---------------------------------------------------------------------------
@@ -555,7 +572,7 @@ export function mergePassResults(
   const isSpecializedPass = (sp: string) =>
     sp.startsWith('legal-') ||
     ['scope-extraction', 'dates-deadlines', 'verbiage-analysis', 'labor-compliance',
-     'spec-reconciliation', 'exclusion-stress-test'].includes(sp);
+     'spec-reconciliation', 'exclusion-stress-test', 'bid-reconciliation'].includes(sp);
 
   // Phase 1: clauseReference + category composite key dedup
   const byClauseAndCategory = new Map<string, UnifiedFinding>();

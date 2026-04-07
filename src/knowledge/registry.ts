@@ -27,6 +27,7 @@ export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'legal-change-order': [],
   'verbiage-analysis': ['glazing-sub-protections'],
   'labor-compliance': ['ca-prevailing-wage', 'ca-calosha'],
+  'bid-reconciliation': [],
 };
 
 const moduleStore = new Map<string, KnowledgeModule>();
