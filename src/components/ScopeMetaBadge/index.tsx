@@ -6,11 +6,9 @@ import { VerbiageBadge } from './VerbiageBadge';
 import { LaborComplianceBadge } from './LaborComplianceBadge';
 import { SpecReconciliationBadge } from './SpecReconciliationBadge';
 import { ExclusionStressTestBadge } from './ExclusionStressTestBadge';
+import { BidReconciliationBadge } from './BidReconciliationBadge';
 
 type PassType = ScopeMeta['passType'];
-
-// Stub badge for bid-reconciliation (real UI deferred to Plan 02)
-const BidReconciliationBadgeStub: React.FC<{ meta: any }> = () => null;
 
 const BADGE_MAP: Record<PassType, React.FC<{ meta: any }>> = {
   'scope-extraction': ScopeOfWorkBadge,
@@ -19,7 +17,7 @@ const BADGE_MAP: Record<PassType, React.FC<{ meta: any }>> = {
   'labor-compliance': LaborComplianceBadge,
   'spec-reconciliation': SpecReconciliationBadge,
   'exclusion-stress-test': ExclusionStressTestBadge,
-  'bid-reconciliation': BidReconciliationBadgeStub,
+  'bid-reconciliation': BidReconciliationBadge,
 };
 
 interface ScopeMetaBadgeProps {
