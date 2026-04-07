@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Category, Finding, Severity } from '../types/contract';
 import { SeverityBadge } from './SeverityBadge';
 import { FindingCard } from './FindingCard';
@@ -14,12 +14,70 @@ const SEVERITY_ORDER: Severity[] = [
   'Info',
 ];
 
+const SCOPE_SUBCATEGORIES: Record<string, string> = {
+  'scope-extraction': 'Scope Items',
+  'spec-reconciliation': 'Spec Gaps',
+  'exclusion-stress-test': 'Exclusion Challenges',
+  'bid-reconciliation': 'Bid vs Contract',
+  'schedule-conflict': 'Schedule Conflicts',
+};
+
 interface CategorySectionProps {
   category: Category;
   findings: Finding[];
   defaultExpanded?: boolean;
   onToggleResolved?: (findingId: string) => void;
   onUpdateNote?: (findingId: string, note: string | undefined) => void;
+}
+
+function SubcategoryGroup({
+  label,
+  findings,
+  onToggleResolved,
+  onUpdateNote,
+}: {
+  label: string;
+  findings: Finding[];
+  onToggleResolved?: (findingId: string) => void;
+  onUpdateNote?: (findingId: string, note: string | undefined) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 mb-2 cursor-pointer border-l-2 border-violet-300 pl-3"
+      >
+        <ChevronDown
+          className={`w-3 h-3 text-slate-400 transition-transform ${
+            expanded ? 'rotate-180' : ''
+          }`}
+        />
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          {label}
+        </span>
+        <span className="text-xs text-slate-400">
+          ({findings.length} {findings.length === 1 ? 'finding' : 'findings'})
+        </span>
+      </button>
+      {expanded && (
+        <div className="space-y-4 ml-2">
+          <AnimatePresence mode="popLayout">
+            {findings.map((finding, index) => (
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                index={index}
+                onToggleResolved={onToggleResolved}
+                onUpdateNote={onUpdateNote}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function CategorySection({
@@ -31,6 +89,17 @@ export function CategorySection({
 }: CategorySectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const Icon = categoryIcons[category] || AlertTriangle;
+
+  const subcategoryGroups = useMemo(() => {
+    if (category !== 'Scope of Work') return null;
+    const groups = new Map<string, Finding[]>();
+    for (const f of findings) {
+      const key = f.sourcePass && SCOPE_SUBCATEGORIES[f.sourcePass] ? f.sourcePass : 'general';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(f);
+    }
+    return groups.size > 1 ? groups : null;
+  }, [category, findings]);
 
   const severityCounts = findings.reduce(
     (acc, f) => {
@@ -88,11 +157,23 @@ export function CategorySection({
 
       {expanded && (
         <div className="space-y-4 ml-2 mb-6">
-          <AnimatePresence mode="popLayout">
-            {findings.map((finding, index) => (
-              <FindingCard key={finding.id} finding={finding} index={index} onToggleResolved={onToggleResolved} onUpdateNote={onUpdateNote} />
-            ))}
-          </AnimatePresence>
+          {subcategoryGroups ? (
+            Array.from(subcategoryGroups.entries()).map(([key, groupFindings]) => (
+              <SubcategoryGroup
+                key={key}
+                label={SCOPE_SUBCATEGORIES[key] || 'General'}
+                findings={groupFindings}
+                onToggleResolved={onToggleResolved}
+                onUpdateNote={onUpdateNote}
+              />
+            ))
+          ) : (
+            <AnimatePresence mode="popLayout">
+              {findings.map((finding, index) => (
+                <FindingCard key={finding.id} finding={finding} index={index} onToggleResolved={onToggleResolved} onUpdateNote={onUpdateNote} />
+              ))}
+            </AnimatePresence>
+          )}
         </div>
       )}
     </div>
