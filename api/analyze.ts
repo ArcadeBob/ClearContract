@@ -561,7 +561,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // If primer fails, abort entire analysis per locked decision
       const msg = primerError instanceof Error ? primerError.message : String(primerError);
       log.error(`[analyze] Primer pass failed -- aborting analysis: ${msg}`);
-      throw new Error(`Analysis aborted: primer pass failed (${msg})`);
+      // Preserve the original error so classifyError can read its `status`
+      // (wrapping in new Error() loses Anthropic SDK error properties)
+      throw primerError;
     } finally {
       clearTimeout(primerTimeout);
     }
@@ -975,12 +977,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(contract);
   } catch (error: unknown) {
     const classified = classifyError(error);
-    log.error('Analysis error:', classified.userMessage);
+    // Log the full original error message for debugging (not just the classified user message)
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    log.error(`Analysis error [${classified.type}]: ${rawMessage}`);
     const statusCode = classified.type === 'timeout' ? 504
       : classified.type === 'api' && (error as { status?: number }).status === 429 ? 429
       : classified.type === 'api' && (error as { status?: number }).status === 401 ? 500
       : 500;
-    return res.status(statusCode).json(formatApiError(classified));
+    return res.status(statusCode).json(formatApiError(classified, rawMessage));
   } finally {
     // Clear global timeout to prevent it firing during cleanup
     if (globalTimeout) {
