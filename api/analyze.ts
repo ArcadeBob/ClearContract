@@ -36,6 +36,7 @@ import type { AnalysisPass } from './passes';
 import type { PassUsage, PassWithUsage } from './types';
 import { computePassCost } from './cost';
 import { uploadPdf, downloadPdf } from '../src/lib/supabaseStorage';
+import { MAX_FILE_SIZE, MAX_BID_FILE_SIZE } from '../src/constants/limits';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -60,8 +61,8 @@ function sanitizeFileName(name: string): string {
 const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 8192;
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-const MAX_BID_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB (bid PDFs are typically small)
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
+const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
 // Passes that receive company profile for comparison instructions
 const PASSES_RECEIVING_PROFILE = new Set([

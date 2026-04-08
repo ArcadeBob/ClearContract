@@ -2,44 +2,18 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Contract, Severity, CATEGORIES } from '../types/contract';
 import { sanitizeFilename } from './exportContractCsv';
-
-type RGB = [number, number, number];
-
-const severityColors: Record<Severity, RGB> = {
-  Critical: [239, 68, 68],
-  High: [245, 158, 11],
-  Medium: [234, 179, 8],
-  Low: [59, 130, 246],
-  Info: [100, 116, 139],
-};
-
-const priorityColors: Record<string, RGB> = {
-  'pre-bid': [249, 115, 22],
-  'pre-sign': [59, 130, 246],
-  monitor: [100, 116, 139],
-};
-
-const SEVERITY_ORDER: Severity[] = ['Critical', 'High', 'Medium', 'Low', 'Info'];
+import {
+  type RGB,
+  SEVERITY_COLORS as severityColors,
+  SEVERITY_ORDER,
+  PRIORITY_COLORS as priorityColors,
+  getRiskColor,
+  getDateTypeColor,
+} from '../constants/colors';
 
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return text.slice(0, max) + '...';
-}
-
-function getRiskColor(score: number): RGB {
-  if (score >= 70) return [239, 68, 68]; // red
-  if (score >= 40) return [245, 158, 11]; // amber
-  return [34, 197, 94]; // green
-}
-
-function getDateTypeColor(type: string): RGB {
-  switch (type) {
-    case 'Start': return [16, 185, 129]; // emerald
-    case 'Milestone': return [59, 130, 246]; // blue
-    case 'Deadline': return [245, 158, 11]; // amber
-    case 'Expiry': return [239, 68, 68]; // red
-    default: return [100, 116, 139]; // slate
-  }
 }
 
 export function exportContractPdf(contract: Contract): void {

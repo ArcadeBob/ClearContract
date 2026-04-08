@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Contract } from '../types/contract';
 import type { Finding, ContractDate, LifecycleStatus } from '../types/contract';
 import { supabase } from '../lib/supabase';
 import { mapRow, mapRows } from '../lib/mappers';
 import { useToast } from './useToast';
+import { optimisticMutation } from './useOptimisticMutation';
 
 export function useContractStore() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showToast } = useToast();
+
+  // ── Data fetching ─────────────────────────────────────────────────────
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +30,6 @@ export function useContractStore() {
 
       const contractList = mapRows<Contract & { findings: never; dates: never }>(contractsRes.data);
 
-      // Build lookup maps for stitching
       const findingsByContract = new Map<string, Finding[]>();
       for (const row of findingsRes.data) {
         const finding = mapRow<Finding & { contractId: string }>(row);
@@ -44,7 +46,6 @@ export function useContractStore() {
         datesByContract.set(d.contractId, list);
       }
 
-      // Stitch findings and dates onto contracts (silently drop orphans per CONTEXT decision)
       return contractList.map((c) => ({
         ...c,
         findings: findingsByContract.get(c.id) || [],
@@ -69,119 +70,94 @@ export function useContractStore() {
     return () => { cancelled = true; };
   }, []);
 
-  const addContract = (contract: Contract) => {
-    setContracts((prev) => [contract, ...prev]);
-  };
+  // ── Contract CRUD ─────────────────────────────────────────────────────
 
-  const updateContract = (id: string, updates: Partial<Contract>) => {
+  const addContract = useCallback((contract: Contract) => {
+    setContracts((prev) => [contract, ...prev]);
+  }, []);
+
+  const updateContract = useCallback((id: string, updates: Partial<Contract>) => {
     setContracts((prev) =>
       prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
     );
-  };
+  }, []);
 
-  const deleteContract = async (id: string) => {
-    const prev = [...contracts];
-    setContracts((c) => c.filter((x) => x.id !== id));
+  const deleteContract = useCallback(async (id: string) => {
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((c) => c.filter((x) => x.id !== id)),
+      { table: 'contracts', id, isDelete: true, errorMessage: 'Failed to delete contract.' },
+      showToast,
+    );
+  }, [contracts, showToast]);
 
-    const { error } = await supabase.from('contracts').delete().eq('id', id);
-    if (error) {
-      console.error('Failed to delete contract:', error);
-      setContracts(prev);
-      showToast({ type: 'error', message: 'Failed to delete contract. Changes reverted.' });
-    }
-  };
+  // ── Finding mutations ─────────────────────────────────────────────────
 
-  const toggleFindingResolved = async (contractId: string, findingId: string) => {
-    const prev = [...contracts];
-    const contract = contracts.find((c) => c.id === contractId);
-    const finding = contract?.findings.find((f) => f.id === findingId);
+  const toggleFindingResolved = useCallback(async (contractId: string, findingId: string) => {
+    const finding = contracts.find((c) => c.id === contractId)?.findings.find((f) => f.id === findingId);
     if (!finding) return;
 
     const newResolved = !finding.resolved;
 
-    setContracts((cs) =>
-      cs.map((c) =>
-        c.id === contractId
-          ? { ...c, findings: c.findings.map((f) =>
-              f.id === findingId ? { ...f, resolved: newResolved } : f
-            )}
-          : c
-      )
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((cs) =>
+        cs.map((c) =>
+          c.id === contractId
+            ? { ...c, findings: c.findings.map((f) =>
+                f.id === findingId ? { ...f, resolved: newResolved } : f
+              )}
+            : c
+        )
+      ),
+      { table: 'findings', id: findingId, updates: { resolved: newResolved }, errorMessage: 'Failed to update finding.' },
+      showToast,
     );
+  }, [contracts, showToast]);
 
-    const { error } = await supabase
-      .from('findings')
-      .update({ resolved: newResolved })
-      .eq('id', findingId);
-
-    if (error) {
-      console.error('Failed to toggle resolved:', error);
-      setContracts(prev);
-      showToast({ type: 'error', message: 'Failed to update finding. Changes reverted.' });
-    }
-  };
-
-  const updateFindingNote = async (contractId: string, findingId: string, note: string | undefined) => {
-    const prev = [...contracts];
+  const updateFindingNote = useCallback(async (contractId: string, findingId: string, note: string | undefined) => {
     const noteValue = note ?? '';
 
-    setContracts((cs) =>
-      cs.map((c) =>
-        c.id === contractId
-          ? { ...c, findings: c.findings.map((f) =>
-              f.id === findingId ? { ...f, note: noteValue } : f
-            )}
-          : c
-      )
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((cs) =>
+        cs.map((c) =>
+          c.id === contractId
+            ? { ...c, findings: c.findings.map((f) =>
+                f.id === findingId ? { ...f, note: noteValue } : f
+              )}
+            : c
+        )
+      ),
+      { table: 'findings', id: findingId, updates: { note: noteValue }, errorMessage: 'Failed to save note.' },
+      showToast,
     );
+  }, [contracts, showToast]);
 
-    const { error } = await supabase
-      .from('findings')
-      .update({ note: noteValue })
-      .eq('id', findingId);
+  // ── Contract metadata ─────────────────────────────────────────────────
 
-    if (error) {
-      console.error('Failed to save note:', error);
-      setContracts(prev);
-      showToast({ type: 'error', message: 'Failed to save note. Changes reverted.' });
-    }
-  };
-
-  const renameContract = async (id: string, name: string) => {
-    const prev = [...contracts];
-    setContracts((cs) =>
-      cs.map((c) => (c.id === id ? { ...c, name } : c))
+  const renameContract = useCallback(async (id: string, name: string) => {
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((cs) => cs.map((c) => (c.id === id ? { ...c, name } : c))),
+      { table: 'contracts', id, updates: { name }, errorMessage: 'Failed to rename contract.' },
+      showToast,
     );
+  }, [contracts, showToast]);
 
-    const { error } = await supabase
-      .from('contracts')
-      .update({ name })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Failed to rename contract:', error);
-      setContracts(prev);
-      showToast({ type: 'error', message: 'Failed to rename contract. Changes reverted.' });
-    }
-  };
-
-  const updateLifecycleStatus = async (id: string, lifecycleStatus: LifecycleStatus) => {
-    const prev = [...contracts];
-    setContracts((cs) =>
-      cs.map((c) => (c.id === id ? { ...c, lifecycleStatus } : c))
+  const updateLifecycleStatus = useCallback(async (id: string, lifecycleStatus: LifecycleStatus) => {
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((cs) => cs.map((c) => (c.id === id ? { ...c, lifecycleStatus } : c))),
+      { table: 'contracts', id, updates: { lifecycle_status: lifecycleStatus }, errorMessage: 'Failed to update status.' },
+      showToast,
     );
-
-    const { error } = await supabase
-      .from('contracts')
-      .update({ lifecycle_status: lifecycleStatus })
-      .eq('id', id);
-
-    if (error) {
-      console.error('Failed to update lifecycle status:', error);
-      setContracts(prev);
-      showToast({ type: 'error', message: 'Failed to update status. Changes reverted.' });
-    }
-  };
+  }, [contracts, showToast]);
 
   return {
     contracts,

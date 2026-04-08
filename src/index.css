@@ -30,3 +30,19 @@ body {
 .glass-panel {
   @apply bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm;
 }
+
+/* Reusable component classes — extracted from repeated Tailwind patterns */
+@layer components {
+  .card {
+    @apply bg-white rounded-lg border border-slate-200 shadow-sm p-6;
+  }
+  .card-xl {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6;
+  }
+  .table-header {
+    @apply text-xs font-semibold text-slate-500 uppercase text-left px-3 py-2;
+  }
+  .meta-pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mr-2;
+  }
+}

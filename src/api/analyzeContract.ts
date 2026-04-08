@@ -1,6 +1,5 @@
 import type { Contract } from '../types/contract';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+import { MAX_FILE_SIZE } from '../constants/limits';
 
 export interface AnalyzeOptions {
   keepCurrentContract?: boolean;

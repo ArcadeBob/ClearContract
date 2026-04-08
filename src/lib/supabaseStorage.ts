@@ -51,7 +51,6 @@ export async function downloadPdf(
     .from(BUCKET)
     .download(path);
   if (error || !data) {
-    console.log(`[storage] Download not found for ${path}: ${error?.message ?? 'no data'}`);
     return null;
   }
   // data is a Blob; convert to Buffer

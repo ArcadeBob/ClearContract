@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './pages/Dashboard';
 import { ContractUpload } from './pages/ContractUpload';
@@ -7,13 +7,9 @@ import { AllContracts } from './pages/AllContracts';
 import { Settings } from './pages/Settings';
 import { ContractComparison } from './pages/ContractComparison';
 import { useContractStore } from './hooks/useContractStore';
+import { useContractAnalysis } from './hooks/useContractAnalysis';
 import { useRouter } from './hooks/useRouter';
 import { useToast } from './hooks/useToast';
-import { Finding } from './types/contract';
-import { supabase } from './lib/supabase';
-import { analyzeContract } from './api/analyzeContract';
-import type { ReAnalyzeResult } from './components/ReAnalyzeModal';
-import { classifyError } from './utils/errors';
 import { countDeadlinesWithin7Days } from './utils/dateUrgency';
 import { useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -35,9 +31,6 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const { activeView, activeContractId, compareIds, navigateTo } = useRouter();
   const activeContract = contracts.find((c) => c.id === activeContractId) || null;
   const { showToast } = useToast();
-  const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
-  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
-  const [analyzingHasBid, setAnalyzingHasBid] = useState(false);
 
   const deadlineCount = useMemo(() => {
     const allDates = contracts
@@ -49,7 +42,19 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
   const activeViewRef = useRef(activeView);
   useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
 
-  const pendingFileRef = useRef<File | null>(null);
+  const {
+    analyzingId,
+    analyzingHasBid,
+    reanalyzingId,
+    handleUploadComplete,
+    handleReanalyze,
+  } = useContractAnalysis({
+    contracts,
+    addContract,
+    updateContract,
+    navigateTo,
+    activeViewRef,
+  });
 
   // Show error toast on fetch failure
   useEffect(() => {
@@ -58,7 +63,7 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     }
   }, [contractsError, showToast]);
 
-  // 1C: Redirect to dashboard if review view has no active contract (avoids setState during render)
+  // Redirect to dashboard if review view has no active contract
   useEffect(() => {
     if (activeView === 'review' && !activeContract) {
       window.history.replaceState(null, '', '/');
@@ -75,162 +80,6 @@ function AuthenticatedApp({ signOut }: { signOut: () => Promise<void> }) {
     deleteContract(id);
     if (isDeletingActive) {
       navigateTo('dashboard');
-    }
-  };
-
-  const handleUploadComplete = async (file: File, bidFile?: File) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      showToast({ type: 'error', message: 'Please sign in to analyze contracts.' });
-      return;
-    }
-
-    pendingFileRef.current = file;
-    setAnalyzingId('pending');
-    setAnalyzingHasBid(!!bidFile);
-
-    try {
-      const contract = await analyzeContract(file, session.access_token, undefined, bidFile);
-      addContract(contract);
-
-      if (activeViewRef.current === 'upload') {
-        // User still on upload page -- navigate to review
-        navigateTo('review', contract.id);
-      } else {
-        // User navigated away -- show success toast with "View Contract" action
-        showToast({
-          type: 'success',
-          message: 'Analysis complete',
-          actionLabel: 'View Contract',
-          onRetry: () => navigateTo('review', contract.id),
-        });
-      }
-    } catch (err) {
-      const classified = classifyError(err);
-      showToast({
-        type: 'error',
-        message: classified.userMessage,
-        ...(classified.retryable ? {
-          onRetry: () => {
-            if (pendingFileRef.current) {
-              handleUploadComplete(pendingFileRef.current);
-            }
-          },
-        } : {}),
-      });
-    } finally {
-      setAnalyzingId(null);
-      setAnalyzingHasBid(false);
-      pendingFileRef.current = null;
-    }
-  };
-
-  const handleReanalyze = async (contractId: string, reanalyzeResult: ReAnalyzeResult) => {
-    const contract = contracts.find(c => c.id === contractId);
-    if (!contract) return;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      showToast({ type: 'error', message: 'Please sign in to analyze contracts.' });
-      return;
-    }
-
-    // Snapshot for rollback (REANA-03)
-    const snapshot = structuredClone(contract);
-    setReanalyzingId(contractId);
-
-    try {
-      const analysisResult = await analyzeContract(
-        reanalyzeResult.contractFile || new File([], contract.name || 'contract.pdf'),
-        session.access_token,
-        contractId,
-        reanalyzeResult.bidFile,
-        {
-          keepCurrentContract: reanalyzeResult.keepCurrentContract,
-          removeBid: reanalyzeResult.removeBid,
-        }
-      );
-
-      // Build lookup from old findings with user data (PORT-04)
-      const oldByKey = new Map<string, Finding>();
-      for (const f of contract.findings) {
-        if (f.resolved || f.note) {
-          const ref = f.clauseReference;
-          if (ref && ref !== 'N/A' && ref !== 'Not Found') {
-            oldByKey.set(`${ref}::${f.category}`, f);
-          }
-        }
-      }
-
-      // Carry over resolved/note to matching new findings
-      let preservedResolved = 0;
-      let preservedNotes = 0;
-      const mergedFindings = analysisResult.findings.map((newFinding: Finding) => {
-        const ref = newFinding.clauseReference;
-        if (ref && ref !== 'N/A' && ref !== 'Not Found') {
-          const old = oldByKey.get(`${ref}::${newFinding.category}`);
-          if (old) {
-            if (old.resolved) preservedResolved++;
-            if (old.note) preservedNotes++;
-            return { ...newFinding, resolved: old.resolved, note: old.note };
-          }
-        }
-        return newFinding;
-      });
-
-      // Replace in-memory contract with server response + preserved user data
-      updateContract(contractId, {
-        ...analysisResult,
-        findings: mergedFindings,
-      });
-
-      // Write preserved resolved/note values back to Supabase for matched findings
-      // These findings have NEW IDs from the server response (old rows were deleted)
-      const findingsToPreserve = mergedFindings.filter(
-        (f: Finding) => f.resolved || (f.note && f.note !== '')
-      );
-
-      if (findingsToPreserve.length > 0) {
-        const preserveWrites = await Promise.all(
-          findingsToPreserve.map((f: Finding) =>
-            supabase
-              .from('findings')
-              .update({ resolved: f.resolved, note: f.note || '' })
-              .eq('id', f.id)
-          )
-        );
-
-        const failures = preserveWrites.filter((r) => r.error);
-        if (failures.length > 0) {
-          console.error(
-            'Some finding preservation writes failed:',
-            failures.map((r) => r.error)
-          );
-          // Non-blocking: in-memory state is correct, and findings exist in DB from server write
-          // Do NOT show user toast -- this is a silent degradation
-        }
-      }
-
-      const preserveMsg =
-        preservedResolved > 0 || preservedNotes > 0
-          ? `Re-analysis complete. ${preservedResolved} resolved + ${preservedNotes} notes preserved.`
-          : 'Analysis complete \u2014 findings updated.';
-
-      showToast({ type: 'success', message: preserveMsg });
-    } catch (err) {
-      // Restore previous state completely (REANA-03)
-      updateContract(contractId, snapshot);
-
-      const classified = classifyError(err);
-      showToast({
-        type: 'error',
-        message: classified.userMessage + ' Your previous findings are unchanged.',
-        ...(classified.retryable ? {
-          onRetry: () => handleReanalyze(contractId, reanalyzeResult),
-        } : {}),
-      });
-    } finally {
-      setReanalyzingId(null);
     }
   };
 
