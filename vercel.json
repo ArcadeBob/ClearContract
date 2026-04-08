@@ -1,8 +1,9 @@
 {
   "functions": {
-    "api/analyze.ts": {
+    "api/**/*.ts": {
       "maxDuration": 300,
-      "memory": 1024
+      "memory": 1024,
+      "includeFiles": "src/**/*.ts"
     }
   },
   "rewrites": [
