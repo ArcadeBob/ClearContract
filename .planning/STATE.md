@@ -1,107 +1,46 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Scope Intelligence
-status: in-progress
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-04-07T23:53:53.063Z"
-last_activity: 2026-04-07 -- 62-02 complete (scope trends card with cross-contract aggregation)
+milestone: null
+milestone_name: null
+status: complete
+stopped_at: v3.0 milestone completed
+last_updated: "2026-04-07T01:11:00Z"
+last_activity: 2026-04-07 -- v3.0 Scope Intelligence milestone completed
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Scope Intelligence
-status: in-progress
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-04-07T23:44:00Z"
-last_activity: 2026-04-07 -- 62-02 complete (scope trends card with cross-contract aggregation)
-progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Scope Intelligence
-status: in-progress
-stopped_at: Completed 61-02-PLAN.md
-last_updated: "2026-04-07T14:00:36.440Z"
-last_activity: 2026-04-07 -- 61-02 complete (warranty + safety/OSHA badge components and cost summary labels)
-progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Scope Intelligence
-status: in-progress
-stopped_at: Completed 61-01-PLAN.md
-last_updated: "2026-04-07T13:53:53.301Z"
-last_activity: 2026-04-07 -- 61-01 complete (warranty + safety/OSHA pass schemas, definitions, merge converters)
-progress:
-  [██████████] 100%
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 14
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Scope Intelligence
-status: in-progress
-stopped_at: Completed 60-02-PLAN.md
-last_updated: "2026-04-07T04:22:00Z"
-last_activity: 2026-04-07 -- 60-02 complete (bid-reconciliation UI rendering -- badge pills and dual-quote display)
-progress:
-  total_phases: 7
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-05)
+See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Upload a contract, walk away with a complete breakdown -- risks, scope, dates, compliance -- with exact contract language quoted so you can act immediately.
-**Current focus:** v3.0 Scope Intelligence — Phase 61 complete, Phase 62 next
+**Current focus:** No active milestone. Run `/gsd:new-milestone` to start next cycle.
 
 ## Current Position
 
-Phase: 62 (Scope Intelligence UX + Portfolio Trends) — COMPLETE (2/2 plans)
-Plan: 02 complete
-Status: Phase 62 complete
-Last activity: 2026-04-07 -- 62-02 complete (scope trends card with cross-contract aggregation)
+No active milestone. v3.0 Scope Intelligence shipped 2026-04-07.
 
-Progress: [██████████] 100% (17/17 plans)
+## Completed Milestones
 
-## v3.0 Phase Summary
-
-- Phase 56: Architecture Foundation (ARCH-01, ARCH-02, ARCH-03)
-- Phase 57: Contract-Only Scope Extraction (SCOPE-01, SCOPE-02, SCOPE-05)
-- Phase 58: Knowledge Modules + Multi-Doc Input (KNOW-01, KNOW-02, BID-01, BID-03, BID-05)
-- Phase 59: Spec Reconciliation + Exclusion Stress-Test (SCOPE-03, SCOPE-04)
-- Phase 60: Bid Reconciliation Capstone (BID-02, BID-04)
-- Phase 61: Warranty + Safety/OSHA Clause Passes (CLS-01, CLS-02)
-- Phase 62: Scope Intelligence UX + Portfolio Trends (UX-01, UX-02, PORT-01)
+| Version | Name | Phases | Plans | Shipped |
+|---------|------|--------|-------|---------|
+| v1.0 | Enhanced Analysis Release | 1-6 | 13 | 2026-03-06 |
+| v1.1 | Domain Intelligence | 7-10 | 8 | 2026-03-10 |
+| v1.2 | UX Foundations | 11-14 | 5 | 2026-03-12 |
+| v1.3 | Workflow Completion | 15-21 | 8 | 2026-03-13 |
+| v1.4 | Production Readiness | 22-26 | 11 | 2026-03-15 |
+| v1.5 | Code Health | 27-32 | 12 | 2026-03-15 |
+| v1.6 | Quality & Validation | 33-38 | 13 | 2026-03-16 |
+| v2.0 | Enterprise Foundation | 39-45 | 11 | 2026-03-19 |
+| v2.1 | Quality Restoration | 46-50 | 8 | 2026-03-21 |
+| v2.2 | Performance & Intelligence | 51-55 | 9 | 2026-04-05 |
+| v3.0 | Scope Intelligence | 56-62 | 17 | 2026-04-07 |
 
 ## Performance Metrics
 
@@ -114,68 +53,14 @@ Progress: [██████████] 100% (17/17 plans)
 **v1.6 (Phases 33-38):** 13 plans, 47min total
 **v2.0 (Phases 39-45):** 11 plans, 2 days, ~5min avg
 **v2.1 (Phases 46-50):** 8 plans, 2 days
-**v2.2 (Phases 51-54):** 6 plans, 4 days
-**v2.2 gap closure (Phase 55):** 1 plan, ~5 min
+**v2.2 (Phases 51-55):** 9 plans, 15 days
+**v3.0 (Phases 56-62):** 17 plans, 3 days
 
 ## Accumulated Context
 
 ### Decisions
 
-Full decision log in PROJECT.md Key Decisions table (66 decisions across 9 milestones).
-Recent decisions affecting current work:
-
-- [v2.0]: Server owns contract creation -- eliminates orphaned placeholder rows
-- [v2.0]: Two-client pattern (anon + service_role) -- proper security boundary
-- [v2.1]: createTableMock factory for Supabase query builder
-- [v2.1]: ESLint no-unused-vars/no-explicit-any as warn -- gradual strictness
-- [v2.2]: PassWithUsage.result typed as unknown to avoid circular imports with schema types
-- [v2.2]: Shared API types in api/types.ts, pure cost function in api/cost.ts
-- [Phase 51]: Independent AbortControllers per pass -- simpler than parent-child hierarchy
-- [Phase 52]: costUsd coerced with Number() after mapRows -- Postgres numeric returns string
-- [Phase 53]: Lifecycle transition map as const Record -- compile-time safety for valid transitions
-- [Phase 54]: Local date parsing via split/Number to avoid UTC offset issues with YYYY-MM-DD strings
-- [Phase 55]: Partial contracts treated as first-class data in all portfolio-level views
-- [Phase 56]: No scope-reconciliation stub registered -- preserves testable empty Stage 3 wave for Plan 03
-- [Phase 56]: Human-facing label 'Scope of Work' preserved in PASS_LABELS despite internal key rename to scope-extraction
-- [Phase 56-02]: No Zod import in merge hot path -- string inspection sufficient for enforceInferenceBasis
-- [Phase 56-02]: severityRank promoted to module scope -- shared by dedup and enforceInferenceBasis
-- [Phase 56]: No scope-reconciliation stub registered -- preserves testable empty Stage 3 wave for Plan 03
-- [Phase 56-03]: Stage 3 block inserted before allSettled construction to merge into same abort-filter pipeline as Stage 2
-- [Phase 56-03]: allPasses moved before nonAbortSettled filter for simplified pass-name lookup via allPasses[i]
-- [Phase 57]: statedFields array tracks which numeric fields LLM found explicit values for -- enables schedule-conflict to distinguish stated vs default values
-- [Phase 57]: No .nullable()/.optional() on SubmittalEntrySchema -- structured outputs requirement; numeric fields use 0 when unstated
-- [Phase 57]: Schedule-conflict computation placed after merge, before synthesis -- conflict findings visible to compound-risk detection
-- [Phase 57]: Lucide AlertTriangle title via wrapper span -- Lucide React TS types don't expose title prop
-- [Phase 58]: AAMA module covers 9 Div 08 product types; both modules include inferenceBasis attribution in ANALYSIS INSTRUCTIONS
-- [Phase 58]: bidFileName typed as optional+nullable -- optional for pre-v3.0 API responses, nullable for DB explicit null
-- [Phase 58]: UploadZone role config as const object -- keeps role-specific values co-located
-- [Phase 58]: File state managed in ContractUpload parent -- UploadZone receives selectedFile as controlled prop
-- [Phase 58]: Storage upload errors non-critical -- analysis proceeds; only keep-current unavailable on re-analyze
-- [Phase 58]: MAX_BID_FILE_SIZE_BYTES 5MB -- bid PDFs are small spec sheets; body parser raised to 25mb for dual-PDF uploads
-- [Phase 59]: Stub badges in ScopeMetaBadge for TS compliance -- real UI deferred to Plan 02
-- [Phase 59-02]: Amber border (border-amber-300) visually distinguishes inference quotes from contract language (border-slate-300)
-- [Phase 60-01]: requiresBid field on AnalysisPass enables conditional pass skipping without hardcoding pass names
-- [Phase 60-01]: Bid document omits cache_control ephemeral -- only contract PDF cached across passes
-- [Phase 60-01]: inferenceBasis locked to 'contract-quoted' literal for bid-reconciliation -- comparing real documents, not inferring
-- [Phase 60-02]: Reused shared pillBase/formatLabel from ScopeMetaBadge/shared.ts -- consistent pill styling across all badge types
-- [Phase 60-02]: Direction-of-risk truncated at 60 chars with ellipsis -- prevents layout overflow from long risk descriptions
-- [Phase 60-02]: Border color convention: border-slate-300 for contract language, border-emerald-300 for bid language
-- [Phase 61-01]: StubBadge entries in ScopeMetaBadge for TS compliance -- real warranty/safety UI deferred to Plan 02 (follows Phase 59 precedent)
-- [Phase 61-01]: ScopeMeta manual type in contract.ts updated alongside Zod schema to keep both type sources in sync
-- [Phase 61]: regulatoryReference displayed as raw text, not through formatLabel -- regulatory citations are not kebab-case enums
-- [Phase 61]: StubBadge entries replaced with real WarrantyBadge and SafetyOshaBadge -- no stub remnants remain
-- [Phase 62]: SubcategoryGroup extracted as internal component in CategorySection -- cleaner local state management
-- [Phase 62]: clauseText used in SpecGapMatrix (Finding type has clauseText not clauseQuote)
-- [Phase 62]: Exact-match title aggregation for scope trends -- no fuzzy normalization upfront
-- [Phase 62]: TrendSection extracted as internal component for DRY rendering of three trend lists
-
-### v3.0 Open Decisions (flagged in research — need resolution during Phase 56/58 planning)
-
-- **Gap 1 (CRITICAL, Phase 58):** Bid PDF storage — Files API only (ephemeral) vs. Supabase Storage (persistent). Determines re-analyze UX and storage RLS surface area.
-- **Gap 2 (HIGH-VALUE, milestone scope):** Exclusion outcome tracking — currently out-of-scope; FEATURES.md flags as the single biggest cross-contract differentiator unlock. User decision pending.
-- **Gap 3 (RESOLVED in 56-01):** ARCH-03 resolved by raising MAX_MODULES_PER_PASS to 6 and renaming scope-of-work to scope-extraction. Scope-reconciliation stub deferred to Plan 03/Phase 57.
-- **Gap 4 (Phase 59/60):** Anthropic Citations API evaluation for document attribution before reconciliation prompt design.
-- **Gap 5 (Phase 58):** Vercel body-parser limit — two base64 PDFs exceed 15MB. Likely resolution: Files API for bid, keep base64 for contract; sizeLimit raise as safety net only.
+Full decision log in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
@@ -183,13 +68,9 @@ None.
 
 ### Blockers/Concerns
 
-- Pre-v3.0 infra task: Anthropic Tier 2 upgrade (Pitfall 4) before shipping v3.0 to production — Tier 1 50 RPM cliff will cause 429 storms with Stage 3 passes added.
-- Pitfall 1 (Phase 59): LLM hallucination of spec requirements — `inferenceBasis` schema enforcement is a "never acceptable" shortcut.
-- Pitfall 2 (Phase 60): Document attribution confusion — recovery cost HIGH post-ship.
-- Pitfall 3 (Phase 56): Pipeline timeout breach if Stage 3 not architected as separate wave.
+- Anthropic Tier 2 upgrade needed before shipping v3.0 to production — Tier 1 50 RPM cliff will cause 429 storms with Stage 3 passes added.
 
 ## Session Continuity
 
-Last session: 2026-04-07T23:44:00Z
-Stopped at: Completed 62-02-PLAN.md
-Resume file: .planning/phases/62-scope-intelligence-ux-portfolio-trends/62-02-SUMMARY.md
+Last session: 2026-04-07
+Stopped at: v3.0 milestone completed

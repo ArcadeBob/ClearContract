@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a PDF, runs a 17-pass analysis pipeline (16 specialized passes + cross-pass synthesis) via Claude API with domain-specific knowledge injection, and produces an organized breakdown -- legal risks with exact clause quotes and explanations, questionable verbiage, scope extraction, labor compliance checklists, negotiation positions, CA regulatory awareness, industry standards validation, compound risk detection, and bid/no-bid signals. Delivers actionable output: PDF reports, action priority classification, negotiation checklists, and cross-contract portfolio intelligence. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
+A contract review tool for Clean Glass Installation Inc. that uses AI to comprehensively analyze glazing subcontracts. Uploads a contract PDF (and optionally a bid/estimate PDF), runs a 19-pass analysis pipeline (18 specialized passes in a 3-stage parallel wave + cross-pass synthesis) via Claude API with domain-specific knowledge injection and inference-grounded reconciliation. Produces estimator-grade scope intelligence — submittal registers, schedule-conflict warnings, spec-reconciliation gaps, exclusion stress-tests, bid-vs-contract reconciliation — alongside legal risks with exact clause quotes, warranty/safety analysis, negotiation positions, CA regulatory awareness, industry standards validation, compound risk detection, and bid/no-bid signals. Delivers actionable output: PDF reports, action priority classification, negotiation checklists, Scope Intelligence view-mode, and cross-contract portfolio intelligence including scope trends. Built for a sole user reviewing subcontracts ranging from 5 to 100+ pages.
 
 ## Core Value
 
@@ -100,19 +100,24 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - ✓ Portfolio deadline timeline grouped by urgency (overdue/this-week/this-month/later) -- v2.2
 - ✓ Sidebar red deadline badge showing 7-day deadline count -- v2.2
 - ✓ Partial status integrated across Contract.status type + 5 portfolio consumers -- v2.2
+- ✓ Stage 3 parallel wave orchestration for reconciliation passes -- v3.0
+- ✓ InferenceBasis schema enforcement on all inference-grounded findings -- v3.0
+- ✓ Scope-of-work pass module capacity resolved (MAX_MODULES_PER_PASS raised to 6) -- v3.0
+- ✓ Multi-document input: contract PDF + optional bid/estimate PDF with Supabase Storage -- v3.0
+- ✓ Submittal register extraction with durations, review cycles, and schedule-conflict warnings -- v3.0
+- ✓ Quantity ambiguity flagging as bid-risk warnings -- v3.0
+- ✓ Inference-based spec reconciliation (Div 08 / ASTM / AAMA cites) via knowledge modules -- v3.0
+- ✓ Exclusion stress-test against inferred spec requirements -- v3.0
+- ✓ Bid-vs-contract reconciliation (exclusion parity, quantity deltas, unbid scope) with document attribution -- v3.0
+- ✓ Warranty clause pass (duration, exclusions, transferability, call-back period) -- v3.0
+- ✓ Safety/OSHA compliance pass (site safety, fall protection, GC coordination) -- v3.0
+- ✓ AAMA submittal standards + Div 08 MasterFormat knowledge modules -- v3.0
+- ✓ Subcategory grouping under Scope of Work + dedicated Scope Intelligence view-mode -- v3.0
+- ✓ Cross-contract scope trends on dashboard -- v3.0
 
 ### Active
 
-- [ ] v3.0 Scope Intelligence — deepen scope extraction into estimator-grade intelligence
-- [ ] Multi-document input: contract PDF + user's bid/estimate PDF
-- [ ] Submittal tracking with schedule-conflict detection
-- [ ] Inference-based spec reconciliation (Div 08 / ASTM / AAMA cites)
-- [ ] Exclusion stress-test against inferred spec requirements
-- [ ] Quantity signal extraction with ambiguity flagging
-- [ ] Bid/contract reconciliation (exclusion parity, quantity deltas, unbid scope)
-- [ ] 1-2 new clause passes (warranty, assignment, IP, safety/OSHA, or audit rights)
-- [ ] 1-2 new scope-intel knowledge modules
-- [ ] Cross-contract scope trend view
+(No active requirements — define next milestone with `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -133,27 +138,31 @@ When you upload a contract, you walk away with a complete, organized breakdown o
 - Negotiation status tracking (Open/Proposed/Agreed) -- checklist view is read-only extract; status tracking adds workflow complexity
 - Cross-contract trend graphs over time -- pattern detection covers insights; time-series charts are premature
 - Template negotiation scripts -- negotiationPosition from AI is per-finding; generic templates add legal liability
-- Full spec section PDF upload (v3.0) -- deferred; inference-based reconciliation from cites first
-- Multi-state/federal regulatory expansion (v3.0) -- stays CA-focused for now
-- Automated takeoff from drawings (v3.0) -- quantity signals only, no drawing-to-takeoff OCR
-- Negotiation outcome tracking (v3.0) -- cross-contract synthesis is pattern-level, not outcome-level
+- Full spec section PDF upload -- deferred; inference-based reconciliation validated in v3.0 first
+- Multi-state/federal regulatory expansion -- stays CA-focused; geographic expansion is separate milestone
+- Automated takeoff from drawings -- quantity signals only, no drawing-to-takeoff OCR
+- Negotiation outcome tracking -- cross-contract synthesis is pattern-level, not outcome-level (confirmed v3.0)
+- Bid PDF persistence in Supabase Storage for re-viewing -- Files API ephemeral approach accepted for v3.0; re-upload on re-analyze
+- Anthropic Citations API -- contractQuote/bidQuote schema fields provide attribution for now
+- Exhaustive AAMA/Div 08 encyclopedia -- knowledge modules stay narrow-facts scope
 
 ## Context
 
-Shipped v2.2 with ~18,579 LOC TypeScript across client, server, knowledge modules, and test suites.
-Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF, Supabase (Postgres + Auth), Vitest, React Testing Library, ESLint 10 (flat config).
+Shipped v3.0 with ~22,663 LOC TypeScript across client, server, knowledge modules, and test suites.
+Tech stack: React 18, TypeScript (strict), Vite, Tailwind CSS, Framer Motion, Anthropic SDK, jsPDF, Supabase (Postgres + Auth + Storage), Vitest, React Testing Library, ESLint 10 (flat config).
 Deployed on Vercel with serverless function (api/analyze.ts + api/passes.ts + api/pdf.ts).
-17-pass analysis pipeline (16 specialized + 1 synthesis) via Files API upload-once/analyze-many pattern.
-16 knowledge modules across 3 domains (regulatory, trade, standards) with expiration-based staleness warnings.
+19-pass analysis pipeline (18 specialized + 1 synthesis) in 3-stage parallel waves via Files API upload-once/analyze-many pattern. Stage 1: primer. Stage 2: 16 parallel passes (legal, scope-extraction, warranty, safety-osha, etc.) with cache hits. Stage 3: reconciliation passes (spec-reconciliation, exclusion-stress-test, bid-reconciliation) conditioned on Stage 2 output.
+18 knowledge modules across 3 domains (regulatory, trade, standards) with expiration-based staleness warnings. AAMA submittal standards and Div 08 MasterFormat modules added in v3.0.
+Multi-document input: contract PDF required, bid/estimate PDF optional. Supabase Storage for PDF persistence. Files API for Claude analysis. Document attribution via contractQuote/bidQuote fields.
+InferenceBasis enforcement: all inference-grounded findings cite knowledge-module source; model-prior findings dropped at merge time.
 Category-weighted risk scoring with compound risk detection across pass boundaries.
-Company profile persists in Supabase (was localStorage) and drives insurance/bonding comparison and bid/no-bid signals.
+Company profile persists in Supabase and drives insurance/bonding comparison and bid/no-bid signals.
 All structured outputs via Zod v3 schemas converted to JSON Schema. Finding type derived from z.infer (Zod is single source of truth).
 All contract data persists in Supabase Postgres with RLS. Auth via Supabase email/password with session persistence. URL-based routing via custom History API hook.
 Finding workflow: resolve/annotate, hide resolved, multi-select filters, filter-aware CSV export. All mutations use optimistic updates with rollback.
-Actionable output: PDF reports, action priority badges, negotiation checklist tab, bid signal factor breakdown.
-Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, finding preservation across re-analysis.
-Code health: shared utilities (storageManager for UI prefs only, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors. No dead code or orphaned exports.
-Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked regression suite, live API test suite, GitHub Actions CI with coverage thresholds passing. ESLint 10 flat config with zero errors.
+Actionable output: PDF reports, action priority badges, negotiation checklist tab, bid signal factor breakdown, Scope Intelligence view-mode (submittal timeline, spec-gap matrix, bid/contract diff).
+Portfolio intelligence: cross-contract pattern detection, side-by-side comparison, scope trends (most-declared exclusions, recurring scope items, challenged exclusions), finding preservation across re-analysis.
+Code health: shared utilities (storageManager for UI prefs only, classifyError, palette), 3 extracted hooks, decomposed god components, ToastProvider context, zero tsc errors.
 
 ## Constraints
 
@@ -161,7 +170,7 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 - **API**: Anthropic Claude API -- token limits and costs factor into pass design
 - **File size**: 10MB max PDF upload (Vercel 4.5MB body limit via base64)
 - **Stack**: React 18 + TypeScript + Tailwind + Vite + jsPDF (established, no reason to change)
-- **Knowledge modules**: scope-of-work pass at max capacity (4 modules); adding more requires raising MAX_MODULES_PER_PASS
+- **Knowledge modules**: scope-extraction pass at 6/6 module capacity (MAX_MODULES_PER_PASS=6); adding more requires pass split
 - **Storage**: Supabase Postgres with RLS -- localStorage retained only for UI preferences (hide-resolved filter)
 
 ## Key Decisions
@@ -238,21 +247,9 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 | vi.hoisted() for mock variables | jsPDF mock variables referenced in vi.mock() factory | ✓ Good -- correct Vitest hoisting |
 | Props-based page testing | Dashboard/AllContracts/ContractUpload tested via props, no hook mocking | ✓ Good -- simpler, more maintainable |
 
-## Current Milestone: v3.0 Scope Intelligence
+## Current Focus
 
-**Goal:** Transform scope extraction from surface findings into estimator-grade intelligence that catches what expert reviewers miss.
-
-**Architectural shift:** Multi-document input — contract PDF + user's bid/estimate PDF — enables cross-document reconciliation.
-
-**Target features:**
-- Submittal tracking with schedule-conflict detection
-- Inference-based spec reconciliation (Div 08 / ASTM / AAMA)
-- Exclusion stress-test against inferred spec requirements
-- Quantity signal extraction with ambiguity flagging
-- Bid/contract reconciliation (exclusion parity, quantity deltas, unbid scope)
-- 1-2 new clause passes (warranty, assignment, IP, safety/OSHA, or audit rights — TBD)
-- 1-2 new scope-intel knowledge modules (AAMA submittal standards, Div 08 MasterFormat)
-- Cross-contract scope trend view
+No active milestone. Run `/gsd:new-milestone` to start the next milestone cycle.
 
 ## Completed Milestones
 
@@ -266,6 +263,7 @@ Test coverage: 429 automated tests (76.92% statements, 64.01% functions), mocked
 - **v2.0** Enterprise Foundation (2026-03-19) -- Supabase Postgres + Auth, all data in DB, server-owned analysis, optimistic CRUD
 - **v2.1** Quality Restoration (2026-03-21) -- test suite restored, npm vulns fixed, ESLint 10, 76.92% coverage, dead code removed
 - **v2.2** Performance & Intelligence (2026-04-05) -- parallel analysis pipeline, token/cost tracking, contract lifecycle, portfolio deadline timeline
+- **v3.0** Scope Intelligence (2026-04-07) -- 3-stage pipeline, multi-doc input, submittal extraction, spec reconciliation, bid reconciliation, warranty/safety passes, Scope Intel UX, scope trends
 
 ---
-*Last updated: 2026-04-05 after v3.0 milestone started*
+*Last updated: 2026-04-07 after v3.0 milestone completed*

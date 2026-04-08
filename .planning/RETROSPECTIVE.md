@@ -434,18 +434,75 @@
 
 ---
 
+## Milestone: v3.0 -- Scope Intelligence
+
+**Shipped:** 2026-04-07
+**Phases:** 7 | **Plans:** 17 | **Commits:** 93
+**Timeline:** 3 days (2026-04-05 -> 2026-04-07)
+
+### What Was Built
+- 3-stage analysis pipeline: Stage 1 primer, Stage 2 parallel (16 passes + 2 new clause passes), Stage 3 reconciliation (spec-reconciliation, exclusion-stress-test, bid-reconciliation)
+- Estimator-grade scope extraction: submittal register with durations/review cycles, deterministic schedule-conflict warnings, quantity-ambiguity bid-risk flags
+- Multi-document input: optional bid PDF upload with Supabase Storage, dual-document attribution, re-analyze document selection modal
+- Inference-grounded findings with mandatory `inferenceBasis` schema enforcement — model-prior findings dropped, knowledge-module findings clamped to Medium
+- AAMA submittal standards and Div 08 MasterFormat knowledge modules (18 total modules)
+- Bid-vs-contract reconciliation: exclusion parity, quantity deltas, unbid scope with contractQuote/bidQuote attribution
+- Warranty clause pass (duration, exclusions, transferability, call-back period) and safety/OSHA pass (site safety, fall protection, GC coordination)
+- Scope Intelligence UX: subcategory grouping, dedicated view-mode (submittal timeline, spec-gap matrix, bid/contract diff), cross-contract scope trends card
+
+### What Worked
+- Architecture-first phase (56) with 3 orthogonal plans unblocked all 6 downstream phases cleanly
+- Stage field on AnalysisPass enabled declarative wave filtering — no hardcoded pass names in orchestration
+- `requiresBid` field on passes enabled conditional skipping without runtime checks
+- `inferenceBasis` enforcement as merge-level guard (not per-pass responsibility) centralized fabrication risk containment
+- Reused shared pill styling from ScopeMetaBadge/shared.ts across all new badge types — consistent cross-phase UI
+- Border color convention (slate for contract, emerald for bid, amber for inference) gave visual document attribution
+- 17 plans in 3 days — highest volume milestone with fastest calendar time
+
+### What Was Inefficient
+- SUMMARY.md one_liner field still missing across all 17 plans (12th consecutive milestone)
+- Phase 60 Phase Details in ROADMAP.md had wrong plan references (listed 62-01/62-02 instead of 60-01/60-02) — copy error never caught
+- Nyquist validation partial across all 7 phases (3 draft, 4 missing) — 12th consecutive milestone without compliance
+- Pre-existing test failures (api/analyze.test.ts, regression.test.ts) still not fixed — Supabase Storage mock not added
+- Registry test pass count assertion outdated (expects 19, finds 21) — assertion not updated when passes were added
+
+### Patterns Established
+- Stage 3 parallel wave: separate Promise.allSettled block after Stage 2 settles, conditioned on registered passes
+- `inferenceBasis` discriminator pattern: `contract-quoted` | `knowledge-module:{id}` | `model-prior` on all inference schemas
+- Dual-document structured output pattern: `<document index type="contract|bid">` XML tagging in prompts
+- `requiresBid` field for conditional pass skipping without orchestrator knowledge
+- `statedFields` array for tracking which numeric fields LLM explicitly found vs defaulted
+- SubcategoryGroup internal component pattern for local expand/collapse within parent sections
+- Exact-match title aggregation for portfolio trends (no fuzzy normalization upfront)
+
+### Key Lessons
+1. Architecture phases that resolve 3+ downstream blockers (module capacity, inference schema, stage orchestration) deliver outsized leverage — Phase 56 was the most impactful single phase in the project
+2. `inferenceBasis` enforcement at merge level (not per-pass) is the correct abstraction — fabrication risk is a system concern, not a pass concern
+3. Multi-document prompts require explicit XML document tagging to prevent Claude from confusing document sources — implicit "first document / second document" references are unreliable
+4. Knowledge modules as narrow-facts scope (not comprehensive reference) keeps token budgets manageable and inference grounded
+5. Conditional pass skipping via schema fields (`requiresBid`, `stage`) is cleaner than runtime pass-name checks
+6. Schedule-conflict computation as deterministic TypeScript (not LLM) was the right call — consistent, fast, testable
+7. 17 plans in 3 days shows the pattern library is mature enough for high-velocity feature delivery even with complex multi-pass pipeline changes
+
+### Cost Observations
+- Model: Claude Opus 4.6 for planning/execution, Sonnet for analysis passes
+- Sessions: ~5 sessions across 3 days
+- Notable: Highest plan count (17) delivered in shortest calendar time (3 days) — patterns from v1.0-v2.2 enabled efficient execution of complex pipeline changes
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 | v1.6 | v2.0 | v2.1 |
-|--------|------|------|------|------|------|------|------|------|
-| Phases | 6 | 4 | 7 | 5 | 6 | 6 | 7 | 5 |
-| Plans | 13 | 8 | 8 | 11 | 12 | 13 | 11 | 8 |
-| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min | ~3.6min | ~5min | ~4min |
-| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 | 29/29 | 28/28 | 16/16 |
-| Audit status | tech_debt | tech_debt | gaps_found→closed | tech_debt→closed | passed (re-audit) | tech_debt | tech_debt | passed |
-| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 | ~11,122 | ~15,658 | ~15,658 |
-| Tests | 0 | 0 | 0 | 0 | 0 | 269 | 269* | 429 |
-| Sessions | ~10 | ~6 | 1 | ~4 | ~3 | 1 | ~4 | ~3 |
+| Metric | v1.0 | v1.1 | v1.3 | v1.4 | v1.5 | v1.6 | v2.0 | v2.1 | v2.2 | v3.0 |
+|--------|------|------|------|------|------|------|------|------|------|------|
+| Phases | 6 | 4 | 7 | 5 | 6 | 6 | 7 | 5 | 5 | 7 |
+| Plans | 13 | 8 | 8 | 11 | 12 | 13 | 11 | 8 | 9 | 17 |
+| Avg plan duration | ~4min | ~4min | ~2min | ~2min | ~2min | ~3.6min | ~5min | ~4min | ~5min | ~3min |
+| Requirements | 22/22 | 23/23 | 16/16 | 26/26 | 16/16 | 29/29 | 28/28 | 16/16 | 13/13 | 20/20 |
+| Audit status | tech_debt | tech_debt | gaps→closed | tech_debt→closed | passed | tech_debt | tech_debt | passed | passed | tech_debt |
+| LOC | ~5,000 | ~4,238 | ~7,461 | ~9,669 | ~10,809 | ~11,122 | ~15,658 | ~15,658 | ~18,579 | ~22,663 |
+| Tests | 0 | 0 | 0 | 0 | 0 | 269 | 269* | 429 | 429 | 429 |
+| Sessions | ~10 | ~6 | 1 | ~4 | ~3 | 1 | ~4 | ~3 | ~8 | ~5 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -462,3 +519,6 @@
 11. Test suite damage from storage backend changes is unavoidable -- plan a separate remediation phase rather than fixing inline (v2.0, v2.1)
 12. Parameterized testing (describe.each) is dramatically more efficient than individual test cases for families of similar modules (v2.1)
 13. Quality restoration milestones are fast and well-scoped when prior milestones track tech debt systematically (v2.1)
+14. Architecture phases that resolve multiple downstream blockers deliver outsized leverage — worth investing in clean foundations (v1.0, v3.0)
+15. Merge-level enforcement (inferenceBasis, dedup) is the correct abstraction for cross-pass concerns — per-pass responsibility creates inconsistency (v3.0)
+16. Declarative pass metadata (stage, requiresBid) enables clean orchestration without hardcoded pass-name checks (v2.2, v3.0)

@@ -1,5 +1,31 @@
 # Milestones
 
+## v3.0 Scope Intelligence (Shipped: 2026-04-07)
+
+**Phases:** 56-62 (17 plans)
+**Timeline:** 3 days (2026-04-05 → 2026-04-07)
+**Code:** 93 commits, 110 files changed, +17,115 / -276 lines (22,663 LOC TypeScript total)
+**Requirements:** 20/20 satisfied
+**Audit:** TECH_DEBT (all requirements met, 8 non-blocking items — cosmetic duplication + pre-existing test failures)
+
+**Key accomplishments:**
+- Stage 3 parallel wave orchestration — reconciliation passes run after Stage 2 with per-pass AbortController + 90s timeout, empty-wave guard, and wall-clock sub-budgets within 250s global safety timeout
+- Estimator-grade scope extraction from single contract PDF — submittal register with durations/review cycles, deterministic schedule-conflict warnings computed in TypeScript, and quantity-ambiguity bid-risk flags
+- Multi-document input — optional bid PDF upload with Supabase Storage, dual-document attribution via `<document index type="contract|bid">` tagging, re-analyze document selection modal, graceful no-bid degradation
+- Inference-grounded findings — spec-reconciliation gaps and exclusion stress-tests via AAMA submittal standards + Div 08 MasterFormat knowledge modules with mandatory `inferenceBasis` schema enforcement (model-prior dropped, knowledge-module clamped to Medium)
+- Bid reconciliation capstone — exclusion parity, quantity deltas, unbid scope with dual contractQuote/bidQuote document attribution and conditional pass skipping when no bid uploaded
+- Two new clause passes — warranty (duration, exclusions, transferability, call-back period) and safety/OSHA (site safety, fall protection, GC coordination) integrated into Stage 2 parallel wave
+- Scope Intelligence UX — subcategory grouping under existing "Scope of Work" category, dedicated view-mode with submittal timeline / spec-gap matrix / bid-contract diff, cross-contract scope trends card on dashboard (N≥10 threshold)
+
+**Tech debt carried forward:**
+- ReviewHeader.tsx cosmetic duplication: two "Contract + Bid" badge elements (lines 100-105 and 113-116)
+- Pre-existing test failures: api/analyze.test.ts (11), api/regression.test.ts (5), ContractUpload.test.tsx (1) — Supabase Storage mock root cause
+- registry.test.ts pass count assertion outdated (expects 19, finds 21)
+- Pre-existing TS errors: import.meta.env TS2339, Settings.tsx isLoading TS6133
+- Nyquist validation partial: 3 draft, 4 missing VALIDATION.md
+
+---
+
 ## v2.2 Performance & Intelligence (Shipped: 2026-04-05)
 
 **Phases:** 51-55 (9 plans)
