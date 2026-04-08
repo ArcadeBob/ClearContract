@@ -1,27 +1,16 @@
 import type { Contract } from '../types/contract';
 import { MAX_FILE_SIZE } from '../constants/limits';
+import { uploadPdfFromClient } from '../lib/clientStorage';
 
 export interface AnalyzeOptions {
   keepCurrentContract?: boolean;
   removeBid?: boolean;
 }
 
-function readFileAsBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const base64 = dataUrl.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-}
-
 export async function analyzeContract(
   file: File,
   accessToken: string,
+  userId: string,
   contractId?: string,
   bidFile?: File,
   options?: AnalyzeOptions,
@@ -38,22 +27,27 @@ export async function analyzeContract(
     }
   }
 
-  const body: Record<string, string | boolean> = {};
+  // Build the request body — storage paths instead of base64
+  const body: Record<string, string | boolean> = {
+    fileName: file.name,
+  };
+
   if (options?.keepCurrentContract) {
     body.keepCurrentContract = true;
-    body.pdfBase64 = 'AA=='; // Minimal valid base64; server uses Storage when keepCurrentContract=true
-    body.fileName = file.name;
   } else {
-    body.pdfBase64 = await readFileAsBase64(file);
-    body.fileName = file.name;
+    // Upload PDF to Supabase Storage from client, send path to server
+    body.storagePath = await uploadPdfFromClient(file, userId, 'contract');
   }
+
   if (contractId) {
     body.contractId = contractId;
   }
+
   if (bidFile) {
-    body.bidPdfBase64 = await readFileAsBase64(bidFile);
+    body.bidStoragePath = await uploadPdfFromClient(bidFile, userId, 'bid');
     body.bidFileName = bidFile.name;
   }
+
   if (options?.removeBid) {
     body.removeBid = true;
   }

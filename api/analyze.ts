@@ -54,12 +54,14 @@ const log = {
 
 // 2B+: Zod schema for full request body validation
 const AnalyzeRequestSchema = z.object({
-  pdfBase64: z.string().min(1, 'pdfBase64 is required'),
+  storagePath: z.string().optional(),            // client-uploaded PDF path in Supabase Storage
+  pdfBase64: z.string().optional(),              // legacy: base64-encoded PDF (kept for small files / compat)
   fileName: z.string().max(255).optional(),
   contractId: z.string().uuid().optional(),
-  bidPdfBase64: z.string().optional(),
+  bidStoragePath: z.string().optional(),         // client-uploaded bid PDF path
+  bidPdfBase64: z.string().optional(),           // legacy: base64-encoded bid PDF
   bidFileName: z.string().max(255).optional(),
-  keepCurrentContract: z.boolean().optional(),  // re-analyze: use Storage PDF
+  keepCurrentContract: z.boolean().optional(),   // re-analyze: use Storage PDF
   removeBid: z.boolean().optional(),             // re-analyze: clear bid
 });
 
@@ -386,7 +388,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: parseResult.error.flatten().fieldErrors,
       });
     }
-    const { pdfBase64, fileName: rawFileName, contractId: existingContractId, bidPdfBase64, bidFileName: rawBidFileName, keepCurrentContract, removeBid } = parseResult.data;
+    const { storagePath: clientStoragePath, pdfBase64, fileName: rawFileName, contractId: existingContractId, bidStoragePath: clientBidStoragePath, bidPdfBase64, bidFileName: rawBidFileName, keepCurrentContract, removeBid } = parseResult.data;
 
     // --- Read company profile from DB ---
     const { data: profileRow } = await supabaseAdmin
@@ -400,7 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : DEFAULT_COMPANY_PROFILE;
     const fileName = rawFileName ? sanitizeFileName(rawFileName) : 'contract.pdf';
 
-    // Resolve contract PDF: either from request body or Supabase Storage (re-analyze keep-current)
+    // Resolve contract PDF: storage path (preferred), base64 (legacy), or re-analyze keep-current
     let pdfBuffer: Buffer;
     if (keepCurrentContract && existingContractId) {
       const storedPdf = await downloadPdf(supabaseAdmin, userId, existingContractId, 'contract');
@@ -408,19 +410,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'No stored contract PDF found. Please upload a new PDF.' });
       }
       pdfBuffer = storedPdf;
-    } else {
+    } else if (clientStoragePath) {
+      // Client uploaded to Supabase Storage — download from temp path
+      const { data, error: dlError } = await supabaseAdmin.storage
+        .from('contract-pdfs')
+        .download(clientStoragePath);
+      if (dlError || !data) {
+        return res.status(400).json({ error: 'Failed to retrieve uploaded PDF from storage.' });
+      }
+      pdfBuffer = Buffer.from(await data.arrayBuffer());
+      if (pdfBuffer.length > MAX_FILE_SIZE_BYTES) {
+        return res.status(400).json({
+          error: `File too large. Maximum size is 10MB, received ${(pdfBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
+        });
+      }
+    } else if (pdfBase64) {
+      // Legacy base64 path (small files or backward compat)
       pdfBuffer = Buffer.from(pdfBase64, 'base64');
       if (pdfBuffer.length > MAX_FILE_SIZE_BYTES) {
         return res.status(400).json({
           error: `File too large. Maximum size is 10MB, received ${(pdfBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
         });
       }
+    } else {
+      return res.status(400).json({ error: 'No PDF provided. Send storagePath or pdfBase64.' });
     }
 
-    // Decode and validate bid PDF (optional)
+    // Resolve bid PDF (optional): storage path or base64
     let bidBuffer: Buffer | null = null;
     let bidFileName = rawBidFileName ? sanitizeFileName(rawBidFileName) : null;
-    if (bidPdfBase64) {
+    if (clientBidStoragePath) {
+      const { data, error: dlError } = await supabaseAdmin.storage
+        .from('contract-pdfs')
+        .download(clientBidStoragePath);
+      if (dlError || !data) {
+        return res.status(400).json({ error: 'Failed to retrieve uploaded bid PDF from storage.' });
+      }
+      bidBuffer = Buffer.from(await data.arrayBuffer());
+      if (bidBuffer.length > MAX_BID_FILE_SIZE_BYTES) {
+        return res.status(400).json({
+          error: `Bid file too large. Maximum size is 5MB, received ${(bidBuffer.length / (1024 * 1024)).toFixed(1)}MB.`,
+        });
+      }
+      bidFileName = bidFileName || 'bid.pdf';
+    } else if (bidPdfBase64) {
       bidBuffer = Buffer.from(bidPdfBase64, 'base64');
       if (bidBuffer.length > MAX_BID_FILE_SIZE_BYTES) {
         return res.status(400).json({
@@ -808,13 +841,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const contractId = contractRow.id as string;
 
-    // Persist PDFs to Supabase Storage (non-blocking, best-effort)
+    // Persist PDFs to permanent storage path
+    // If client uploaded to temp path, move to permanent. Otherwise re-upload from buffer.
     const storagePromises: Promise<void>[] = [];
     if (!keepCurrentContract) {
-      storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'contract', pdfBuffer));
+      if (clientStoragePath) {
+        // Move: copy to permanent path, then delete temp
+        storagePromises.push(
+          supabaseAdmin.storage.from('contract-pdfs')
+            .copy(clientStoragePath, `${userId}/${contractId}/contract.pdf`)
+            .then(({ error }) => {
+              if (error) log.error(`[storage] Copy failed: ${error.message}`);
+              // Clean up temp file (best-effort)
+              supabaseAdmin.storage.from('contract-pdfs').remove([clientStoragePath]);
+            })
+        );
+      } else {
+        storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'contract', pdfBuffer));
+      }
     }
     if (bidBuffer) {
-      storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'bid', bidBuffer));
+      if (clientBidStoragePath) {
+        storagePromises.push(
+          supabaseAdmin.storage.from('contract-pdfs')
+            .copy(clientBidStoragePath, `${userId}/${contractId}/bid.pdf`)
+            .then(({ error }) => {
+              if (error) log.error(`[storage] Bid copy failed: ${error.message}`);
+              supabaseAdmin.storage.from('contract-pdfs').remove([clientBidStoragePath]);
+            })
+        );
+      } else {
+        storagePromises.push(uploadPdf(supabaseAdmin, userId, contractId, 'bid', bidBuffer));
+      }
     }
     if (storagePromises.length > 0) {
       await Promise.all(storagePromises);

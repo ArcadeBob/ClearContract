@@ -39,7 +39,7 @@ export function useContractAnalysis({
     setAnalyzingHasBid(!!bidFile);
 
     try {
-      const contract = await analyzeContract(file, session.access_token, undefined, bidFile);
+      const contract = await analyzeContract(file, session.access_token, session.user.id, undefined, bidFile);
       addContract(contract);
 
       if (activeViewRef.current === 'upload') {
@@ -90,6 +90,7 @@ export function useContractAnalysis({
       const analysisResult = await analyzeContract(
         reanalyzeResult.contractFile || new File([], contract.name || 'contract.pdf'),
         session.access_token,
+        session.user.id,
         contractId,
         reanalyzeResult.bidFile,
         {
