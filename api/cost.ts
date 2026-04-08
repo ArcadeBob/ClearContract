@@ -1,5 +1,5 @@
-import type { PassUsage } from './types';
-import { PRICING } from './types';
+import type { PassUsage } from './types.js';
+import { PRICING } from './types.js';
 
 /**
  * Compute the USD cost of a single pass from its token usage.

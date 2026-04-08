@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest';
-import { mergePassResults, type AnalysisPassInfo } from './merge';
-import type { PassResult, RiskOverviewResult } from '../src/schemas/analysis';
-import { MergedFindingSchema } from '../src/schemas/finding';
+import { mergePassResults, type AnalysisPassInfo } from './merge.js';
+import type { PassResult, RiskOverviewResult } from '../src/schemas/analysis.js';
+import { MergedFindingSchema } from '../src/schemas/finding.js';
 import {
   createIndemnificationFinding,
   createPaymentContingencyFinding,
@@ -22,10 +22,10 @@ import {
   createSpecReconciliationFinding,
   createExclusionStressTestFinding,
   createBidReconciliationFinding,
-} from '../src/test/factories';
+} from '../src/test/factories.js';
 
 // Mock the knowledge registry (avoids filesystem dependency)
-vi.mock('../src/knowledge/registry', () => ({
+vi.mock('../src/knowledge/registry.js', () => ({
   getAllModules: () => [],
 }));
 

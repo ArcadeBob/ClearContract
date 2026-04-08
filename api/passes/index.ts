@@ -1,12 +1,12 @@
-export type { AnalysisPass } from './types';
-export { overviewPasses } from './overview';
-export { legalPasses } from './legal';
-export { scopePasses } from './scope';
-export { SYNTHESIS_SYSTEM_PROMPT } from './synthesis';
+export type { AnalysisPass } from './types.js';
+export { overviewPasses } from './overview.js';
+export { legalPasses } from './legal.js';
+export { scopePasses } from './scope.js';
+export { SYNTHESIS_SYSTEM_PROMPT } from './synthesis.js';
 
-import { overviewPasses } from './overview';
-import { legalPasses } from './legal';
-import { scopePasses } from './scope';
+import { overviewPasses } from './overview.js';
+import { legalPasses } from './legal.js';
+import { scopePasses } from './scope.js';
 
 // ---------------------------------------------------------------------------
 // Composed ANALYSIS_PASSES array -- EXACT same order as original passes.ts

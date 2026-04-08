@@ -23,7 +23,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
   })),
 }));
 
-vi.mock('./pdf', () => ({
+vi.mock('./pdf.js', () => ({
   preparePdfForAnalysis: vi.fn().mockResolvedValue({
     fileId: 'file-reg-123',
     usedFallback: false,
@@ -31,14 +31,14 @@ vi.mock('./pdf', () => ({
 }));
 
 // Knowledge module mocks (same as analyze.test.ts)
-vi.mock('../src/knowledge/registry', () => ({
+vi.mock('../src/knowledge/registry.js', () => ({
   getAllModules: vi.fn().mockReturnValue([]),
   getModulesForPass: vi.fn().mockReturnValue([]),
   validateAllModulesRegistered: vi.fn(),
   PASS_KNOWLEDGE_MAP: {},
 }));
 
-vi.mock('../src/knowledge/index', () => ({
+vi.mock('../src/knowledge/index.js', () => ({
   composeSystemPrompt: vi.fn().mockImplementation((base: string) => base),
   validateTokenBudget: vi.fn(),
   getModulesForPass: vi.fn().mockReturnValue([]),
@@ -50,9 +50,9 @@ vi.mock('../src/knowledge/index', () => ({
   DEFAULT_COMPANY_PROFILE: {},
 }));
 
-vi.mock('../src/knowledge/regulatory/index', () => ({}));
-vi.mock('../src/knowledge/trade/index', () => ({}));
-vi.mock('../src/knowledge/standards/index', () => ({}));
+vi.mock('../src/knowledge/regulatory/index.js', () => ({}));
+vi.mock('../src/knowledge/trade/index.js', () => ({}));
+vi.mock('../src/knowledge/standards/index.js', () => ({}));
 
 // ---------------------------------------------------------------------------
 // Supabase client mock
@@ -130,7 +130,7 @@ vi.mock('@supabase/supabase-js', () => ({
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handler from './analyze';
+import handler from './analyze.js';
 import {
   passFixtures,
   synthesisFixture,
@@ -138,9 +138,9 @@ import {
   createMockReq,
   createMockRes,
   PASS_NAMES,
-} from './test-fixtures/pass-responses';
-import { MergedFindingSchema } from '../src/schemas/finding';
-import { ANALYSIS_PASSES } from './passes/index';
+} from './test-fixtures/pass-responses.js';
+import { MergedFindingSchema } from '../src/schemas/finding.js';
+import { ANALYSIS_PASSES } from './passes/index.js';
 
 // ---------------------------------------------------------------------------
 // Setup / teardown

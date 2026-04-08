@@ -8,8 +8,8 @@ import {
   BidReconciliationPassResultSchema,
   WarrantyPassResultSchema,
   SafetyOshaPassResultSchema,
-} from '../../src/schemas/scopeComplianceAnalysis';
-import type { AnalysisPass } from './types';
+} from '../../src/schemas/scopeComplianceAnalysis.js';
+import type { AnalysisPass } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Scope / Compliance / Verbiage analysis passes

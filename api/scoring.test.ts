@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { computeRiskScore, applySeverityGuard } from './scoring';
+import { computeRiskScore, applySeverityGuard } from './scoring.js';
 
 describe('computeRiskScore', () => {
   it('returns score 0 and empty categories for empty findings', () => {

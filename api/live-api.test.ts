@@ -9,7 +9,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { MergedFindingSchema } from '../src/schemas/finding';
+import { MergedFindingSchema } from '../src/schemas/finding.js';
 
 // Minimal valid PDF (1 page, ~200 bytes) for fallback when TEST_PDF_PATH not set
 const MINIMAL_PDF_BASE64 = Buffer.from(
@@ -39,9 +39,9 @@ describe('live API test', { timeout: 120_000 }, () => {
 
   it('handler returns 200 with valid response structure', async () => {
     // Dynamic import to avoid module-level side effects
-    const { default: handler } = await import('./analyze');
+    const { default: handler } = await import('./analyze.js');
     const { createMockReq, createMockRes } = await import(
-      './test-fixtures/pass-responses'
+      './test-fixtures/pass-responses.js'
     );
 
     const req = createMockReq({ body: { pdfBase64 } });
@@ -68,9 +68,9 @@ describe('live API test', { timeout: 120_000 }, () => {
   });
 
   it('every finding validates against MergedFindingSchema', async () => {
-    const { default: handler } = await import('./analyze');
+    const { default: handler } = await import('./analyze.js');
     const { createMockReq, createMockRes } = await import(
-      './test-fixtures/pass-responses'
+      './test-fixtures/pass-responses.js'
     );
 
     const req = createMockReq({ body: { pdfBase64 } });

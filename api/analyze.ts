@@ -2,8 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types';
-import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers';
+import { DEFAULT_COMPANY_PROFILE } from '../src/knowledge/types.js';
+import { mapToSnake, mapRow, mapRows } from '../src/lib/mappers.js';
 
 // 2A: Allow larger base64-encoded PDFs through Vercel body parser
 export const config = { api: { bodyParser: { sizeLimit: '25mb' } } };
@@ -12,32 +12,32 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import {
   PassResultSchema,
   RiskOverviewResultSchema,
-} from '../src/schemas/analysis';
+} from '../src/schemas/analysis.js';
 import type {
   PassResult,
   RiskOverviewResult,
-} from '../src/schemas/analysis';
-import type { CompanyProfile } from '../src/knowledge/types';
-import { composeSystemPrompt } from '../src/knowledge/index';
-import { validateAllModulesRegistered } from '../src/knowledge/registry';
-import { computeBidSignal } from '../src/utils/bidSignal';
-import { classifyError, formatApiError } from '../src/utils/errors';
-import '../src/knowledge/regulatory/index';
-import '../src/knowledge/trade/index';
-import '../src/knowledge/standards/index';
+} from '../src/schemas/analysis.js';
+import type { CompanyProfile } from '../src/knowledge/types.js';
+import { composeSystemPrompt } from '../src/knowledge/index.js';
+import { validateAllModulesRegistered } from '../src/knowledge/registry.js';
+import { computeBidSignal } from '../src/utils/bidSignal.js';
+import { classifyError, formatApiError } from '../src/utils/errors.js';
+import '../src/knowledge/regulatory/index.js';
+import '../src/knowledge/trade/index.js';
+import '../src/knowledge/standards/index.js';
 import { fetch as undiciFetch, Agent } from 'undici';
-import { preparePdfForAnalysis } from './pdf';
-import { mergePassResults } from './merge';
-import type { UnifiedFinding } from './merge';
-import { computeScheduleConflicts } from './conflicts';
-import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis';
-import { ANALYSIS_PASSES, SYNTHESIS_SYSTEM_PROMPT } from './passes/index';
-import type { AnalysisPass } from './passes/index';
-import type { PassUsage, PassWithUsage } from './types';
-import { computePassCost } from './cost';
-import { uploadPdf, downloadPdf } from '../src/lib/supabaseStorage';
-import { MAX_FILE_SIZE, MAX_BID_FILE_SIZE } from '../src/constants/limits';
-import { checkRateLimit } from './rateLimit';
+import { preparePdfForAnalysis } from './pdf.js';
+import { mergePassResults } from './merge.js';
+import type { UnifiedFinding } from './merge.js';
+import { computeScheduleConflicts } from './conflicts.js';
+import { SynthesisPassResultSchema } from '../src/schemas/synthesisAnalysis.js';
+import { ANALYSIS_PASSES, SYNTHESIS_SYSTEM_PROMPT } from './passes/index.js';
+import type { AnalysisPass } from './passes/index.js';
+import type { PassUsage, PassWithUsage } from './types.js';
+import { computePassCost } from './cost.js';
+import { uploadPdf, downloadPdf } from '../src/lib/supabaseStorage.js';
+import { MAX_FILE_SIZE, MAX_BID_FILE_SIZE } from '../src/constants/limits.js';
+import { checkRateLimit } from './rateLimit.js';
 
 // ---------------------------------------------------------------------------
 // Logger — silent in production, verbose in development

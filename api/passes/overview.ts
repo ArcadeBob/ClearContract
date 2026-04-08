@@ -1,4 +1,4 @@
-import type { AnalysisPass } from './types';
+import type { AnalysisPass } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Overview pass

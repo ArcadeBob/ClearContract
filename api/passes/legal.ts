@@ -10,8 +10,8 @@ import {
   LienRightsPassResultSchema,
   DisputeResolutionPassResultSchema,
   ChangeOrderPassResultSchema,
-} from '../../src/schemas/legalAnalysis';
-import type { AnalysisPass } from './types';
+} from '../../src/schemas/legalAnalysis.js';
+import type { AnalysisPass } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Legal analysis passes (one per clause type)

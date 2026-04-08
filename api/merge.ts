@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis';
-import type { Severity, Category, LegalMeta, ScopeMeta, SubmittalEntry } from '../src/types/contract';
-import { computeRiskScore, applySeverityGuard } from './scoring';
-import { getAllModules } from '../src/knowledge/registry';
+import type { PassResult, RiskOverviewResult, MergedAnalysisResult } from '../src/schemas/analysis.js';
+import type { Severity, Category, LegalMeta, ScopeMeta, SubmittalEntry } from '../src/types/contract.js';
+import { computeRiskScore, applySeverityGuard } from './scoring.js';
+import { getAllModules } from '../src/knowledge/registry.js';
 
 import {
   IndemnificationFindingSchema,
@@ -16,7 +16,7 @@ import {
   LienRightsFindingSchema,
   DisputeResolutionFindingSchema,
   ChangeOrderFindingSchema,
-} from '../src/schemas/legalAnalysis';
+} from '../src/schemas/legalAnalysis.js';
 
 import {
   ScopeOfWorkFindingSchema,
@@ -28,7 +28,7 @@ import {
   BidReconciliationFindingSchema,
   WarrantyFindingSchema,
   SafetyOshaFindingSchema,
-} from '../src/schemas/scopeComplianceAnalysis';
+} from '../src/schemas/scopeComplianceAnalysis.js';
 
 export interface AnalysisPassInfo {
   name: string;

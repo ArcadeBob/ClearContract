@@ -1,5 +1,5 @@
-import type { SubmittalEntry, ContractDate } from '../src/types/contract';
-import type { UnifiedFinding } from './merge';
+import type { SubmittalEntry, ContractDate } from '../src/types/contract.js';
+import type { UnifiedFinding } from './merge.js';
 
 const DEFAULTS = {
   resubmittalBuffer: 7,  // 7 calendar days
