@@ -34,13 +34,18 @@ await build({
   minify: false,
 });
 
-// Move bundled .js files into api/, replacing .ts source for Vercel
+// Move bundled .js files into api/ and hide .ts sources so Vercel uses .js
 for (const f of files) {
   const jsName = f.replace('.ts', '.js');
-  const src = `${outdir}/${jsName}`;
-  const dst = `${apiDir}/${jsName}`;
-  if (existsSync(src)) {
-    renameSync(src, dst);
+  const bundledSrc = `${outdir}/${jsName}`;
+  const jsDst = `${apiDir}/${jsName}`;
+  const tsSrc = `${apiDir}/${f}`;
+  if (existsSync(bundledSrc)) {
+    renameSync(bundledSrc, jsDst);
+    // Rename .ts to .ts.bak so Vercel only sees .js
+    if (existsSync(tsSrc)) {
+      renameSync(tsSrc, `${tsSrc}.bak`);
+    }
   }
 }
 
