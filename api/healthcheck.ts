@@ -1,18 +1,41 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default function handler(_req: VercelRequest, res: VercelResponse) {
-  try {
-    // Test each import that api/analyze.ts uses
-    const checks: Record<string, string> = {};
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
+  const checks: Record<string, string> = {};
 
-    try { require('@supabase/supabase-js'); checks['@supabase/supabase-js'] = 'ok'; } catch (e: any) { checks['@supabase/supabase-js'] = e.message; }
-    try { require('@anthropic-ai/sdk'); checks['@anthropic-ai/sdk'] = 'ok'; } catch (e: any) { checks['@anthropic-ai/sdk'] = e.message; }
-    try { require('zod'); checks['zod'] = 'ok'; } catch (e: any) { checks['zod'] = e.message; }
-    try { require('zod-to-json-schema'); checks['zod-to-json-schema'] = 'ok'; } catch (e: any) { checks['zod-to-json-schema'] = e.message; }
-    try { require('undici'); checks['undici'] = 'ok'; } catch (e: any) { checks['undici'] = e.message; }
+  const modules = [
+    ['@supabase/supabase-js', '@supabase/supabase-js'],
+    ['@anthropic-ai/sdk', '@anthropic-ai/sdk'],
+    ['zod', 'zod'],
+    ['zod-to-json-schema', 'zod-to-json-schema'],
+    ['undici', 'undici'],
+    ['../src/schemas/analysis', '../src/schemas/analysis'],
+    ['../src/knowledge/types', '../src/knowledge/types'],
+    ['../src/knowledge/index', '../src/knowledge/index'],
+    ['../src/knowledge/registry', '../src/knowledge/registry'],
+    ['../src/utils/bidSignal', '../src/utils/bidSignal'],
+    ['../src/utils/errors', '../src/utils/errors'],
+    ['../src/lib/mappers', '../src/lib/mappers'],
+    ['../src/lib/supabaseStorage', '../src/lib/supabaseStorage'],
+    ['../src/constants/limits', '../src/constants/limits'],
+    ['../src/schemas/synthesisAnalysis', '../src/schemas/synthesisAnalysis'],
+    ['./pdf', './pdf'],
+    ['./merge', './merge'],
+    ['./conflicts', './conflicts'],
+    ['./passes', './passes'],
+    ['./cost', './cost'],
+    ['./rateLimit', './rateLimit'],
+    ['./types', './types'],
+  ];
 
-    return res.status(200).json({ status: 'ok', checks });
-  } catch (e: any) {
-    return res.status(500).json({ error: e.message });
+  for (const [name, path] of modules) {
+    try {
+      await import(path);
+      checks[name] = 'ok';
+    } catch (e: unknown) {
+      checks[name] = e instanceof Error ? e.message.slice(0, 150) : String(e);
+    }
   }
+
+  return res.status(200).json({ checks });
 }
