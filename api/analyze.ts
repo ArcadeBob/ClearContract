@@ -72,7 +72,7 @@ function sanitizeFileName(name: string): string {
 
 const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
-const MAX_TOKENS_PER_PASS = 8192;
+const MAX_TOKENS_PER_PASS = 16384;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
 const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
@@ -176,6 +176,7 @@ async function runAnalysisPass(
 
   // Collect streamed text chunks and capture usage from streaming events
   let responseText = '';
+  let stopReason: string | null = null;
   for await (const event of response) {
     if (event.type === 'message_start') {
       const usage = (event as { message?: { usage?: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } } }).message?.usage;
@@ -186,9 +187,12 @@ async function runAnalysisPass(
       }
     }
     if (event.type === 'message_delta') {
-      const deltaUsage = (event as { usage?: { output_tokens?: number } }).usage;
-      if (deltaUsage) {
-        passUsage.outputTokens = deltaUsage.output_tokens ?? 0;
+      const delta = event as { delta?: { stop_reason?: string }; usage?: { output_tokens?: number } };
+      if (delta.delta?.stop_reason) {
+        stopReason = delta.delta.stop_reason;
+      }
+      if (delta.usage) {
+        passUsage.outputTokens = delta.usage.output_tokens ?? 0;
       }
     }
     if (
@@ -202,6 +206,14 @@ async function runAnalysisPass(
   if (!responseText.trim()) {
     throw new Error(`Empty response from model for pass "${pass.name}"`);
   }
+
+  if (stopReason === 'max_tokens') {
+    throw new Error(
+      `Pass "${pass.name}" output truncated (hit max_tokens=${MAX_TOKENS_PER_PASS}). ` +
+      `Got ${passUsage.outputTokens} output tokens. Increase MAX_TOKENS_PER_PASS.`
+    );
+  }
+
   const parsed = JSON.parse(responseText);
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
