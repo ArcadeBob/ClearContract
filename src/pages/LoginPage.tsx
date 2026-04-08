@@ -7,21 +7,30 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError('Invalid email or password');
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+          setError(error.message);
+        } else {
+          setSuccess('Check your email to confirm your account, then sign in.');
+          setIsSignUp(false);
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          setError('Invalid email or password');
+        }
       }
       // No need to handle success -- onAuthStateChange in AuthContext handles session update
     } catch {
@@ -86,6 +95,12 @@ export function LoginPage() {
             </p>
           )}
 
+          {success && (
+            <p role="status" className="text-sm text-green-600 mt-2">
+              {success}
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={isSubmitting || !email || !password}
@@ -98,9 +113,20 @@ export function LoginPage() {
                 aria-hidden="true"
               />
             ) : (
-              'Sign In'
+              isSignUp ? 'Create Account' : 'Sign In'
             )}
           </button>
+
+          <p className="text-center text-sm text-slate-500 mt-4">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(!isSignUp); setError(null); setSuccess(null); }}
+              className="text-blue-600 hover:text-blue-500 font-medium"
+            >
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </button>
+          </p>
         </form>
       </motion.div>
     </div>
