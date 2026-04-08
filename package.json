@@ -2,13 +2,14 @@
   "name": "clearcontract",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "engines": {
     "node": "20.x"
   },
   "scripts": {
     "dev": "npx vite",
     "dev:full": "vercel dev",
-    "build": "npx vite build",
+    "build": "node scripts/bundle-api.mjs && npx vite build",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"api/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"api/**/*.ts\"",
