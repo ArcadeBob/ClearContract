@@ -4,7 +4,7 @@ import type { Finding, ContractDate, LifecycleStatus } from '../types/contract';
 import { supabase } from '../lib/supabase';
 import { mapRow, mapRows } from '../lib/mappers';
 import { useToast } from './useToast';
-import { optimisticMutation } from './useOptimisticMutation';
+import { optimisticMutation } from '../utils/optimisticMutation';
 
 export function useContractStore() {
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -94,48 +94,38 @@ export function useContractStore() {
 
   // ── Finding mutations ─────────────────────────────────────────────────
 
+  const updateFinding = useCallback(async (
+    contractId: string,
+    findingId: string,
+    patch: Partial<Finding>,
+    errorMessage: string,
+  ) => {
+    await optimisticMutation(
+      contracts,
+      setContracts,
+      () => setContracts((cs) =>
+        cs.map((c) =>
+          c.id === contractId
+            ? { ...c, findings: c.findings.map((f) =>
+                f.id === findingId ? { ...f, ...patch } : f
+              )}
+            : c
+        )
+      ),
+      { table: 'findings', id: findingId, updates: patch, errorMessage },
+      showToast,
+    );
+  }, [contracts, showToast]);
+
   const toggleFindingResolved = useCallback(async (contractId: string, findingId: string) => {
     const finding = contracts.find((c) => c.id === contractId)?.findings.find((f) => f.id === findingId);
     if (!finding) return;
-
-    const newResolved = !finding.resolved;
-
-    await optimisticMutation(
-      contracts,
-      setContracts,
-      () => setContracts((cs) =>
-        cs.map((c) =>
-          c.id === contractId
-            ? { ...c, findings: c.findings.map((f) =>
-                f.id === findingId ? { ...f, resolved: newResolved } : f
-              )}
-            : c
-        )
-      ),
-      { table: 'findings', id: findingId, updates: { resolved: newResolved }, errorMessage: 'Failed to update finding.' },
-      showToast,
-    );
-  }, [contracts, showToast]);
+    await updateFinding(contractId, findingId, { resolved: !finding.resolved }, 'Failed to update finding.');
+  }, [contracts, updateFinding]);
 
   const updateFindingNote = useCallback(async (contractId: string, findingId: string, note: string | undefined) => {
-    const noteValue = note ?? '';
-
-    await optimisticMutation(
-      contracts,
-      setContracts,
-      () => setContracts((cs) =>
-        cs.map((c) =>
-          c.id === contractId
-            ? { ...c, findings: c.findings.map((f) =>
-                f.id === findingId ? { ...f, note: noteValue } : f
-              )}
-            : c
-        )
-      ),
-      { table: 'findings', id: findingId, updates: { note: noteValue }, errorMessage: 'Failed to save note.' },
-      showToast,
-    );
-  }, [contracts, showToast]);
+    await updateFinding(contractId, findingId, { note: note ?? '' }, 'Failed to save note.');
+  }, [updateFinding]);
 
   // ── Contract metadata ─────────────────────────────────────────────────
 

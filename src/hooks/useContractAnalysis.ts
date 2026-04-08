@@ -97,7 +97,7 @@ export function useContractAnalysis({
         }
       );
 
-      // Build lookup from old findings with user data (PORT-04)
+      // Match findings by clauseReference + category to preserve user edits (resolved/note) across re-analyses
       const oldByKey = new Map<string, Finding>();
       for (const f of contract.findings) {
         if (f.resolved || f.note) {
