@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `GLAZING SUBCONTRACTOR STANDARD PROTECTIONS CHECKLIST
 Analysis instructions for verbiage-analysis pass: check for presence or absence of key protective clauses.

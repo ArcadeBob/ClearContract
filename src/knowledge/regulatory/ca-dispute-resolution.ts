@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA DISPUTE RESOLUTION FOR CONSTRUCTION CONTRACTS
 Analysis instructions for reviewing dispute resolution provisions in subcontracts.

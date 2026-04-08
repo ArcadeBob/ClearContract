@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA MECHANICS LIEN LAW & VOID-BY-LAW CLAUSES
 Analysis instructions for glazing subcontractor contract review.

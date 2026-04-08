@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { SEVERITIES } from '../types/contract';
-import { ContractDateSchema, ActionPriorityEnum } from './analysis';
-import { InferenceBasisSchema } from './inferenceBasis';
+import { SEVERITIES } from '../types/contract.js';
+import { ContractDateSchema, ActionPriorityEnum } from './analysis.js';
+import { InferenceBasisSchema } from './inferenceBasis.js';
 
 /**
  * Zod schemas for the specialized scope/compliance/verbiage analysis passes.

@@ -1,7 +1,7 @@
-import { registerModule } from '../registry';
-import { standardsValidation } from './standards-validation';
-import { contractForms } from './contract-forms';
-import { aamaSubmittalStandards } from './aama-submittal-standards';
+import { registerModule } from '../registry.js';
+import { standardsValidation } from './standards-validation.js';
+import { contractForms } from './contract-forms.js';
+import { aamaSubmittalStandards } from './aama-submittal-standards.js';
 
 registerModule(standardsValidation);
 registerModule(contractForms);

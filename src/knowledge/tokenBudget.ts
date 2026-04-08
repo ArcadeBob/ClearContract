@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from './types';
+import type { KnowledgeModule } from './types.js';
 
 export const TOKEN_CAP_PER_MODULE = 10000;
 export const MAX_MODULES_PER_PASS = 6;

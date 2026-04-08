@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { SEVERITIES, CATEGORIES } from '../types/contract';
-import { ActionPriorityEnum } from './analysis';
+import { SEVERITIES, CATEGORIES } from '../types/contract.js';
+import { ActionPriorityEnum } from './analysis.js';
 
 /**
  * Canonical Zod schema for the merged Finding type.

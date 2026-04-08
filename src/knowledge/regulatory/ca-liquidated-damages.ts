@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA LIQUIDATED DAMAGES LAW FOR CONSTRUCTION SUBCONTRACTS
 Analysis instructions for reviewing liquidated damages provisions in subcontracts.

@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "npx vite",
     "dev:full": "vercel dev",
-    "build": "node scripts/bundle-api.mjs && npx vite build",
+    "build": "npx vite build",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"api/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"api/**/*.ts\"",

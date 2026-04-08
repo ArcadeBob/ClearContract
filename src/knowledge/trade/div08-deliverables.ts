@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `DIVISION 08 MASTERFORMAT TYPICAL DELIVERABLES
 Reference guide for typical required deliverables by CSI MasterFormat section within Division 08 — Openings.

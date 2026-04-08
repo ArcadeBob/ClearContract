@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `ASTM/AAMA/FGIA STANDARDS VALIDATION FOR GLAZING CONTRACTS
 Analysis instructions for validating industry standard references in contract specifications.

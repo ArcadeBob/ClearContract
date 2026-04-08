@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA PUBLIC WORKS PAYMENT REQUIREMENTS
 Analysis instructions for reviewing payment provisions in public works subcontracts.

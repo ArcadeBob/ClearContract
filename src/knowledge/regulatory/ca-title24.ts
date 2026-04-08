@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA TITLE 24 PART 6 GLAZING REQUIREMENTS
 Analysis instructions for glazing subcontractor contract review.

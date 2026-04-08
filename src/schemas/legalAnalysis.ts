@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { SEVERITIES } from '../types/contract';
-import { ContractDateSchema, ActionPriorityEnum } from './analysis';
+import { SEVERITIES } from '../types/contract.js';
+import { ContractDateSchema, ActionPriorityEnum } from './analysis.js';
 
 /**
  * Zod schemas for the specialized legal analysis passes.

@@ -1,4 +1,4 @@
-import type { Finding, BidSignal, BidFactor, BidSignalLevel } from '../types/contract';
+import type { Finding, BidSignal, BidFactor, BidSignalLevel } from '../types/contract.js';
 
 // Severity penalties subtracted from each factor's starting score of 100
 const SEVERITY_PENALTIES: Record<string, number> = {

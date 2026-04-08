@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CONTRACT STANDARD FORM DETECTION AND DEVIATION ANALYSIS
 Analysis instructions for identifying contract form families and flagging sub-unfavorable deviations.

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ActionPriorityEnum } from './analysis';
+import { ActionPriorityEnum } from './analysis.js';
 
 export const SynthesisFindingSchema = z.object({
   title: z.string().describe('Compound risk title, e.g., "Cash Flow Squeeze"'),

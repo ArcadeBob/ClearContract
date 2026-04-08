@@ -1,22 +1,22 @@
-export type { KnowledgeModule, CompanyProfile } from './types';
-export { DEFAULT_COMPANY_PROFILE } from './types';
+export type { KnowledgeModule, CompanyProfile } from './types.js';
+export { DEFAULT_COMPANY_PROFILE } from './types.js';
 
 export {
   registerModule,
   getModulesForPass,
   PASS_KNOWLEDGE_MAP,
-} from './registry';
+} from './registry.js';
 
 export {
   estimateTokens,
   validateTokenBudget,
   TOKEN_CAP_PER_MODULE,
   MAX_MODULES_PER_PASS,
-} from './tokenBudget';
+} from './tokenBudget.js';
 
-import type { CompanyProfile } from './types';
-import { getModulesForPass } from './registry';
-import { validateTokenBudget } from './tokenBudget';
+import type { CompanyProfile } from './types.js';
+import { getModulesForPass } from './registry.js';
+import { validateTokenBudget } from './tokenBudget.js';
 
 function formatCompanyProfile(profile: CompanyProfile): string {
   return [

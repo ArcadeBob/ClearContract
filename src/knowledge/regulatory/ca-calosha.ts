@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CAL/OSHA SAFETY REQUIREMENTS FOR GLAZING WORK
 Analysis instructions for glazing subcontractor contract review. All references are California Code of Regulations Title 8.

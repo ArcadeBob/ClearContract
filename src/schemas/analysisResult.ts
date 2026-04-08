@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { MergedFindingSchema } from './finding';
-import { ContractDateSchema } from './analysis';
+import { MergedFindingSchema } from './finding.js';
+import { ContractDateSchema } from './analysis.js';
 
 /**
  * Client-side AnalysisResult schema.

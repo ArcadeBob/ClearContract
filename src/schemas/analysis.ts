@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SEVERITIES, CATEGORIES } from '../types/contract';
+import { SEVERITIES, CATEGORIES } from '../types/contract.js';
 
 /**
  * Zod schemas for the multi-pass contract analysis pipeline.

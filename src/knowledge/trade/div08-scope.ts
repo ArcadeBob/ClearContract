@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `DIVISION 08 SCOPE CLASSIFICATION FOR GLAZING SUBCONTRACTORS
 Analysis instructions for identifying glazing-trade vs non-glazing scope in contract specifications.

@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `AAMA SUBMITTAL STANDARDS FOR GLAZING CONTRACTS
 Reference guide for typical submittal requirements by Division 08 product type per AAMA/FGIA, NAFS, and industry practice.

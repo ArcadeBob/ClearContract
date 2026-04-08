@@ -1,5 +1,5 @@
-import type { KnowledgeModule } from './types';
-import { validateTokenBudget } from './tokenBudget';
+import type { KnowledgeModule } from './types.js';
+import { validateTokenBudget } from './tokenBudget.js';
 
 export const PASS_KNOWLEDGE_MAP: Record<string, string[]> = {
   'risk-overview': ['contract-forms'],

@@ -1,4 +1,4 @@
-import type { KnowledgeModule } from '../types';
+import type { KnowledgeModule } from '../types.js';
 
 const content = `CALIFORNIA INSURANCE LAW FOR GLAZING SUBCONTRACTORS
 Analysis instructions for reviewing insurance requirements in construction subcontracts.
