@@ -54,10 +54,11 @@ export function useContractAnalysis({
       }
     } catch (err) {
       const classified = classifyError(err);
+      const hasRetryAfter = !!(err as Error & { retryAfterSeconds?: number })?.retryAfterSeconds;
       showToast({
         type: 'error',
         message: classified.userMessage,
-        ...(classified.retryable ? {
+        ...(classified.retryable && !hasRetryAfter ? {
           onRetry: () => {
             if (pendingFileRef.current) {
               handleUploadComplete(pendingFileRef.current);
@@ -163,10 +164,11 @@ export function useContractAnalysis({
       updateContract(contractId, snapshot);
 
       const classified = classifyError(err);
+      const hasRetryAfter = !!(err as Error & { retryAfterSeconds?: number })?.retryAfterSeconds;
       showToast({
         type: 'error',
         message: classified.userMessage + ' Your previous findings are unchanged.',
-        ...(classified.retryable ? {
+        ...(classified.retryable && !hasRetryAfter ? {
           onRetry: () => handleReanalyze(contractId, reanalyzeResult),
         } : {}),
       });

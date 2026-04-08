@@ -37,6 +37,16 @@ import type { PassUsage, PassWithUsage } from './types';
 import { computePassCost } from './cost';
 import { uploadPdf, downloadPdf } from '../src/lib/supabaseStorage';
 import { MAX_FILE_SIZE, MAX_BID_FILE_SIZE } from '../src/constants/limits';
+import { checkRateLimit } from './rateLimit';
+
+// ---------------------------------------------------------------------------
+// Logger — silent in production, verbose in development
+// ---------------------------------------------------------------------------
+const isDev = process.env.VERCEL_ENV !== 'production';
+const log = {
+  info: (...args: unknown[]) => { if (isDev) console.log(...args); },
+  error: (...args: unknown[]) => { console.error(...args); },
+};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -217,7 +227,7 @@ async function runSynthesisPass(
   try {
     // Not enough findings to detect compound risk patterns
     if (findings.length < 3) {
-      console.log('[analyze] Synthesis pass skipped: fewer than 3 findings');
+      log.info('[analyze] Synthesis pass skipped: fewer than 3 findings');
       return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
     }
 
@@ -278,7 +288,7 @@ async function runSynthesisPass(
     }
 
     if (!responseText.trim()) {
-      console.log('[analyze] Synthesis pass returned empty response');
+      log.info('[analyze] Synthesis pass returned empty response');
       return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
     }
 
@@ -301,7 +311,7 @@ async function runSynthesisPass(
     return { findings: converted as unknown as UnifiedFinding[], usage: passUsage, durationMs: Date.now() - startTime };
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error(`[analyze] Synthesis pass failed (non-fatal): ${msg}`);
+    log.error(`[analyze] Synthesis pass failed (non-fatal): ${msg}`);
     return { findings: [], usage: passUsage, durationMs: Date.now() - startTime };
   }
 }
@@ -347,6 +357,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   const userId = user.id;
+
+  // --- Rate limiting ---
+  const rateCheck = await checkRateLimit(supabaseAdmin, userId);
+  if (!rateCheck.allowed) {
+    res.setHeader('Retry-After', String(rateCheck.retryAfterSeconds ?? 3600));
+    return res.status(429).json({ error: 'Rate limit exceeded. Maximum 10 analyses per hour.' });
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -451,7 +468,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Upload PDF(s) to Files API (or fallback to text extraction)
-    console.log(`[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB${bidBuffer ? `, bid: ${(bidBuffer.length / 1024).toFixed(1)}KB` : ''}, uploading...`);
+    log.info(`[analyze] PDF size: ${(pdfBuffer.length / 1024).toFixed(1)}KB${bidBuffer ? `, bid: ${(bidBuffer.length / 1024).toFixed(1)}KB` : ''}, uploading...`);
     const uploadStart = Date.now();
     const [contractPrepared, bidPrepared] = await Promise.all([
       preparePdfForAnalysis(pdfBuffer, fileName || 'contract.pdf', uploadClient),
@@ -461,7 +478,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ]);
     fileId = contractPrepared.fileId;
     bidFileId = bidPrepared?.fileId ?? null;
-    console.log(
+    log.info(
       `[analyze] Upload complete in ${((Date.now() - uploadStart) / 1000).toFixed(1)}s, fileId: ${fileId}${bidFileId ? `, bidFileId: ${bidFileId}` : ''}, fallback: ${contractPrepared.usedFallback}`
     );
 
@@ -483,7 +500,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const globalController = new AbortController();
     globalTimeout = setTimeout(() => {
       isGlobalTimeout = true;
-      console.log('[analyze] Global 250s timeout fired -- aborting in-flight passes');
+      log.info('[analyze] Global 250s timeout fired -- aborting in-flight passes');
       allControllers.forEach(c => c.abort());
       globalController.abort();
     }, 250_000);
@@ -496,7 +513,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     const stage3Passes = ANALYSIS_PASSES.filter((p) => p.stage === 3);
 
-    console.log('[analyze] Stage 1: Running primer pass (risk-overview)...');
+    log.info('[analyze] Stage 1: Running primer pass (risk-overview)...');
     const primerController = new AbortController();
     allControllers.push(primerController);
     const primerTimeout = setTimeout(() => primerController.abort(), 90_000);
@@ -510,7 +527,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       clearTimeout(primerTimeout);
       // If primer fails, abort entire analysis per locked decision
       const msg = primerError instanceof Error ? primerError.message : String(primerError);
-      console.error(`[analyze] Primer pass failed -- aborting analysis: ${msg}`);
+      log.error(`[analyze] Primer pass failed -- aborting analysis: ${msg}`);
       throw new Error(`Analysis aborted: primer pass failed (${msg})`);
     } finally {
       clearTimeout(primerTimeout);
@@ -527,14 +544,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       duration_ms: primerResult.durationMs,
     });
 
-    console.log(
+    log.info(
       `[analyze] Primer done in ${(primerResult.durationMs / 1000).toFixed(1)}s, ` +
       `cache_creation=${primerResult.usage.cacheCreationTokens}, ` +
       `cache_read=${primerResult.usage.cacheReadTokens}`
     );
 
     // --- STAGE 2: Remaining 15 passes in parallel ---
-    console.log(`[analyze] Stage 2: Running ${stage2Passes.length} passes in parallel...`);
+    log.info(`[analyze] Stage 2: Running ${stage2Passes.length} passes in parallel...`);
     const passStart = Date.now();
 
     const settledResults = await Promise.allSettled(
@@ -542,7 +559,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const ctrl = new AbortController();
         allControllers.push(ctrl);
         const timeout = setTimeout(() => {
-          console.log(`[analyze] Pass "${pass.name}" timed out at 90s`);
+          log.info(`[analyze] Pass "${pass.name}" timed out at 90s`);
           ctrl.abort();
         }, 90_000);
 
@@ -581,19 +598,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const skipped = stage3Passes
         .filter((p) => p.requiresBid && !bidFileId)
         .map((p) => p.name);
-      console.log(`[analyze] Stage 3: skipping bid-requiring passes (no bid PDF): ${skipped.join(', ')}`);
+      log.info(`[analyze] Stage 3: skipping bid-requiring passes (no bid PDF): ${skipped.join(', ')}`);
     }
 
     if (activeStage3Passes.length === 0) {
-      console.log('[analyze] Stage 3: no passes registered, skipping');
+      log.info('[analyze] Stage 3: no passes registered, skipping');
     } else {
       const stage2Elapsed = Date.now() - passStart;
       if (stage2Elapsed > 150_000) {
-        console.log(
+        log.info(
           `[analyze] Stage 2 overrun: ${(stage2Elapsed / 1000).toFixed(1)}s — running Stage 3 on partial Stage 2 output`
         );
       }
-      console.log(`[analyze] Stage 3: Running ${activeStage3Passes.length} reconciliation passes...`);
+      log.info(`[analyze] Stage 3: Running ${activeStage3Passes.length} reconciliation passes...`);
       const stage3Start = Date.now();
 
       stage3Settled = await Promise.allSettled(
@@ -601,7 +618,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const ctrl = new AbortController();
           allControllers.push(ctrl);
           const timeout = setTimeout(() => {
-            console.log(`[analyze] Stage 3 pass "${pass.name}" timed out at 90s`);
+            log.info(`[analyze] Stage 3 pass "${pass.name}" timed out at 90s`);
             ctrl.abort();
           }, 90_000);
 
@@ -627,7 +644,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const stage3Failed = stage3Settled.filter((r) => r.status === 'rejected').length;
-      console.log(
+      log.info(
         `[analyze] Stage 3 done in ${((Date.now() - stage3Start) / 1000).toFixed(1)}s (${stage3Failed} failed/timed-out)`
       );
     }
@@ -662,7 +679,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (isAbort) {
           const passName = allPasses[i]?.name ?? 'unknown';
           const stageLabel = i > stage2Passes.length ? 'Stage 3 ' : '';
-          console.log(`[analyze] ${stageLabel}pass "${passName}" dropped (timed out)`);
+          log.info(`[analyze] ${stageLabel}pass "${passName}" dropped (timed out)`);
           return false; // Filter out -- drop silently
         }
       }
@@ -678,7 +695,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const failed = settledResults.filter(r => r.status === 'rejected').length;
-    console.log(
+    log.info(
       `[analyze] Stage 2 done in ${((Date.now() - passStart) / 1000).toFixed(1)}s (${failed} failed/timed-out)`
     );
 
@@ -688,7 +705,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- SCHEDULE-CONFLICT COMPUTATION (deterministic, no LLM call) ---
     const conflictResult = computeScheduleConflicts(merged.submittals, merged.dates);
     if (conflictResult.findings.length > 0) {
-      console.log(`[analyze] Schedule conflicts: ${conflictResult.findings.length} conflicts detected`);
+      log.info(`[analyze] Schedule conflicts: ${conflictResult.findings.length} conflicts detected`);
       merged.findings.push(...conflictResult.findings);
     }
 
@@ -709,13 +726,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       synthUsage = synthResult.usage;
       synthDuration = synthResult.durationMs;
 
-      console.log(
+      log.info(
         `[analyze] Synthesis pass done in ${(synthResult.durationMs / 1000).toFixed(1)}s, ${synthResult.findings.length} compound risks`
       );
 
       merged.findings.push(...synthResult.findings as unknown as typeof merged.findings[number][]);
     } else {
-      console.log('[analyze] Synthesis pass skipped (global timeout path)');
+      log.info('[analyze] Synthesis pass skipped (global timeout path)');
     }
 
     // Record synthesis usage (even if skipped -- zeros)
@@ -839,7 +856,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select();
 
     if (findingsError) {
-      console.error(`[analyze] Findings insert failed: ${findingsError.message}`);
+      log.error(`[analyze] Findings insert failed: ${findingsError.message}`);
     }
 
     // Bulk insert dates
@@ -864,7 +881,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select();
 
       if (datesError) {
-        console.error(`[analyze] Dates insert failed: ${datesError.message}`);
+        log.error(`[analyze] Dates insert failed: ${datesError.message}`);
       }
       dateRows = data;
     }
@@ -883,10 +900,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert(usagePayloads);
 
       if (usageError) {
-        console.error(`[analyze] Usage insert failed: ${usageError.message}`);
+        log.error(`[analyze] Usage insert failed: ${usageError.message}`);
       } else {
         const totalCost = usageRows.reduce((sum, r) => sum + r.cost_usd, 0);
-        console.log(`[analyze] Usage saved: ${usageRows.length} rows, total cost $${totalCost.toFixed(4)}`);
+        log.info(`[analyze] Usage saved: ${usageRows.length} rows, total cost $${totalCost.toFixed(4)}`);
       }
     }
 
@@ -900,7 +917,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(contract);
   } catch (error: unknown) {
     const classified = classifyError(error);
-    console.error('Analysis error:', classified.userMessage);
+    log.error('Analysis error:', classified.userMessage);
     const statusCode = classified.type === 'timeout' ? 504
       : classified.type === 'api' && (error as { status?: number }).status === 429 ? 429
       : classified.type === 'api' && (error as { status?: number }).status === 401 ? 500
@@ -918,7 +935,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         try {
           await client.beta.files.delete(id, { betas: BETAS });
         } catch (cleanupError) {
-          console.error(
+          log.error(
             'File cleanup failed (non-critical):',
             cleanupError instanceof Error ? cleanupError.message : cleanupError
           );

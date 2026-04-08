@@ -93,7 +93,7 @@ export function classifyError(err: unknown): ClassifiedError {
   // Unknown / fallback
   return {
     type: 'unknown',
-    userMessage: err instanceof Error ? err.message : 'An unexpected error occurred.',
+    userMessage: 'An unexpected error occurred.',
     retryable: false,
     originalError: err,
   };

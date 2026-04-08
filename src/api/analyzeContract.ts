@@ -58,16 +58,38 @@ export async function analyzeContract(
     body.removeBid = true;
   }
 
-  const response = await fetch('/api/analyze', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 310_000);
+
+  let response: Response;
+  try {
+    response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('Analysis timed out. The server may still be processing — check your contracts list shortly.');
+    }
+    throw err;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '3600', 10);
+      const minutes = Math.ceil(retryAfter / 60);
+      const error = new Error(`Rate limit exceeded. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`);
+      (error as Error & { retryAfterSeconds: number }).retryAfterSeconds = retryAfter;
+      throw error;
+    }
+
     let errorMessage: string;
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
