@@ -7,7 +7,7 @@
  */
 import { vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ANALYSIS_PASSES } from '../passes';
+import { ANALYSIS_PASSES } from '../passes/index';
 
 // ---------------------------------------------------------------------------
 // Pass name constant (exported for test assertions)

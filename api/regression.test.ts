@@ -140,7 +140,7 @@ import {
   PASS_NAMES,
 } from './test-fixtures/pass-responses';
 import { MergedFindingSchema } from '../src/schemas/finding';
-import { ANALYSIS_PASSES } from './passes';
+import { ANALYSIS_PASSES } from './passes/index';
 
 // ---------------------------------------------------------------------------
 // Setup / teardown
