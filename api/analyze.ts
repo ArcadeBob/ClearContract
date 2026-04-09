@@ -25,7 +25,7 @@ import { classifyError, formatApiError } from '../src/utils/errors.js';
 import '../src/knowledge/regulatory/index.js';
 import '../src/knowledge/trade/index.js';
 import '../src/knowledge/standards/index.js';
-// undici import removed — was silently truncating SSE streams
+import { fetch as undiciFetch, Agent } from 'undici';
 import { preparePdfForAnalysis } from './pdf.js';
 import { mergePassResults } from './merge.js';
 import type { UnifiedFinding } from './merge.js';
@@ -208,6 +208,16 @@ async function runAnalysisPass(
     );
   }
 
+  // Detect silent stream truncation: if stop_reason is not 'end_turn',
+  // the stream was severed before the model finished generating.
+  if (message.stop_reason !== 'end_turn') {
+    throw new Error(
+      `Pass "${pass.name}" stream incomplete: stop_reason="${message.stop_reason}" ` +
+      `(expected "end_turn"), output_tokens=${passUsage.outputTokens}, ` +
+      `response length=${responseText.length} chars`
+    );
+  }
+
   const parsed = JSON.parse(responseText);
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
@@ -376,7 +386,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let fileId: string | null = null;
   let bidFileId: string | null = null;
   let client: Anthropic | null = null;
-  // dispatcher removed — undici Agent was silently truncating SSE streams
+  let dispatcher: Agent | null = null;
   let globalTimeout: ReturnType<typeof setTimeout> | null = null;
 
   try {
@@ -462,20 +472,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       bidFileName = bidFileName || 'bid.pdf';
     }
 
-    // Single Anthropic client using Node's built-in fetch for all calls.
-    // Previously used a custom undici Agent to avoid HeadersTimeoutError,
-    // but streaming (stream: true) sends headers immediately so that's
-    // not needed — and undici was silently truncating SSE streams.
+    // Upload client uses default Node fetch (supports FormData for file uploads).
     const uploadClient = new Anthropic({
       apiKey,
       timeout: 60 * 1000,
       maxRetries: 0,
     });
 
+    // Custom undici Agent with explicit keepAlive settings to prevent silent
+    // socket drops during LLM schema-constrained generation pauses.
+    // Previous attempt used headersTimeout:0, bodyTimeout:0 but lacked
+    // keepAlive config — idle sockets were aggressively closed by the pool,
+    // causing silent 12-14KB truncation.
+    dispatcher = new Agent({
+      headersTimeout: 10 * 60 * 1000,       // 10 min — large positive value, not 0
+      bodyTimeout: 10 * 60 * 1000,           // 10 min — tolerate slow schema-constrained generation
+      connectTimeout: 60 * 1000,             // 60s for TCP handshake
+      keepAliveTimeout: 30 * 1000,           // 30s keepAlive pings — prevents pool from closing "idle" sockets
+      keepAliveMaxTimeout: 10 * 60 * 1000,   // 10 min max keepAlive — matches body timeout
+      connections: 20,                       // pool size for up to 16 parallel passes
+    });
+    const customFetch: typeof globalThis.fetch = (input, init) =>
+      undiciFetch(
+        input as Parameters<typeof undiciFetch>[0],
+        { ...init, dispatcher } as Parameters<typeof undiciFetch>[1],
+      ) as Promise<Response>;
+
+    // Message client uses custom undici fetch with keepAlive-aware dispatcher
     client = new Anthropic({
       apiKey,
       timeout: 280 * 1000, // 280s -- under Vercel maxDuration (300s), allows room for cleanup
       maxRetries: 0, // Don't retry inside serverless function -- wastes budget
+      fetch: customFetch,
     });
 
     // Upload PDF(s) to Files API (or fallback to text extraction)
@@ -982,6 +1010,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
     }
-    // undici dispatcher cleanup removed — no longer using custom fetch
+    // Close the undici Agent to drain its connection pool (prevents socket leaks on warm starts)
+    if (dispatcher) {
+      dispatcher.close();
+    }
   }
 }
