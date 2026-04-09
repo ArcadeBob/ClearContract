@@ -25,7 +25,9 @@ import { classifyError, formatApiError } from '../src/utils/errors.js';
 import '../src/knowledge/regulatory/index.js';
 import '../src/knowledge/trade/index.js';
 import '../src/knowledge/standards/index.js';
-import { fetch as undiciFetch, Agent } from 'undici';
+// undici removed — its keepAliveTimeout (30s) was killing SSE sockets during
+// schema-constrained generation pauses. Node's built-in fetch handles streaming
+// correctly with .stream() since headers arrive immediately.
 import { preparePdfForAnalysis } from './pdf.js';
 import { mergePassResults } from './merge.js';
 import type { UnifiedFinding } from './merge.js';
@@ -73,9 +75,12 @@ function sanitizeFileName(name: string): string {
 const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 16384;
-// Per-pass timeout: 180s for non-streaming (model must generate full response before returning).
+// Per-pass timeout for parallel passes (Stage 2/3). They benefit from prompt cache.
 // Global timeout (250s) is the safety net under Vercel's 300s maxDuration.
 const PER_PASS_TIMEOUT_MS = 180_000;
+// Primer pass timeout: longer because it's first (no cache), processes full document,
+// and must generate structured output. Runs alone so no contention.
+const PRIMER_TIMEOUT_MS = 240_000;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
 const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
@@ -386,7 +391,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let fileId: string | null = null;
   let bidFileId: string | null = null;
   let client: Anthropic | null = null;
-  let dispatcher: Agent | null = null;
   let globalTimeout: ReturnType<typeof setTimeout> | null = null;
 
   try {
@@ -479,31 +483,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       maxRetries: 0,
     });
 
-    // Custom undici Agent with explicit keepAlive settings to prevent silent
-    // socket drops during LLM schema-constrained generation pauses.
-    // Previous attempt used headersTimeout:0, bodyTimeout:0 but lacked
-    // keepAlive config — idle sockets were aggressively closed by the pool,
-    // causing silent 12-14KB truncation.
-    dispatcher = new Agent({
-      headersTimeout: 10 * 60 * 1000,       // 10 min — large positive value, not 0
-      bodyTimeout: 10 * 60 * 1000,           // 10 min — tolerate slow schema-constrained generation
-      connectTimeout: 60 * 1000,             // 60s for TCP handshake
-      keepAliveTimeout: 30 * 1000,           // 30s keepAlive pings — prevents pool from closing "idle" sockets
-      keepAliveMaxTimeout: 10 * 60 * 1000,   // 10 min max keepAlive — matches body timeout
-      connections: 20,                       // pool size for up to 16 parallel passes
-    });
-    const customFetch: typeof globalThis.fetch = (input, init) =>
-      undiciFetch(
-        input as Parameters<typeof undiciFetch>[0],
-        { ...init, dispatcher } as Parameters<typeof undiciFetch>[1],
-      ) as Promise<Response>;
-
-    // Message client uses custom undici fetch with keepAlive-aware dispatcher
+    // Message client uses Node's built-in fetch (no undici).
+    // undici was removed after causing 3 separate streaming failures:
+    // its keepAliveTimeout (30s) closed "idle" SSE sockets during normal
+    // schema-constrained generation pauses, silently aborting requests.
     client = new Anthropic({
       apiKey,
       timeout: 280 * 1000, // 280s -- under Vercel maxDuration (300s), allows room for cleanup
       maxRetries: 0, // Don't retry inside serverless function -- wastes budget
-      fetch: customFetch,
     });
 
     // Upload PDF(s) to Files API (or fallback to text extraction)
@@ -555,7 +542,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     log.info('[analyze] Stage 1: Running primer pass (risk-overview)...');
     const primerController = new AbortController();
     allControllers.push(primerController);
-    const primerTimeout = setTimeout(() => primerController.abort(), PER_PASS_TIMEOUT_MS);
+    const primerTimeout = setTimeout(() => primerController.abort(), PRIMER_TIMEOUT_MS);
 
     let primerResult: PassWithUsage;
     try {
@@ -1012,9 +999,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
     }
-    // Close the undici Agent to drain its connection pool (prevents socket leaks on warm starts)
-    if (dispatcher) {
-      dispatcher.close();
-    }
+    // undici Agent removed — no dispatcher cleanup needed
   }
 }

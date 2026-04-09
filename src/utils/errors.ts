@@ -39,11 +39,13 @@ export function classifyError(err: unknown): ClassifiedError {
     };
   }
 
-  // Timeout errors
+  // Timeout and abort errors (AbortController fired during long API calls)
   if (
     message.includes('HeadersTimeoutError') ||
     message.includes('timeout') ||
-    message.includes('ETIMEDOUT')
+    message.includes('ETIMEDOUT') ||
+    message.includes('aborted') ||
+    message.includes('AbortError')
   ) {
     return {
       type: 'timeout',
