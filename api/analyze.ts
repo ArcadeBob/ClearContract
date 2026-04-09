@@ -145,10 +145,10 @@ async function runAnalysisPass(
     PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined
   );
 
-  // Non-streaming: returns complete BetaMessage with full response.
-  // Streaming was previously used to avoid HeadersTimeoutError but caused
-  // silent SSE truncation in both undici and Node's built-in fetch.
-  const message = await client.beta.messages.create({
+  // Use SDK's .stream() + finalMessage() for best of both worlds:
+  // - Streaming keeps the HTTP connection alive (avoids timeout waiting for first byte)
+  // - finalMessage() assembles the complete response (avoids manual SSE collection bugs)
+  const stream = client.beta.messages.stream({
     model: MODEL,
     max_tokens: MAX_TOKENS_PER_PASS,
     betas: BETAS,
@@ -175,9 +175,16 @@ async function runAnalysisPass(
       },
     ],
     output_config: { format: outputFormat },
-  }, signal ? { signal } : {}) as Anthropic.Beta.Messages.BetaMessage;
+  });
 
-  // Extract usage from non-streaming response
+  // If caller provides an abort signal, wire it to the stream
+  if (signal) {
+    signal.addEventListener('abort', () => stream.abort(), { once: true });
+  }
+
+  const message = await stream.finalMessage();
+
+  // Extract usage from the assembled message
   const usage = message.usage;
   passUsage.inputTokens = usage?.input_tokens ?? 0;
   passUsage.outputTokens = usage?.output_tokens ?? 0;
@@ -242,8 +249,8 @@ async function runSynthesisPass(
 
     const outputFormat = zodToOutputFormat(SynthesisPassResultSchema);
 
-    // Non-streaming: same fix as runAnalysisPass — streaming was silently truncating
-    const message = await client.beta.messages.create({
+    // Use SDK's .stream() + finalMessage() (same pattern as runAnalysisPass)
+    const stream = client.beta.messages.stream({
       model: MODEL,
       max_tokens: 4096,
       betas: BETAS,
@@ -260,7 +267,13 @@ async function runSynthesisPass(
         },
       ],
       output_config: { format: outputFormat },
-    }, signal ? { signal } : {}) as Anthropic.Beta.Messages.BetaMessage;
+    });
+
+    if (signal) {
+      signal.addEventListener('abort', () => stream.abort(), { once: true });
+    }
+
+    const message = await stream.finalMessage();
 
     // Extract usage
     const usage = message.usage;
