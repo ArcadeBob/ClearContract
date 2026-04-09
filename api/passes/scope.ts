@@ -268,6 +268,7 @@ Your task is to extract ALL labor compliance requirements into an actionable che
 - Reporting requirements (daily reports, safety reports, workforce reports)
 - Equal opportunity / diversity requirements
 - Any other labor-related compliance obligations
+- SB 727 / Labor Code section 218.7: GC joint liability for sub's wage debts on private works (contracts entered on or after January 1, 2022). Flag whether the contract addresses GC joint liability under LC 218.7 and whether the sub has adequate payroll compliance procedures to protect both parties.
 
 ## Output Format (TWO-PART -- follow this exactly)
 

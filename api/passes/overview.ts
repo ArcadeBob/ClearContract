@@ -12,6 +12,14 @@ export const overviewPasses: AnalysisPass[] = [
 
 Your task is to identify the client name, determine the contract type, and find the most significant risks across all categories.
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 Guidelines:
 - Identify the contracting parties and determine the client/owner name
 - Classify the contract type (Prime Contract, Subcontract, Purchase Order, or Change Order)
@@ -19,6 +27,7 @@ Guidelines:
 - Be thorough but precise — only report genuine findings, not standard boilerplate
 - NEVER recommend a subcontractor purchase a voluntary payment bond as self-protection against GC non-payment. A payment bond protects parties BELOW the purchaser, not the purchaser itself. Instead, recommend the sub's statutory protections: mechanics liens (CC sections 8400-8494), stop payment notices, prompt payment statute (B&P section 7108.5), and verify whether the GC has a payment bond from the owner.
 - Reference CSLB contractor bond at current $25,000 (SB 607, effective 1/1/2023), not $15,000.
+- Flag C-17 license scope: verify whether the contract scope (e.g., curtain wall, structural glazing, skylights) falls within the C-17 Glazing contractor classification or may require additional licensing (e.g., C-61/D-38 for specialty glass work, or a B license for projects with structural components beyond glazing). If the contract scope appears to exceed standard C-17 classification, generate a finding.
 - Include specific clause references (section numbers, article numbers) where possible
 - For each finding, provide actionable recommendations
 - If you can quote the relevant clause text, include it in the clauseText field

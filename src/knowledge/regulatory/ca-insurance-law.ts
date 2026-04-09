@@ -58,7 +58,8 @@ OCIP (OWNER-CONTROLLED INSURANCE PROGRAM):
 - CC 2782.96 requires OCIP sponsors to disclose policy limits, exclusions, and premium credit calculations
 - CC 2782.9 "reasonably limited" deductible protections apply ONLY to residential construction, NOT commercial -- do NOT cite 2782.9 for commercial projects
 - CRITICAL: The AI MUST check that the OCIP policy dates COVER the anticipated construction period. An expired OCIP means zero coverage from day one -- flag as CRITICAL (highest priority finding). Compare OCIP policy start/end dates against contract execution date and anticipated construction timeline. Any gap = CRITICAL.
-- If OCIP is expired or inadequate, advise: refuse to execute until GC provides current OCIP, OR amend contract to require sub to carry own CGL and WC (requiring approximately 2-4% price increase)
+- CRITICAL: DOUBLE GAP SCENARIO -- If the sub obtained a wrap-up exclusion on its own CGL policy (standard practice when enrolling in an OCIP), and the OCIP has expired or does not cover the work period, NEITHER the OCIP NOR the sub's own CGL covers the work. This creates a complete coverage void. Flag as CRITICAL with highest priority. The AI must check for wrap-up exclusion endorsements on the sub's own policy whenever OCIP issues are detected.
+- If OCIP is expired or inadequate, advise: refuse to execute until GC provides current OCIP, OR amend contract to require sub to carry own CGL and WC (requiring approximately 2-4% price increase) AND ensure any wrap-up exclusion on the sub's own CGL is removed or endorsed back
 
 PROFESSIONAL LIABILITY / ERRORS AND OMISSIONS (E&O):
 - NO statutory E&O requirement exists in California for any contractor classification, including C-17 glazing
@@ -67,7 +68,11 @@ PROFESSIONAL LIABILITY / ERRORS AND OMISSIONS (E&O):
 - For design-build glazing work, E&O at $1M per claim is PRUDENT BEST PRACTICE
 - $2M per claim is disproportionate for subcontracts under $500K -- typically reserved for $1M+ subcontracts
 - Cost ranges: Annual E&O at $1M/$1M limits for a glazing sub with limited design scope: $2,000-$6,000/year. Project-specific endorsement: $3,000-$8,000. Do NOT cite $15,000 -- that only applies to dedicated project-specific policies with unusually high limits.
-- If design-build, review whether Civil Code 2782.8 (SB 496, effective January 1, 2018) applies to limit the sub's indemnity obligations for professional services to proportionate percentage of fault
+- CC 2782.8 (as amended by SB 496, effective January 1, 2018) applies ONLY to "design professionals" -- licensed architects, licensed professional engineers, and licensed land surveyors providing professional services within their license scope
+- Do NOT cite SB 496 or CC 2782.8 for a construction subcontractor unless they are providing licensed design professional services (e.g., PE-stamped structural calculations, architect-of-record services)
+- A C-17 glazing sub performing design-build does NOT automatically qualify as a "design professional" under CC 2782.8 -- the sub must hold the relevant professional license (PE or architect)
+- Correct indemnity protections for construction subcontractors come from CC 2782(a) (prohibits Type I indemnity in construction) and CC 2782.05 (limits indemnity in residential construction to proportionate fault)
+- If design-build AND the sub is providing PE-stamped professional services, THEN CC 2782.8 may apply to limit indemnity for those professional services to proportionate percentage of fault
 
 OPPI (OWNER'S PROTECTIVE PROFESSIONAL INDEMNITY) -- DO NOT RECOMMEND:
 - An OPPI policy is purchased by the PROJECT OWNER, NOT a subcontractor
@@ -91,6 +96,12 @@ CSLB BOND REQUIREMENT:
 - Current contractor bond requirement: $25,000 (effective January 1, 2023 per SB 607)
 - Prior amount was $15,000 -- do NOT reference the old amount
 - B&P Code 7071.6 governs the contractor bond requirement
+
+C-17 GLAZING CONTRACTOR LICENSE SCOPE:
+- C-17 classification covers glazing, glass installation, and related work -- but curtain wall systems and structural glazing may involve work that crosses into other classifications
+- The AI should flag whether the contract scope includes curtain wall or structural glazing work that may require additional licensing beyond C-17 (e.g., C-51 structural steel for curtain wall framing, or B general contractor license for multi-trade coordination)
+- Cal/OSHA fall-protection requirements (Title 8, CCR 1669-1671.2) apply to elevated glazing work -- flag if the contract does not address fall-protection compliance responsibilities or shifts Cal/OSHA citation liability entirely to the sub without corresponding schedule/method control
+- For unitized curtain wall, verify whether the contract scope description matches C-17 classification or inadvertently requires work outside the license
 
 ANALYSIS INSTRUCTIONS:
 - Compare contract insurance requirements against the standard minimums listed above

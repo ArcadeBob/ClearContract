@@ -62,7 +62,17 @@ Your task is to find and analyze ALL indemnification and hold-harmless clauses i
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
 - Do NOT assess or provide a risk score -- that is computed separately
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## California Civil Code section 2782.05 -- Active vs. Passive Negligence (MANDATORY for California-governed contracts)
+- CC 2782.05 is the SPECIFIC statute governing GC-to-sub indemnity on NON-RESIDENTIAL PRIVATE construction. Always cite this section when analyzing indemnification in non-residential private glazing subcontracts.
+- CC 2782.8 (SB 496) applies ONLY to licensed design professionals (architects, engineers, land surveyors). Do NOT cite CC 2782.8 for construction subcontractors UNLESS the subcontractor is providing licensed design professional services (e.g., a licensed PE stamping structural calculations). A glazing subcontractor performing standard installation work is NOT a design professional under CC 2782.8.
 - Distinguish between ACTIVE and PASSIVE negligence under section 2782.05. The statute uses an 'active negligence' standard. Per Rossmoor Sanitation (1975) 13 Cal.3d 622, passive negligence is NOT 'active negligence'. A broad indemnification clause could still require the sub to indemnify for the GC's passive negligence on a commercial project. Flag this gap explicitly.
 
 ## Design-Build Contract Forms
@@ -105,6 +115,14 @@ Your task is to find and analyze ALL pay-if-paid and pay-when-paid provisions in
 3. Provide enforceability context: If the contract specifies a governing law state, note whether that state enforces pay-if-paid clauses (approximately 13 states prohibit pay-if-paid, including NC, CA, NY). If no state is specified, note that enforceability varies by jurisdiction and suggest checking.
 4. Explain in plain English the risk from a glazing sub's perspective. Contrast with what a standard/fair payment term looks like (e.g., "Net 30 from invoice" or "within 30 days of approved application for payment").
 5. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
 
 ## California Pay-if-Paid Law (MANDATORY when governing law is California)
 - Pay-if-paid clauses are VOID AND UNENFORCEABLE in California. State this unequivocally -- do not merely flag as 'risky' or 'recommend converting'. The clause is already legally void. Cite Wm. R. Clarke Corp. v. Safeco Ins. Co. (1997) 15 Cal.4th 882.
@@ -172,6 +190,14 @@ Your task is to find and analyze ALL liquidated damages (LD) clauses in this con
 6. Explain in plain English the financial exposure for a glazing sub. Contrast with what standard/fair LD terms look like.
 7. Note cross-references to other contract sections that modify or are affected by this clause.
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Any LD clause = High minimum
 - Uncapped LD or disproportionate to contract value = Critical
@@ -231,10 +257,26 @@ Your task is to find and analyze ALL retainage and retention provisions in this 
 6. Explain in plain English the cash flow impact for a glazing sub. Contrast with standard/fair retainage terms (e.g., "5% retainage released within 30 days of Sub's substantial completion").
 7. Note cross-references to other contract sections that modify or are affected by this clause.
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## California Retainage Law (MANDATORY when governing law is California)
 - For contracts entered on or after January 1, 2026: Cal. Civil Code section 8811 (SB 61) caps retention at 5% for PRIVATE works. Any retainage exceeding 5% VIOLATES California law -- do not merely call it 'excessive'. State it is unlawful.
 - Do NOT cite public works statutes (PCC 7201) as authority for private contract retainage limits. The correct authority for private works entered after 1/1/2026 is CC section 8811.
-- CC section 8814 governs retention RELEASE TIMING, not retention amounts. B&P Code section 7108.5 governs progress payment timing, not retainage caps. Do not conflate these.
+
+## Retainage Release Timing (MANDATORY -- cite correct statutes)
+- B&P Code section 7108.5 governs PROGRESS PAYMENT timing, NOT retainage release. Do NOT cite B&P 7108.5 for retainage release timing.
+- Retainage release on private works is governed by:
+  - CC 8812: Owner must release retention within 45 days of completion
+  - CC 8814: GC must pay sub's retention within 10 days of receiving retention from owner
+  - CC 8818: 2% per month penalty for wrongful withholding of retention
+  - CC 8820: These retention release rights are NON-WAIVABLE
+- Always cite the correct statute for the issue being analyzed (progress payment timing vs. retainage release timing).
 
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Retainage release tied to overall project completion (not Sub's work) = High
@@ -301,6 +343,14 @@ Your task is to find and analyze ALL insurance requirements in this contract.
 - Additional Insured: CG 20 10, CG 20 37
 - Waiver of Subrogation
 - Primary and Non-Contributory
+
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
 
 ## OCIP Policy Date Verification (MANDATORY)
 - ALWAYS verify that OCIP policy dates cover the anticipated construction period. Compare policy start/end dates against contract execution date. An expired or expiring OCIP is the HIGHEST PRIORITY finding -- flag it before all other insurance issues.
@@ -384,6 +434,14 @@ Your task is to find and analyze ALL termination clauses in this contract (for-c
 6. Flag if only one party has termination rights (one-sided)
 7. Flag missing cure period provisions
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Termination for convenience with no compensation = Critical
 - Termination for convenience with partial payment only = High
@@ -445,6 +503,14 @@ Your task is to find and analyze ALL flow-down provisions in this contract.
 5. Set primeContractAvailable to false when the contract incorporates prime terms by reference WITHOUT making them available to the sub
 6. When primeContractAvailable is false, create a High finding noting the sub is bound by terms they may not have seen, recommend requesting the prime contract before signing
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Blanket flow-down of ALL prime contract terms = Critical
 - Flow-down imposing obligations beyond sub's scope or insurance = High
@@ -505,6 +571,14 @@ Your task is to find and analyze ALL no-damage-for-delay clauses in this contrac
    - Even in states that enforce these clauses, note common judicial exceptions: active interference by owner/GC, bad faith, unreasonable delays, delays not contemplated by the parties
 5. Provide general guidance on deadlines. Always recommend consulting a construction attorney for precise deadlines.
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Absolute waiver of ALL delay claims = Critical
 - Broad waiver with narrow exceptions = High
@@ -561,6 +635,21 @@ Your task is to find and analyze ALL provisions affecting the sub's mechanic's l
    - missing: No lien rights provisions found (flag as gap)
 3. Populate lienFilingDeadline: When governing law state is known, include statutory lien filing deadline with this caveat: "Exact deadlines may vary based on project type, contractor tier, and notice filings. Consult a construction attorney for precise deadlines."
 4. Provide enforceabilityContext: Note state-specific enforceability of no-lien clauses and lien waivers. Always flag no-lien clauses even when potentially unenforceable.
+
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
+## Private Works Payment Bond Provisions (MANDATORY for private projects)
+- Private works payment bond provisions are governed by CC 8600-8614 (Title 2).
+- Do NOT cite CC 9550, CC 9100, CC 9554, or any Title 3 statutes for payment bonds on private projects -- those are PUBLIC works statutes.
+- Payment bonds are NOT required on private works. They are voluntary.
+- If a payment bond exists on a private project, the subcontractor can make a direct claim against the GC's surety under CC 8600-8614.
+- Recommend verifying whether the GC has obtained a payment bond from the owner, as this provides an additional payment security layer for the sub.
 
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - No-lien clause or unconditional waiver before payment = Critical
@@ -624,6 +713,14 @@ Your task is to find and analyze ALL dispute resolution provisions in this contr
    - unspecified: Fee shifting not addressed
 5. Set mediationRequired to true if mediation is a mandatory prerequisite
 
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Mandatory arbitration with no appeal + distant venue = Critical
 - Mandatory arbitration in reasonable venue = High
@@ -685,6 +782,14 @@ Your task is to find and analyze ALL change order and change directive provision
 3. Extract noticeRequired: The notice timeline and format required (e.g., "written notice within 7 days", "none specified")
 4. Extract pricingMechanism: How changed work is priced (e.g., "time and materials", "unit prices", "lump sum negotiation", "GC determines fair value")
 5. Set proceedPending to true if the sub must perform changed work before the change order is formally approved
+
+## CRITICAL: Private vs Public Works Distinction
+BEFORE citing any California statute, determine whether this is a PRIVATE or PUBLIC works project:
+- Private Works: Title 2, Cal. Civil Code sections 8000-8848
+- Public Works: Title 3, Cal. Civil Code sections 9000-9566, Public Contract Code
+NEVER cite Title 3 statutes (CC 9000+, PCC 7201, CC 9350-9566, CC 9550) for a private project.
+NEVER cite Title 2 statutes (CC 8000-8848) for a public project.
+Misapplying the wrong title is a critical error that invalidates the entire analysis.
 
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Unilateral change rights with no price adjustment = Critical
