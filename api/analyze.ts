@@ -25,7 +25,7 @@ import { classifyError, formatApiError } from '../src/utils/errors.js';
 import '../src/knowledge/regulatory/index.js';
 import '../src/knowledge/trade/index.js';
 import '../src/knowledge/standards/index.js';
-import { fetch as undiciFetch, Agent } from 'undici';
+// undici import removed — was silently truncating SSE streams
 import { preparePdfForAnalysis } from './pdf.js';
 import { mergePassResults } from './merge.js';
 import type { UnifiedFinding } from './merge.js';
@@ -409,7 +409,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let fileId: string | null = null;
   let bidFileId: string | null = null;
   let client: Anthropic | null = null;
-  let dispatcher: Agent | null = null;
+  // dispatcher removed — undici Agent was silently truncating SSE streams
   let globalTimeout: ReturnType<typeof setTimeout> | null = null;
 
   try {
@@ -495,41 +495,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       bidFileName = bidFileName || 'bid.pdf';
     }
 
-    // Use npm undici's fetch for message API calls to control timeouts.
-    // Node's built-in fetch uses an internal bundled undici whose headersTimeout
-    // cannot be configured via the npm undici Agent (different module instances).
-    // However, undici's fetch doesn't support FormData file uploads, so we use
-    // a separate client with the default fetch for file uploads.
-    dispatcher = new Agent({
-      headersTimeout: 0, // disabled -- let SDK AbortController handle timeout
-      bodyTimeout: 0, // disabled -- streaming responses can be long
-      connectTimeout: 30_000, // 30s to establish TCP connection
-      connections: 20, // pool size -- peak concurrency is 16 parallel API calls
-    });
-    const customFetch: typeof globalThis.fetch = (input, init) =>
-      undiciFetch(
-        input as Parameters<typeof undiciFetch>[0],
-        {
-          ...init,
-          dispatcher,
-        } as Parameters<typeof undiciFetch>[1]
-      ) as Promise<Response>;
-
-    // Upload client uses default fetch (supports FormData for file uploads)
+    // Single Anthropic client using Node's built-in fetch for all calls.
+    // Previously used a custom undici Agent to avoid HeadersTimeoutError,
+    // but streaming (stream: true) sends headers immediately so that's
+    // not needed — and undici was silently truncating SSE streams.
     const uploadClient = new Anthropic({
       apiKey,
       timeout: 60 * 1000,
       maxRetries: 0,
     });
 
-    // Message client uses custom undici fetch (configurable timeouts)
-    // 280s SDK timeout kept as last-resort safety net -- per-pass AbortControllers
-    // at 90s and global 250s timeout handle all normal timeout scenarios
     client = new Anthropic({
       apiKey,
       timeout: 280 * 1000, // 280s -- under Vercel maxDuration (300s), allows room for cleanup
       maxRetries: 0, // Don't retry inside serverless function -- wastes budget
-      fetch: customFetch,
     });
 
     // Upload PDF(s) to Files API (or fallback to text extraction)
@@ -1036,9 +1015,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
     }
-    // Close the undici Agent to drain its connection pool (prevents socket leaks on warm starts)
-    if (dispatcher) {
-      dispatcher.close();
-    }
+    // undici dispatcher cleanup removed — no longer using custom fetch
   }
 }
