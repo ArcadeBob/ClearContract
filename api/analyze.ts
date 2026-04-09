@@ -76,12 +76,9 @@ const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 16384;
 // Per-pass timeout for parallel passes (Stage 2/3). They benefit from prompt cache.
-// Global timeout (250s) is the safety net under Vercel's 300s maxDuration.
 const PER_PASS_TIMEOUT_MS = 180_000;
-// Primer pass timeout: longer because it's first (no cache), processes full document,
-// and must generate structured output. Runs alone so no contention.
-// 270s leaves 30s for merge + DB writes under Vercel's 300s maxDuration.
-const PRIMER_TIMEOUT_MS = 270_000;
+// Primer pass uses same timeout as SDK (280s) — no artificial restriction.
+const PRIMER_TIMEOUT_MS = 280_000;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
 const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
@@ -523,14 +520,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }> = [];
     let isGlobalTimeout = false;
 
-    // Global safety timeout: 250s -- leaves ~50s for merge + DB writes before Vercel's 300s kill
+    // Global safety timeout: 285s -- leaves 15s for merge + DB writes before Vercel's 300s kill
     const globalController = new AbortController();
     globalTimeout = setTimeout(() => {
       isGlobalTimeout = true;
-      log.info('[analyze] Global 250s timeout fired -- aborting in-flight passes');
+      log.info('[analyze] Global 285s timeout fired -- aborting in-flight passes');
       allControllers.forEach(c => c.abort());
       globalController.abort();
-    }, 250_000);
+    }, 285_000);
 
     // --- STAGE 1: Primer pass (risk-overview) ---
     // Sent first and alone to create Anthropic prompt cache.
