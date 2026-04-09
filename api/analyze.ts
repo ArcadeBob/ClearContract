@@ -566,7 +566,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       clearTimeout(primerTimeout);
       // If primer fails, abort entire analysis per locked decision
       const msg = primerError instanceof Error ? primerError.message : String(primerError);
-      log.error(`[analyze] Primer pass failed -- aborting analysis: ${msg}`);
+      const status = (primerError as { status?: number })?.status;
+      const errorType = (primerError as { error?: { type?: string } })?.error?.type;
+      log.error(`[analyze] Primer pass failed -- aborting analysis: status=${status} type=${errorType} msg=${msg}`);
       // Preserve the original error so classifyError can read its `status`
       // (wrapping in new Error() loses Anthropic SDK error properties)
       throw primerError;
