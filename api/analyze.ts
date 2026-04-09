@@ -142,13 +142,13 @@ async function runAnalysisPass(
     PASSES_RECEIVING_PROFILE.has(pass.name) ? companyProfile : undefined
   );
 
-  // Use streaming to avoid HeadersTimeoutError -- headers are sent immediately
-  // via SSE, keeping the connection alive while Claude processes the document.
-  const response = await client.beta.messages.create({
+  // Non-streaming: returns complete BetaMessage with full response.
+  // Streaming was previously used to avoid HeadersTimeoutError but caused
+  // silent SSE truncation in both undici and Node's built-in fetch.
+  const message = await client.beta.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS_PER_PASS,
     betas: BETAS,
-    stream: true,
     system: systemPrompt,
     messages: [
       {
@@ -172,69 +172,33 @@ async function runAnalysisPass(
       },
     ],
     output_config: { format: outputFormat },
-  }, signal ? { signal } : {});
+  }, signal ? { signal } : {}) as Anthropic.Beta.Messages.BetaMessage;
 
-  // Collect streamed text chunks and capture usage from streaming events
-  let responseText = '';
-  let stopReason: string | null = null;
-  for await (const event of response) {
-    if (event.type === 'message_start') {
-      const usage = (event as { message?: { usage?: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } } }).message?.usage;
-      if (usage) {
-        passUsage.inputTokens = usage.input_tokens ?? 0;
-        passUsage.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0;
-        passUsage.cacheReadTokens = usage.cache_read_input_tokens ?? 0;
-      }
-    }
-    if (event.type === 'message_delta') {
-      const delta = event as { delta?: { stop_reason?: string }; usage?: { output_tokens?: number } };
-      if (delta.delta?.stop_reason) {
-        stopReason = delta.delta.stop_reason;
-      }
-      if (delta.usage) {
-        passUsage.outputTokens = delta.usage.output_tokens ?? 0;
-      }
-    }
-    if (
-      event.type === 'content_block_delta' &&
-      event.delta.type === 'text_delta'
-    ) {
-      responseText += event.delta.text;
-    }
-  }
+  // Extract usage from non-streaming response
+  const usage = message.usage;
+  passUsage.inputTokens = usage?.input_tokens ?? 0;
+  passUsage.outputTokens = usage?.output_tokens ?? 0;
+  passUsage.cacheCreationTokens = (usage as Record<string, number>)?.cache_creation_input_tokens ?? 0;
+  passUsage.cacheReadTokens = (usage as Record<string, number>)?.cache_read_input_tokens ?? 0;
+
+  // Extract text from content blocks
+  const responseText = message.content
+    .filter((block): block is Anthropic.Beta.Messages.BetaTextBlock => block.type === 'text')
+    .map((block) => block.text)
+    .join('');
 
   if (!responseText.trim()) {
     throw new Error(`Empty response from model for pass "${pass.name}"`);
   }
 
-  if (stopReason === 'max_tokens') {
+  if (message.stop_reason === 'max_tokens') {
     throw new Error(
       `Pass "${pass.name}" output truncated (hit max_tokens=${MAX_TOKENS_PER_PASS}). ` +
-      `Got ${passUsage.outputTokens} output tokens. Increase MAX_TOKENS_PER_PASS.`
+      `Got ${passUsage.outputTokens} output tokens.`
     );
   }
 
-  log.info(
-    `[analyze] Pass "${pass.name}" stream complete: ` +
-    `stopReason=${stopReason}, outputTokens=${passUsage.outputTokens}, ` +
-    `textLen=${responseText.length}, tail=${JSON.stringify(responseText.slice(-80))}`
-  );
-
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(responseText);
-  } catch (parseErr) {
-    // Include diagnostics in the error message so they appear in the API response
-    const diag =
-      `stopReason=${stopReason}, outputTokens=${passUsage.outputTokens}, ` +
-      `textLen=${responseText.length}, ` +
-      `tail=${JSON.stringify(responseText.slice(-120))}`;
-    log.error(`[analyze] JSON parse failed for "${pass.name}": ${diag}`);
-    throw new Error(
-      `Pass "${pass.name}" returned invalid JSON: ${parseErr instanceof Error ? parseErr.message : parseErr}. ` +
-      `Diagnostics: ${diag}`
-    );
-  }
+  const parsed = JSON.parse(responseText);
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
   return { passName: pass.name, result: parsed, usage: passUsage, durationMs: Date.now() - startTime };
@@ -275,12 +239,11 @@ async function runSynthesisPass(
 
     const outputFormat = zodToOutputFormat(SynthesisPassResultSchema);
 
-    // Use streaming to avoid HeadersTimeoutError (same pattern as runAnalysisPass)
-    const response = await client.beta.messages.create({
+    // Non-streaming: same fix as runAnalysisPass — streaming was silently truncating
+    const message = await client.beta.messages.create({
       model: MODEL,
       max_tokens: 4096,
       betas: BETAS,
-      stream: true,
       system: SYNTHESIS_SYSTEM_PROMPT,
       messages: [
         {
@@ -294,32 +257,20 @@ async function runSynthesisPass(
         },
       ],
       output_config: { format: outputFormat },
-    }, signal ? { signal } : {});
+    }, signal ? { signal } : {}) as Anthropic.Beta.Messages.BetaMessage;
 
-    // Collect streamed text chunks and capture usage from streaming events
-    let responseText = '';
-    for await (const event of response) {
-      if (event.type === 'message_start') {
-        const usage = (event as { message?: { usage?: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } } }).message?.usage;
-        if (usage) {
-          passUsage.inputTokens = usage.input_tokens ?? 0;
-          passUsage.cacheCreationTokens = usage.cache_creation_input_tokens ?? 0;
-          passUsage.cacheReadTokens = usage.cache_read_input_tokens ?? 0;
-        }
-      }
-      if (event.type === 'message_delta') {
-        const deltaUsage = (event as { usage?: { output_tokens?: number } }).usage;
-        if (deltaUsage) {
-          passUsage.outputTokens = deltaUsage.output_tokens ?? 0;
-        }
-      }
-      if (
-        event.type === 'content_block_delta' &&
-        event.delta.type === 'text_delta'
-      ) {
-        responseText += event.delta.text;
-      }
-    }
+    // Extract usage
+    const usage = message.usage;
+    passUsage.inputTokens = usage?.input_tokens ?? 0;
+    passUsage.outputTokens = usage?.output_tokens ?? 0;
+    passUsage.cacheCreationTokens = (usage as Record<string, number>)?.cache_creation_input_tokens ?? 0;
+    passUsage.cacheReadTokens = (usage as Record<string, number>)?.cache_read_input_tokens ?? 0;
+
+    // Extract text from content blocks
+    const responseText = message.content
+      .filter((block): block is Anthropic.Beta.Messages.BetaTextBlock => block.type === 'text')
+      .map((block) => block.text)
+      .join('');
 
     if (!responseText.trim()) {
       log.info('[analyze] Synthesis pass returned empty response');
