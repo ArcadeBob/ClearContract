@@ -44,9 +44,9 @@ import { checkRateLimit } from './rateLimit.js';
 // ---------------------------------------------------------------------------
 // Logger — silent in production, verbose in development
 // ---------------------------------------------------------------------------
-const isDev = process.env.VERCEL_ENV !== 'production';
+// Temporarily verbose in production to diagnose timing issues
 const log = {
-  info: (...args: unknown[]) => { if (isDev) console.log(...args); },
+  info: (...args: unknown[]) => { console.log(...args); },
   error: (...args: unknown[]) => { console.error(...args); },
 };
 
@@ -80,7 +80,8 @@ const MAX_TOKENS_PER_PASS = 16384;
 const PER_PASS_TIMEOUT_MS = 180_000;
 // Primer pass timeout: longer because it's first (no cache), processes full document,
 // and must generate structured output. Runs alone so no contention.
-const PRIMER_TIMEOUT_MS = 240_000;
+// 270s leaves 30s for merge + DB writes under Vercel's 300s maxDuration.
+const PRIMER_TIMEOUT_MS = 270_000;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
 const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
