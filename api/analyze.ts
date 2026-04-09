@@ -224,14 +224,16 @@ async function runAnalysisPass(
   try {
     parsed = JSON.parse(responseText);
   } catch (parseErr) {
-    // Log truncation details for diagnosis
-    log.error(
-      `[analyze] JSON parse failed for pass "${pass.name}": ${parseErr instanceof Error ? parseErr.message : parseErr}. ` +
-      `stopReason=${stopReason}, textLen=${responseText.length}, ` +
-      `head=${JSON.stringify(responseText.slice(0, 80))}, ` +
-      `tail=${JSON.stringify(responseText.slice(-80))}`
+    // Include diagnostics in the error message so they appear in the API response
+    const diag =
+      `stopReason=${stopReason}, outputTokens=${passUsage.outputTokens}, ` +
+      `textLen=${responseText.length}, ` +
+      `tail=${JSON.stringify(responseText.slice(-120))}`;
+    log.error(`[analyze] JSON parse failed for "${pass.name}": ${diag}`);
+    throw new Error(
+      `Pass "${pass.name}" returned invalid JSON: ${parseErr instanceof Error ? parseErr.message : parseErr}. ` +
+      `Diagnostics: ${diag}`
     );
-    throw parseErr;
   }
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
