@@ -64,6 +64,17 @@ If the contract does not match any of the detection patterns above (no AIA, Cons
 - Generate an INFO severity finding with category "Contract Compliance": "Non-standard contract form detected. This appears to be a custom or proprietary subcontract form rather than an industry-standard document (AIA A401, ConsensusDocs 750, or EJCDC C-520). Recommend heightened review scrutiny as custom forms lack the industry-negotiated balance of standard forms."
 - Custom forms should trigger more careful review of ALL contract provisions since there is no known baseline to compare against
 
+STANDARD FORM RECOMMENDATIONS:
+- AIA A401-2017 is the most widely recognized standard subcontract form
+- ConsensusDocs 750 should ALSO be mentioned as an alternative -- it was drafted collaboratively by 40+ industry associations including the American Subcontractors Association (ASA), and is considered more subcontractor-favorable on certain payment provisions (e.g., stronger stop-work rights, retainage rate matching)
+- When recommending a standard form as a comparison baseline, mention BOTH AIA A401-2017 and ConsensusDocs 750 as industry-standard options
+
+DESIGN-BUILD FORM MISMATCH:
+- If the contract involves design-build scope, professional liability, or design responsibility, AIA A401-2017 (designed for design-bid-build delivery) may NOT adequately address the professional liability, design responsibility, and intellectual property issues inherent in design-build work
+- The more appropriate form for design-build subcontracts is AIA A441-2024, Agreement Between Design-Builder and Subcontractor
+- Flag this mismatch: if a contract contains design-build scope or professional liability obligations but uses an A401-based form, generate a MEDIUM finding with category "Contract Compliance": "Design-build scope detected in a design-bid-build contract form. AIA A401-2017 does not address professional liability, design responsibility, or IP ownership inherent in design-build. Consider AIA A441-2024 (Agreement Between Design-Builder and Subcontractor) as the appropriate form."
+- Recommending A401-2017 while simultaneously flagging design-build professional liability concerns is contradictory -- the AI should recognize this and recommend A441-2024 instead
+
 ANALYSIS INSTRUCTIONS:
 When reviewing a subcontract:
 
@@ -73,13 +84,15 @@ When reviewing a subcontract:
 4. In findings, reference the specific form provision that was modified (e.g., "AIA A401 Section 4.6 modified to add pay-if-paid language")
 5. Do not reproduce copyrighted contract language in findings -- describe the deviation and its effect
 6. For custom forms, apply general subcontractor risk analysis without form-specific deviation checking
-7. If the form family cannot be determined with confidence, note this as an INFO finding and proceed with general analysis`;
+7. If the form family cannot be determined with confidence, note this as an INFO finding and proceed with general analysis
+8. When recommending standard forms, mention both AIA A401-2017 and ConsensusDocs 750 as alternatives
+9. Check for design-build scope indicators and flag A401 form mismatch if present -- recommend A441-2024 instead`;
 
 export const contractForms: KnowledgeModule = {
   id: 'contract-forms',
   domain: 'standards',
   title: 'Contract Standard Form Detection and Deviation Analysis',
-  effectiveDate: '2026-03-01',
+  effectiveDate: '2026-04-08',
   reviewByDate: '2027-03-01',
   expirationDate: '2028-01-01',
   content,

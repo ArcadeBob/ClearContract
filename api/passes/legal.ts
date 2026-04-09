@@ -62,6 +62,12 @@ Your task is to find and analyze ALL indemnification and hold-harmless clauses i
 - Explain why this matters specifically to a glazing/glass installation subcontractor, not generic legal language
 - Do NOT assess or provide a risk score -- that is computed separately
 
+## California Civil Code section 2782.05 -- Active vs. Passive Negligence (MANDATORY for California-governed contracts)
+- Distinguish between ACTIVE and PASSIVE negligence under section 2782.05. The statute uses an 'active negligence' standard. Per Rossmoor Sanitation (1975) 13 Cal.3d 622, passive negligence is NOT 'active negligence'. A broad indemnification clause could still require the sub to indemnify for the GC's passive negligence on a commercial project. Flag this gap explicitly.
+
+## Design-Build Contract Forms
+- If flagging design-build professional liability concerns, recommend AIA A441-2024 (design-build subcontract form) rather than A401-2017 (design-bid-build). Also mention ConsensusDocs 750 as a subcontractor-favorable alternative.
+
 ## Negotiation Positions (MANDATORY for Critical and High severity findings)
 For every finding you rate as Critical or High severity, you MUST populate the negotiationPosition field with a specific, actionable negotiation position:
 - State what the Sub should request from the GC
@@ -99,6 +105,10 @@ Your task is to find and analyze ALL pay-if-paid and pay-when-paid provisions in
 3. Provide enforceability context: If the contract specifies a governing law state, note whether that state enforces pay-if-paid clauses (approximately 13 states prohibit pay-if-paid, including NC, CA, NY). If no state is specified, note that enforceability varies by jurisdiction and suggest checking.
 4. Explain in plain English the risk from a glazing sub's perspective. Contrast with what a standard/fair payment term looks like (e.g., "Net 30 from invoice" or "within 30 days of approved application for payment").
 5. Note cross-references to other contract sections that modify or are affected by this clause.
+
+## California Pay-if-Paid Law (MANDATORY when governing law is California)
+- Pay-if-paid clauses are VOID AND UNENFORCEABLE in California. State this unequivocally -- do not merely flag as 'risky' or 'recommend converting'. The clause is already legally void. Cite Wm. R. Clarke Corp. v. Safeco Ins. Co. (1997) 15 Cal.4th 882.
+- When recommending pay-when-paid alternative, specify that the time cap must be SPECIFIC AND REASONABLE (30-60 days). Cite Crosno Construction (2020) 47 Cal.App.5th 940 -- open-ended pay-when-paid is also unenforceable.
 
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Pay-if-paid = Critical
@@ -221,6 +231,11 @@ Your task is to find and analyze ALL retainage and retention provisions in this 
 6. Explain in plain English the cash flow impact for a glazing sub. Contrast with standard/fair retainage terms (e.g., "5% retainage released within 30 days of Sub's substantial completion").
 7. Note cross-references to other contract sections that modify or are affected by this clause.
 
+## California Retainage Law (MANDATORY when governing law is California)
+- For contracts entered on or after January 1, 2026: Cal. Civil Code section 8811 (SB 61) caps retention at 5% for PRIVATE works. Any retainage exceeding 5% VIOLATES California law -- do not merely call it 'excessive'. State it is unlawful.
+- Do NOT cite public works statutes (PCC 7201) as authority for private contract retainage limits. The correct authority for private works entered after 1/1/2026 is CC section 8811.
+- CC section 8814 governs retention RELEASE TIMING, not retention amounts. B&P Code section 7108.5 governs progress payment timing, not retainage caps. Do not conflate these.
+
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - Retainage release tied to overall project completion (not Sub's work) = High
 - Retainage above 10% = High
@@ -286,6 +301,19 @@ Your task is to find and analyze ALL insurance requirements in this contract.
 - Additional Insured: CG 20 10, CG 20 37
 - Waiver of Subrogation
 - Primary and Non-Contributory
+
+## OCIP Policy Date Verification (MANDATORY)
+- ALWAYS verify that OCIP policy dates cover the anticipated construction period. Compare policy start/end dates against contract execution date. An expired or expiring OCIP is the HIGHEST PRIORITY finding -- flag it before all other insurance issues.
+
+## OPPI Policy -- NEVER Recommend for Subcontractors
+- NEVER recommend an OPPI (Owner's Protective Professional Indemnity) policy for a subcontractor. OPPI is purchased by project OWNERS for $50M+ projects with minimum premiums of $50K-$75K. Recommending OPPI for a subcontract is fundamentally wrong.
+
+## E&O Insurance Guidance
+- E&O insurance is NOT a statutory requirement in California. Present it as a contractual/risk-management recommendation, not a legal obligation.
+- For E&O cost guidance: $1M/$1M limits for glazing sub with limited design scope costs $2,000-$6,000/year. Do NOT cite $15,000 unless discussing dedicated project-specific policies with unusually high limits.
+
+## Design-Build Contract Forms
+- If flagging design-build professional liability concerns, recommend AIA A441-2024 (design-build subcontract form) rather than A401-2017 (design-bid-build). Also mention ConsensusDocs 750 as a subcontractor-favorable alternative.
 
 ## Severity Rules (MANDATORY -- you MUST follow these exactly)
 - CGL limits above $1M/$2M = High

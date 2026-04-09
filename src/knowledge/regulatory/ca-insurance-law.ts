@@ -50,18 +50,64 @@ CERTIFICATE OF INSURANCE (COI):
 - 30-day notice of cancellation is standard; 10-day for non-payment
 - Flag contracts requiring 60+ day cancellation notice as MEDIUM -- may not be available from insurer
 
+OCIP (OWNER-CONTROLLED INSURANCE PROGRAM):
+- OCIP deductible contributions: typical range is $2,500-$10,000 per occurrence; $5,000 is the most common benchmark
+- For subcontracts under $250,000, many OCIPs use tiered structures with $2,500-$5,000 deductibles
+- Deductibles exceeding 4% of subcontract value per claim are disproportionately high -- flag as HIGH
+- Recommended: $5,000/occurrence and $15,000 aggregate cap for subcontracts under $500K
+- CC 2782.96 requires OCIP sponsors to disclose policy limits, exclusions, and premium credit calculations
+- CC 2782.9 "reasonably limited" deductible protections apply ONLY to residential construction, NOT commercial -- do NOT cite 2782.9 for commercial projects
+- CRITICAL: The AI MUST check that the OCIP policy dates COVER the anticipated construction period. An expired OCIP means zero coverage from day one -- flag as CRITICAL (highest priority finding). Compare OCIP policy start/end dates against contract execution date and anticipated construction timeline. Any gap = CRITICAL.
+- If OCIP is expired or inadequate, advise: refuse to execute until GC provides current OCIP, OR amend contract to require sub to carry own CGL and WC (requiring approximately 2-4% price increase)
+
+PROFESSIONAL LIABILITY / ERRORS AND OMISSIONS (E&O):
+- NO statutory E&O requirement exists in California for any contractor classification, including C-17 glazing
+- CSLB requires: general liability, workers' compensation, and $25,000 contractor bond (B&P Code 7071.6, increased from $15,000 effective January 1, 2023 per SB 607) -- NOT E&O
+- E&O is contractual and risk-management-driven, NOT statutory -- the AI must NOT present E&O as a legal requirement
+- For design-build glazing work, E&O at $1M per claim is PRUDENT BEST PRACTICE
+- $2M per claim is disproportionate for subcontracts under $500K -- typically reserved for $1M+ subcontracts
+- Cost ranges: Annual E&O at $1M/$1M limits for a glazing sub with limited design scope: $2,000-$6,000/year. Project-specific endorsement: $3,000-$8,000. Do NOT cite $15,000 -- that only applies to dedicated project-specific policies with unusually high limits.
+- If design-build, review whether Civil Code 2782.8 (SB 496, effective January 1, 2018) applies to limit the sub's indemnity obligations for professional services to proportionate percentage of fault
+
+OPPI (OWNER'S PROTECTIVE PROFESSIONAL INDEMNITY) -- DO NOT RECOMMEND:
+- An OPPI policy is purchased by the PROJECT OWNER, NOT a subcontractor
+- OPPI is designed for projects with $50M+ in hard costs
+- Minimum premiums: $50,000-$75,000
+- The AI must NEVER recommend OPPI in connection with a subcontract -- it reflects a fundamental misunderstanding of the product
+- If the AI detects OPPI language or requirements in a subcontract, flag it as an ANOMALY -- the owner's obligation, not the sub's
+
+PAYMENT BONDS -- CORRECT DIRECTION OF PROTECTION:
+- A PAYMENT BOND is obtained by a HIGHER-TIER PARTY to guarantee payment to parties BELOW it
+- If a subcontractor purchases a payment bond, that bond protects the sub's OWN material suppliers, laborers, and lower-tier subs -- NOT the subcontractor itself
+- The AI must NEVER recommend a subcontractor purchase a voluntary payment bond as self-protection against GC non-payment
+- Instead, the sub's payment protections are:
+  1. Mechanics lien rights (CC 8400-8494, constitutionally protected, non-waivable per 8122) -- requires timely 20-day preliminary notice
+  2. Stop payment notices to owner and/or construction lender
+  3. Prompt payment statute (B&P Code 7108.5, 2% monthly penalty)
+  4. Section 8850 claims process and stop-work rights (effective 1/1/2026)
+  5. Check whether GC has obtained a payment bond from the owner -- if so, sub can make direct claim against GC's surety (CC 8600-8614)
+
+CSLB BOND REQUIREMENT:
+- Current contractor bond requirement: $25,000 (effective January 1, 2023 per SB 607)
+- Prior amount was $15,000 -- do NOT reference the old amount
+- B&P Code 7071.6 governs the contractor bond requirement
+
 ANALYSIS INSTRUCTIONS:
 - Compare contract insurance requirements against the standard minimums listed above
 - Flag any requirement that exceeds standard minimums by category with appropriate severity
 - Check for prohibited insurance requirements (e.g., additional insured on WC)
 - Note if contract requires sub to maintain coverage for completed operations period (typically 2-5 years post-completion)
-- Flag contracts with no insurance requirements at all as MEDIUM -- unusual and risky for all parties`;
+- Flag contracts with no insurance requirements at all as MEDIUM -- unusual and risky for all parties
+- If OCIP is referenced, verify policy dates cover the full construction period -- expired OCIP is CRITICAL
+- If E&O is required, do NOT present it as a statutory requirement -- it is contractual only
+- Never recommend OPPI for a subcontractor
+- Never recommend a subcontractor purchase a payment bond for self-protection against GC non-payment`;
 
 export const caInsuranceLaw: KnowledgeModule = {
   id: 'ca-insurance-law',
   domain: 'regulatory',
   title: 'California Insurance Law for Glazing Subcontractors',
-  effectiveDate: '2025-01-01',
+  effectiveDate: '2026-01-01',
   reviewByDate: '2027-01-01',
   expirationDate: '2027-06-01',
   content,

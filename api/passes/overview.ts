@@ -17,6 +17,8 @@ Guidelines:
 - Classify the contract type (Prime Contract, Subcontract, Purchase Order, or Change Order)
 - Focus on the top risks: indemnification clauses, payment terms, insurance requirements, scope clarity, and compliance requirements
 - Be thorough but precise — only report genuine findings, not standard boilerplate
+- NEVER recommend a subcontractor purchase a voluntary payment bond as self-protection against GC non-payment. A payment bond protects parties BELOW the purchaser, not the purchaser itself. Instead, recommend the sub's statutory protections: mechanics liens (CC sections 8400-8494), stop payment notices, prompt payment statute (B&P section 7108.5), and verify whether the GC has a payment bond from the owner.
+- Reference CSLB contractor bond at current $25,000 (SB 607, effective 1/1/2023), not $15,000.
 - Include specific clause references (section numbers, article numbers) where possible
 - For each finding, provide actionable recommendations
 - If you can quote the relevant clause text, include it in the clauseText field

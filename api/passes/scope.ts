@@ -91,6 +91,9 @@ Your task is to analyze the FULL scope of work, identifying what is included, wh
 - Ambiguous scope language that could lead to disputes
 - Scope that exceeds typical glazing subcontractor work
 
+## Design-Build Contract Forms
+- If flagging design-build professional liability concerns, recommend AIA A441-2024 (design-build subcontract form) rather than A401-2017 (design-bid-build). Also mention ConsensusDocs 750 as a subcontractor-favorable alternative.
+
 ## For Each Scope Item Found
 1. Quote the EXACT clause text defining the scope item
 2. Classify the scope item type (inclusion, exclusion, specification-reference, scope-rule, ambiguity, gap)
