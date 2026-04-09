@@ -214,7 +214,25 @@ async function runAnalysisPass(
     );
   }
 
-  const parsed = JSON.parse(responseText);
+  log.info(
+    `[analyze] Pass "${pass.name}" stream complete: ` +
+    `stopReason=${stopReason}, outputTokens=${passUsage.outputTokens}, ` +
+    `textLen=${responseText.length}, tail=${JSON.stringify(responseText.slice(-80))}`
+  );
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch (parseErr) {
+    // Log truncation details for diagnosis
+    log.error(
+      `[analyze] JSON parse failed for pass "${pass.name}": ${parseErr instanceof Error ? parseErr.message : parseErr}. ` +
+      `stopReason=${stopReason}, textLen=${responseText.length}, ` +
+      `head=${JSON.stringify(responseText.slice(0, 80))}, ` +
+      `tail=${JSON.stringify(responseText.slice(-80))}`
+    );
+    throw parseErr;
+  }
   if (!Array.isArray(parsed.findings)) parsed.findings = [];
   if (!Array.isArray(parsed.dates)) parsed.dates = [];
   return { passName: pass.name, result: parsed, usage: passUsage, durationMs: Date.now() - startTime };
