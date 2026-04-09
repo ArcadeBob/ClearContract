@@ -73,6 +73,9 @@ function sanitizeFileName(name: string): string {
 const BETAS = ['files-api-2025-04-14'];
 const MODEL = 'claude-sonnet-4-5-20250929';
 const MAX_TOKENS_PER_PASS = 16384;
+// Per-pass timeout: 180s for non-streaming (model must generate full response before returning).
+// Global timeout (250s) is the safety net under Vercel's 300s maxDuration.
+const PER_PASS_TIMEOUT_MS = 180_000;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE;
 const MAX_BID_FILE_SIZE_BYTES = MAX_BID_FILE_SIZE;
 
@@ -511,7 +514,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     log.info('[analyze] Stage 1: Running primer pass (risk-overview)...');
     const primerController = new AbortController();
     allControllers.push(primerController);
-    const primerTimeout = setTimeout(() => primerController.abort(), 90_000);
+    const primerTimeout = setTimeout(() => primerController.abort(), PER_PASS_TIMEOUT_MS);
 
     let primerResult: PassWithUsage;
     try {
@@ -558,7 +561,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const timeout = setTimeout(() => {
           log.info(`[analyze] Pass "${pass.name}" timed out at 90s`);
           ctrl.abort();
-        }, 90_000);
+        }, PER_PASS_TIMEOUT_MS);
 
         return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal)
           .finally(() => clearTimeout(timeout));
@@ -617,7 +620,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const timeout = setTimeout(() => {
             log.info(`[analyze] Stage 3 pass "${pass.name}" timed out at 90s`);
             ctrl.abort();
-          }, 90_000);
+          }, PER_PASS_TIMEOUT_MS);
 
           return runAnalysisPass(client!, fileId!, pass, companyProfile, ctrl.signal, bidFileId)
             .finally(() => clearTimeout(timeout));
@@ -713,7 +716,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!isGlobalTimeout) {
       const synthController = new AbortController();
       allControllers.push(synthController);
-      const synthTimeout = setTimeout(() => synthController.abort(), 90_000);
+      const synthTimeout = setTimeout(() => synthController.abort(), PER_PASS_TIMEOUT_MS);
 
       const synthResult = await runSynthesisPass(
         client!, merged.findings as unknown as UnifiedFinding[], synthController.signal
